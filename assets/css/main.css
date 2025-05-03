@@ -1,0 +1,365 @@
+.box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.box:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.box .price {
+    font-size: 2rem;
+    color: #00aaff;
+    margin: 15px 0;
+}
+
+.box .btn-buy {
+    display: inline-block;
+    padding: 10px 30px;
+    color: #fff;
+    background-color: #00aaff;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.box .btn-buy:hover {
+    background-color: #007acc;
+}
+
+.featured {
+    background-color: #ff901c;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.badge-primary {
+    background-color: #007bff;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 10px;
+}
+
+.feature-box-icon {
+    font-size: 2rem;
+    margin-right: 15px;
+}
+
+.feature-box {
+    background-color: #f8f9fa;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#map {
+    width: 100%;
+    height: 400px;
+    margin-top: 20px;
+}
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+
+/* Team Section Image Styling */
+
+.team .member-img img {
+    height: 250px;
+    /* Set a fixed height for all images */
+    width: 100%;
+    /* Ensure the width adjusts to maintain aspect ratio */
+    object-fit: cover;
+    /* Ensures the images cover the area without stretching */
+}
+
+
+/* Optional: Adjust the container around images if needed for better alignment */
+
+.team .member-img {
+    overflow: hidden;
+    /* Hides parts of the image that may exceed the designated area */
+    border-radius: 8px;
+    /* Adds rounded corners to the images */
+}
+
+.hero {
+    position: relative;
+    z-index: 1;
+}
+
+.card-container {
+    position: absolute;
+    bottom: -50px;
+    /* Adjust this value to control the overlap */
+    left: 0;
+    right: 0;
+    padding: 20px 0;
+}
+
+.info-card {
+    background: white;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.info-card h4 {
+    margin-bottom: 10px;
+}
+
+.info-card p {
+    font-size: 14px;
+}
+
+.info-cards {
+    padding: 30px 0;
+}
+
+.info-card {
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.info-button {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 20px;
+    background-color: #007bff;
+    color: #ffffff;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.info-button:hover {
+    background-color: #0056b3;
+}
+
+.counts {
+    background: #f8f9fa;
+    /* Light grey background for subtle contrast */
+    padding: 60px 0;
+    color: #333;
+    /* Darker text for better readability */
+}
+
+.count-box {
+    text-align: center;
+    padding: 20px;
+    transition: all 0.3s ease-in-out;
+    border-radius: 10px;
+    /* Rounded corners for a modern look */
+}
+
+.count-box i {
+    font-size: 2rem;
+    /* Larger icons */
+    color: #4c8bf5;
+    /* Unified color for icons */
+    margin-bottom: 15px;
+}
+
+.count-box:hover {
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+    /* Subtle hover effect */
+    transform: translateY(-5px);
+}
+
+.purecounter {
+    font-size: 2rem;
+    /* Larger, bolder numbers */
+    font-weight: bold;
+    color: #000;
+    /* Stronger color for emphasis */
+}
+
+.count-box p {
+    font-size: 1rem;
+    color: #666;
+    /* Slightly lighter text for the description */
+    margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+    .count-box {
+        margin-bottom: 20px;
+        /* More space between boxes on smaller screens */
+    }
+}
+
+.feature-box {
+    margin-bottom: 20px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.feature-box:hover {
+    transform: scale(1.05);
+}
+
+.carousel .carousel-item img {
+    width: 100%;
+    height: auto;
+    /* Adjust based on your preference */
+}
+
+.feature-box {
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.feature-box.flip {
+    transform: rotateY(180deg);
+}
+
+.service-box i {
+    font-size: 2rem;
+    /* Increase icon size for visibility */
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    /* Adjust based on your site's color scheme */
+}
+
+.recent-blog-posts .post-box.disabled {
+    filter: grayscale(100%);
+    /* Grey out the images */
+    pointer-events: none;
+    /* Disable clicking on the entire box */
+    color: grey;
+    /* Grey out the text to indicate it is inactive */
+}
+
+.recent-blog-posts .post-box.disabled .readmore {
+    display: none;
+    /* Hide the 'Read More' link to emphasize non-interactivity */
+}
+
+.price-small {
+    font-size: 1.5rem;
+    color: #1d0979;
+}
+
+.price-large {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1d0979;
+}
+
+.card-props {
+    background-color: rgb(221, 218, 218);
+    border: none;
+    border-radius: 3em;
+    padding: 3em;
+}
+
+#userEmail {
+    font-size: 1rem;
+}
+
+
+/* Custom CSS to make header fit the whole page width */
+
+#header {
+    width: 100%;
+    background: #f8f9fa;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#header .container-fluid {
+    max-width: 100%;
+    padding: 0 30px;
+}
+
+#header .logo {
+    display: flex;
+    align-items: center;
+}
+
+#header .logo img {
+    max-height: 40px;
+    margin-right: 10px;
+}
+
+#header .btn-primary {
+    background-color: #1d0979;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 20px;
+}
+
+@media (max-width: 991.98px) {
+    #navbar ul {
+        background: #fff;
+        width: 100%;
+    }
+    #navbar ul li {
+        display: block;
+        text-align: center;
+        margin: 10px 0;
+    }
+}
+
+@media (min-width: 992px) {
+    #navbar ul {
+        display: flex;
+        align-items: center;
+    }
+    #navbar ul li {
+        margin: 0 10px;
+    }
+}
+
+
+/* Full-page loader styles */
+
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+    /* Light background */
+    z-index: 9999;
+    /* Keep it on top of everything */
+}
+
+
+/* Make the spinner larger */
+
+.spinner-border {
+    width: 4rem;
+    height: 4rem;
+}
+
+
+/* Hide the main content by default */
+
+#main-content {
+    display: none;
+}

@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+    <!-- Axios Script and Event Listeners -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<!--    <script src="assets/js/rigsdata.js"></script>-->
+<!--    <script src="assets/js/getcharts.js"></script>-->
+<!--    <script src="assets/js/perfornamce.js"></script>-->
+        <script src="assets/js/userinfo.js"></script>
+
+    <!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap JavaScript Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+    <title>FLIPS Portal | Enterprise | </title>
+    <style>
+/* body {
+    background-color: white;
+} */
+
+
+/* Zoom in on hover */
+
+.card {
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    /* Slight zoom effect */
+}
+
+.card .card-img-top {
+    height: 120px;
+    object-fit: contain;
+    /* filter: invert(100%) grayscale(100%); */
+    /* Inverts color to white and applies grayscale */
+}
+
+.navbar {
+    height: 50px;
+    background-color: #349beb;
+    color: #fff;
+}
+
+.navbar .nav-item,
+.navbar .form-inline {
+    display: flex;
+    align-items: left;
+}
+
+.navbar .mx-auto {
+    width: 60%;
+}
+
+.navbar .form-control {
+    width: 80%;
+}
+
+.navbar-brand img {
+    height: 30px;
+}
+
+
+/* Hamburger Menu */
+
+.hamburger-menu {
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.sidebar {
+    position: fixed;
+    top: 39px;
+    left: -250px;
+    bottom: 100%;
+    width: 250px;
+    height: 100vh;
+    background-color: #262926;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease-in-out;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+
+/* Sidebar Links */
+
+.sidebar a {
+    display: block;
+    color: white;
+    padding: 5px;
+    text-decoration: none;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+
+/* Sidebar Link Hover Effect */
+
+.sidebar a:hover {
+    background-color: black;
+}
+
+
+/* Sidebar Active State */
+
+.sidebar.active {
+    left: 0;
+}
+
+.search-container {
+    width: 65%;
+    margin: 0 auto;
+    background-color: transparent;
+}
+
+.search-input::placeholder {
+    text-align: center;
+}
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background: #262926;
+    padding: 15px;
+    position: fixed;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    font-size: 14px;
+    color: #1c5aaa;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.sidebar a:hover {
+    background: green;
+}
+
+.submenu a {
+    padding-left: 35px;
+    font-size: 13px;
+    color: white;
+}
+
+
+/* Main content */
+
+.content {
+    transition: margin-left 0.3s;
+    margin-left: 0;
+}
+
+
+/* Adjust margin of content when sidebar is active */
+
+.sidebar.active~.content {
+    margin-left: 250px;
+}
+
+.custom-container {
+    width: 80%;
+    justify-content: center;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+
+/* Additional styles to ensure centering */
+
+.navbar {
+    position: relative;
+}
+
+.search-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.nav-link,
+.navbar-brand {
+    color: white;
+}
+
+
+/* Sidebar Styles */
+
+#sidebar {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: -250px;
+    /* Hide the sidebar initially */
+    background-color: #343a40;
+    transition: all 0.3s ease;
+}
+
+#sidebar.active {
+    left: 0;
+    /* Show the sidebar */
+}
+
+#sidebar ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+#sidebar ul li {
+    padding: 10px;
+    text-align: center;
+}
+
+#sidebar ul li a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+}
+
+
+/* Main content styles */
+
+#main-content {
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+#main-content.active {
+    width: 75%;
+    /* Reduce width when sidebar is visible */
+    margin-left: 250px;
+}
+
+
+/* Toggle button */
+
+#toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 10px;
+    z-index: 1000;
+    font-size: 24px;
+    cursor: pointer;
+    color: #343a40;
+}
+
+
+/* Parent Container */
+
+.card-container {
+    display: flex;
+    /* Use Flexbox for layout */
+    justify-content: center;
+    /* Center items horizontally */
+    flex-wrap: wrap;
+    /* Allow items to wrap to the next line */
+    gap: 20px;
+    /* Space between cards */
+    padding: 20px;
+    /* Padding around the container */
+}
+
+
+/* Smaller Card CSS */
+
+.small-card {
+    width: 9.7rem;
+    /* Smaller width */
+    background-color: none;
+    /* No background color */
+    color: rgb(65, 40, 40);
+    /* Text color */
+    margin: 0;
+    /* Remove margin from cards for better spacing control */
+    border-radius: 10px;
+    /* Slightly rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Subtle shadow for depth */
+    overflow: hidden;
+    /* Ensure content doesn't overflow */
+    text-align: center;
+    /* Center text */
+    cursor: pointer;
+    /* Makes it clear the card is clickable */
+    transition: transform 0.2s ease;
+    /* Optional: add hover effect */
+}
+
+.small-card:hover {
+    transform: scale(1.05);
+    /* Optional: slight zoom on hover */
+}
+
+.small-card img {
+    width: 80%;
+    /* Make image fit the card width */
+    height: 70px;
+    /* Set height */
+    object-fit: contain;
+    /* Maintain aspect ratio */
+    border-bottom: 1px solid #201c1c;
+    /* Border under the image */
+    padding: 10px;
+    /* Padding around the image */
+}
+
+.small-card .card-body {
+    padding: 10px;
+    /* Padding inside the card */
+}
+
+.small-card .card-title {
+    font-size: 1rem;
+    /* Smaller title font */
+    margin-bottom: 5px;
+    /* Reduce space below title */
+    color: #4caf50;
+    /* Green color for title */
+}
+
+.small-card .card-text {
+    font-size: 0.9rem;
+    /* Smaller text */
+    margin-bottom: 5px;
+    /* Reduce space below text */
+}
+
+
+/* Overlay styles (unchanged) */
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.overlay-content {
+    position: relative;
+    margin: 5% auto;
+    padding: 20px;
+    background-color: #393535;
+    width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+    border-radius: 10px;
+}
+
+.closebtn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 40px;
+    color: #333;
+    cursor: pointer;
+}
+
+
+
+  /* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(152, 147, 147, 0.8);
+    z-index: 9999;
+    padding-top: 20px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    width: 100%;
+    max-width: 1000px;
+    border-radius: 8px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#subscriptionDetails {
+    margin: 20px 0;
+}
+
+#upgradeButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+#upgradeButton:hover {
+    background-color: #45a049;
+}
+
+
+    </style>
+
+</head>
+
+<body>
+         <!-- Add this to your existing HTML -->
+         <div id="spinner" class="spinner" style="display: none;">
+            <div class="loader"></div> <!-- Create your loader here -->
+            <p>Loading...</p>
+        </div>
+    <nav class="navbar navbar-expand-lg" style="background: #1d0979;">
+        <div class="hamburger-menu" onclick="toggleSidebar()">&#9776;</div>
+        <a class="navbar-brand" href="#">
+            <li class="nav-item active">
+                <a class="nav-link" href=""><strong>FLIPS</strong> <span class="sr-only">(current)</span></a>
+            </li>
+        </a>
+        <div class="search-container">
+            <input class="form-control search-input" type="search" placeholder="Start typing to search..."
+                style="background-color: #fff; max-height: 34px; outline: none; border: none" />
+        </div>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ml-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" title="Feedback">
+                        <i class="fas fa-comment-dots"></i>
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown"
+    role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <img src="assets/images.png" alt="Profile Image" class="rounded-circle"
+        style="height: 20px; width: 20px" />
+    <span class="ml-2" style="color: #fff; font-size: small; font-weight: bold;"
+        id="username">Loading..</span>
+</a>
+                    <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="profileDropdown"
+                        style="width: 320px">
+                        <div class="row">
+                            <!-- Column 1 - Profile Dropdown Menu -->
+                            <div class="col-12 d-flex flex-column">
+                                <!-- Settings Dropdown -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#settingsSection" aria-expanded="false"
+                                        aria-controls="settingsSection">
+                                        Settings <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="settingsSection">
+                                        <a class="dropdown-item" id="accountSettingsLink" data-toggle="modal" data-target="#subscriptionModal"><i
+                                                class="fas fa-user-cog mr-2"></i> Account Settings</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-cog mr-2"></i> General
+                                            Settings</a>
+                                    </div>
+                                </div>
+
+                                <!-- Notifications Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#notificationsSection" aria-expanded="false"
+                                        aria-controls="notificationsSection">
+                                        Notifications <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="notificationsSection">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-bell mr-2"></i> View
+                                            Notifications</a>
+                                    </div>
+                                </div>
+
+                                <!-- Subscription Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#subscriptionSection" aria-expanded="false"
+                                        aria-controls="subscriptionSection">
+                                        Subscription <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="subscriptionSection">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-star mr-2"></i>
+                                            Tier/Subscription Plan</a>
+                                    </div>
+                                </div>
+
+                                <!-- Feedback Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#feedbackSection" aria-expanded="false"
+                                        aria-controls="feedbackSection">
+                                        Feedback <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="feedbackSection">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-comment-dots mr-2"></i> Send
+                                            Feedback</a>
+                                    </div>
+                                </div>
+
+                                <!-- Follow Us Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#followUsSection" aria-expanded="false"
+                                        aria-controls="followUsSection">
+                                        Follow Us <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="followUsSection">
+                                        <a class="dropdown-item" href="#"><i class="fab fa-facebook mr-2"></i>
+                                            Facebook</a>
+                                        <a class="dropdown-item" href="#"><i class="fab fa-twitter mr-2"></i>
+                                            Twitter</a>
+                                        <a class="dropdown-item" href="#"><i class="fab fa-linkedin mr-2"></i>
+                                            LinkedIn</a>
+                                    </div>
+                                </div>
+                                <!-- Logout Button -->
+                                <button class="btn w-100 mt-2" onclick="handleLogout()"
+                                    style="background: #1d0979; color: #fff; border-radius: 5px;">
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div id="sidebar" class="sidebar" style="background: #1d0979; border: 1px solid #fff;">
+        <div>
+            <a href="#rigsSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="rigsSubmenu"
+                style="color: #fff; display: flex; align-items: center; padding: 10px;">
+                <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>Rigs
+                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+            </a>
+            <div id="rigsSubmenu" class="collapse submenu">
+                <a href="#" onclick="checkTokenAndFetchData()"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>All
+                    Rigs</a>
+                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Active Rigs</a>
+                <a href="#"><i class="fa fa-paint-brush mr-2" aria-hidden="true"></i>Maintenance</a>
+            </div>
+        </div>
+
+        <div>
+            <a href="#rigMenu" data-toggle="collapse" aria-expanded="false" aria-controls="rigMenu"
+                style="color: #fff; display: flex; align-items: center; padding: 10px;">
+                <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>GIS
+                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+            </a>
+            <div id="rigMenu" class="collapse submenu">
+                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Latitude</a>
+                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Longitude</a>
+                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Demographics</a>
+                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Topography</a>
+            </div>
+        </div>
+
+        <div>
+            <a href="#addonMenu" data-toggle="collapse" aria-expanded="false" aria-controls="addonMenu"
+                style="color: #fff; display: flex; align-items: center; padding: 10px;">
+                <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>Add-ons
+                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+            </a>
+            <div id="addonMenu" class="collapse submenu">
+                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Custom report</a>
+                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Additional rigs</a>
+                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>AI Insights</a>
+                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>API Access</a>
+            </div>
+        </div>
+
+        <div>
+            <a href="#weatherMenu" data-toggle="collapse" aria-expanded="false" aria-controls="weatherMenu"
+                style="color: #fff; display: flex; align-items: center; padding: 10px;">
+                <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>Weather
+                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+            </a>
+            <div id="weatherMenu" class="collapse submenu">
+                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Temperature</a>
+                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Humidity</a>
+                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Rainfall</a>
+            </div>
+        </div>
+
+        <div>
+            <a href="#predictionSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="predictionSubmenu"
+                style="color: #fff; display: flex; align-items: center; padding: 10px;">
+                <i class="bi bi-sliders mr-2"></i>Prediction
+                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+            </a>
+            <div id="predictionSubmenu" class="collapse submenu">
+                <a href="#"><i class="bi bi-bar-chart-steps mr-2"></i>Historical Data</a>
+                <a href="#"><i class="bi bi-graph-down-arrow mr-2"></i>Forecasting</a>
+            </div>
+        </div>
+
+        <div>
+            <a href="#waterLevelsSubmenu" data-toggle="collapse" aria-expanded="false"
+                style="color: #fff; display: flex; align-items: center; padding: 10px;"
+                aria-controls="waterLevelsSubmenu">
+                <i class="bi bi-moisture mr-2"></i>Water Levels
+                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+            </a>
+            <div id="waterLevelsSubmenu" class="collapse submenu">
+                <a href="#"><i class="bi bi-water mr-2"></i>Current Levels</a>
+                <a href="#"><i class="bi bi-clock-history mr-2"></i>Historical Data</a>
+            </div>
+        </div>
+
+        <div>
+            <a href="#" class="mb-5" style="color: #fff; padding: 10px;"><i
+                    class="bi bi-gear-wide-connected mr-2"></i>Settings</a>
+        </div>
+
+        <div>
+            <a href="#" class="mt-5" style="color: #fff; padding: 10px;" onclick="handleLogout()"><i
+                    class="bi bi-box-arrow-right mr-2"></i>Logout</a>
+        </div>
+    </div>
+<div class="container-fluid mb-5">
+    <div class="content custom-container mx-auto">
+        <br>
+        <div class="container-fluid p-4 m-0">
+            <div class="row">
+                <!-- Live Data Card -->
+                <div class="col-md-3">
+                    <a href="levels.html" style="text-decoration: none;">
+                        <div class="card"
+                            style="width: 18rem; color: #2a1b1b; text-align:center; cursor:pointer; border: none; background: #FFFACD;">
+                            <img src="assets/img/chart.png" class="card-img-top" alt="Card Image">
+                            <div class="card-body">
+                                <h5 class="card-title" style="color:#1c1e23">Graphical Live Data</h5>
+                                <p class="card-text">Water level, Temperature & Humidity</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <!-- Historical Data Card -->
+                <div class="col-md-3">
+                    <a href="history.html" style="text-decoration: none;">
+                        <div class="card"
+                            style="width: 18rem; color: #2a1b1b; text-align:center; cursor:pointer; border: none; background: #B0E0E6;">
+                            <img src="assets/img/history.png" class="card-img-top" alt="Card Image">
+                            <div class="card-body">
+                                <h5 class="card-title" style="color: #1c1e23">Historical Weather Data</h5>
+                                <p class="card-text">Data Reports and FLIP weather historical data</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <!-- Analytics Card -->
+                <div class="col-md-3">
+                    <a href="analytics.html" style="text-decoration: none;">
+                        <div class="card"
+                            style="width: 18rem; color: #2a1b1b; text-align:center; cursor:pointer; border: none; background: #FFE4C4;">
+                            <img src="assets/img/analytics.png" class="card-img-top" alt="Card Image">
+                            <div class="card-body">
+                                <h5 class="card-title" style="color: #1c1e23">Analytics</h5>
+                                <p class="card-text">Models, Weather Forecast, Weather Conditions, GIS</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <!-- Customized Analytics Card -->
+                <div class="col-md-3">
+                    <a href="customized.html" style="text-decoration: none;">
+                        <div class="card"
+                            style="width: 18rem; color: #2a1b1b; text-align:center; cursor:pointer; border: none; background: #ADFF2F;">
+                            <img src="assets/img/analytics.png" class="card-img-top" alt="Card Image">
+                            <div class="card-body">
+                                <h5 class="card-title" style="color: #1c1e23">Customized Analytics</h5>
+                                <p class="card-text">Models, Weather Forecast, Weather Conditions, GIS</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="row justify-content-center g-3">
+        <!-- Create Resource Card -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card text-center shadow-sm" onclick="redirectTo('customized.html')" style="cursor: pointer;">
+                <img src="assets/img/plus.png" class="card-img-top p-3" alt="Add Resource"
+                    style="height: 100px; object-fit: contain;">
+                <div class="card-body">
+                    <h6 class="card-title">Create Resource</h6>
+                    <p class="card-text text-muted small">Add a new resource</p>
+                </div>
+            </div>
+        </div>
+        <!-- GIS Card -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card text-center shadow-sm" onclick="redirectToGIS()" style="cursor: pointer;">
+                <img src="assets/img/analysis (1).png" class="card-img-top p-3" alt="View Data"
+                    style="height: 100px; object-fit: contain;">
+                <div class="card-body">
+                    <h6 class="card-title">GIS</h6>
+                    <p class="card-text text-muted small">View GIS data</p>
+                </div>
+            </div>
+        </div>
+        <!-- Check Performance Card -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card text-center shadow-sm" onclick="redirectTo('analytics.html')" style="cursor: pointer;">
+                <img src="assets/img/images__1_-removebg-preview.png" class="card-img-top p-3" alt="Check Performance"
+                    style="height: 100px; object-fit: contain;">
+                <div class="card-body">
+                    <h6 class="card-title">Check Performance</h6>
+                    <p class="card-text text-muted small">Checking performance</p>
+                </div>
+            </div>
+        </div>
+        <!-- Subscriptions Card -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card text-center shadow-sm" onclick="redirectTo('profile.html')" style="cursor: pointer;">
+                <img src="assets/img/subscription-removebg-preview.png" class="card-img-top p-3" alt="Subscriptions"
+                    style="height: 100px; object-fit: contain;">
+                <div class="card-body">
+                    <h6 class="card-title">Subscriptions</h6>
+                    <p class="card-text text-muted small">View subscriptions</p>
+                </div>
+            </div>
+        </div>
+        <!-- Rigs Card -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card text-center shadow-sm" onclick="redirectTo('history.html')" style="cursor: pointer;">
+                <img src="assets/img/drilling-rig-removebg-preview.png" class="card-img-top p-3" alt="Available Rigs"
+                    style="height: 100px; object-fit: contain;">
+                <div class="card-body">
+                    <h6 class="card-title">Rigs</h6>
+                    <p class="card-text text-muted small">Available rigs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+ <script>
+// Function to redirect to a specific page
+function redirectTo(page) {
+    console.log(`Redirecting to ${page}`);
+    window.location.href = page;
+}
+
+// Function to handle GIS redirection with encryption
+function redirectToGIS() {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert("Authentication token is missing. Please log in again.");
+        console.error("Missing token. Cannot redirect to GIS.");
+        return;
+    }
+
+    // Fetch user information
+    axios.get('http://127.0.0.1:8000/api/user-info/', {
+        headers: {
+            'Authorization': `Token ${token}`,
+        },
+    })
+    .then(response => {
+        const userData = response.data;
+
+        // Prepare user info for encryption
+        const userInfo = {
+            username: userData.username,
+            email: userData.email,
+            token: token,
+        };
+
+        // Encrypt the data using Base64 as a placeholder
+        const encryptedData = btoa(JSON.stringify(userInfo)); // Base64 encryption
+        const key = '1234'; // Static encryption key
+
+        // Simulate the key as part of the encryption mechanism
+        const finalPayload = `${encryptedData}:${key}`;
+
+        console.log("Redirecting to GIS with encrypted data...");
+
+        // Redirect to GIS with the encrypted data
+        window.location.href = `http://0.0.0.0:8001/home?payload=${finalPayload}`;
+    })
+    .catch(error => {
+        console.error('Failed to fetch user info:', error);
+
+        if (error.response && error.response.status === 401) {
+            alert('Session expired. Please log in again.');
+            localStorage.removeItem('token'); // Clear invalid token
+            window.location.href = 'login.html'; // Redirect to login page
+        }
+    });
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

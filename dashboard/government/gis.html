@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>GIS Analysis | FLIPS</title>
+
+    <!-- Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        #map {
+            height: 800px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .modal-content {
+            border-radius: 8px;
+        }
+
+        .modal-header {
+            background-color: #1d0979;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">FLIPS GIS Analysis</a>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <!-- Map Section -->
+        <div id="map"></div>
+
+        <!-- ROI Analysis Form -->
+        <form id="aoiForm" class="mt-3">
+            <input type="hidden" id="aoiInput" name="aoi">
+            <button type="submit" class="btn btn-primary">Analyze ROI</button>
+        </form>
+
+        <!-- Results Modal -->
+        <div class="modal fade" id="resultsModal" tabindex="-1" aria-labelledby="resultsModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="resultsModalLabel">Analysis Results</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Flood Area (sq km):</strong> <span id="floodArea">N/A</span></p>
+                        <p><strong>Exposed Population:</strong> <span id="exposedPopulation">N/A</span></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Initialize Leaflet Map
+        const map = L.map("map").setView([-0.881, 37.464], 12);
+
+        // Add OpenStreetMap base layer
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors",
+            maxZoom: 19
+        }).addTo(map);
+
+        // Initialize Feature Group for drawing
+        const drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        // Add Leaflet Draw Control
+        const drawControl = new L.Control.Draw({
+            draw: {
+                polygon: true,
+                polyline: false,
+                rectangle: false,
+                circle: false,
+                marker: false
+            },
+            edit: {
+                featureGroup: drawnItems,
+                edit: false,
+                remove: false
+            }
+        });
+        map.addControl(drawControl);
+
+        // Store analysis layers
+        const analysisLayers = {};
+
+        // Function to add layers to the map
+        function addAnalysisLayers(layers) {
+            // Clear previous analysis layers
+            Object.values(analysisLayers).forEach(layer => {
+                if (map.hasLayer(layer)) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // Add new layers from API response
+            if (layers.aoi) {
+                const aoiLayer = L.geoJSON(layers.aoi);
+                aoiLayer.addTo(map);
+                analysisLayers["Region of Interest"] = aoiLayer;
+            }
+
+            const layerConfig = {
+                "Water Occurrence": layers.water_occurrence,
+                "NDWI": layers.ndwi,
+                "Flow Time (minutes)": layers.flow_time_minutes,
+                "Distance": layers.distance,
+                "Sentinel Data": layers.dataset_without_cloud,
+                "DEM": layers.elevation,
+                "Slope": layers.slope,
+                "Flood Mask": layers.flood_mask,
+                "Population": layers.population,
+                "Permanent Water": layers.permanent_water
+            };
+
+            for (const [key, url] of Object.entries(layerConfig)) {
+                if (url) {
+                    analysisLayers[key] = L.tileLayer(url, { attribution: "Google Earth Engine" });
+                    analysisLayers[key].addTo(map);
+                }
+            }
+
+            // Add a layer control to toggle analysis layers
+            L.control.layers(null, analysisLayers, { position: "topright" }).addTo(map);
+        }
+
+        // Handle drawing completed event
+        map.on(L.Draw.Event.CREATED, function (event) {
+            const layer = event.layer;
+            drawnItems.addLayer(layer);
+            document.getElementById("aoiInput").value = JSON.stringify(layer.toGeoJSON().geometry);
+        });
+
+        // Submit form to analyze ROI
+        document.getElementById("aoiForm").onsubmit = function (event) {
+            event.preventDefault();
+
+            const aoiGeoJSON = document.getElementById("aoiInput").value;
+            if (!aoiGeoJSON) {
+                alert("Please draw a Region of Interest (ROI) on the map before submitting.");
+                return;
+            }
+
+            // Show spinner or loading indicator (optional)
+            const submitButton = event.target.querySelector("button");
+            submitButton.disabled = true;
+            submitButton.textContent = "Analyzing...";
+
+            // Call the API endpoint
+            axios.post("http://flipsintel.org:8000/gis/analyze-roi/", {
+                aoi: JSON.parse(aoiGeoJSON)
+            })
+            .then(response => {
+                const data = response.data;
+
+                // Populate the modal with results
+                document.getElementById("floodArea").textContent = data.flood_area_sq_km || "N/A";
+                document.getElementById("exposedPopulation").textContent = data.exposed_population || "N/A";
+
+                // Show the modal
+                const resultsModal = new bootstrap.Modal(document.getElementById("resultsModal"));
+                resultsModal.show();
+
+                // Add analysis layers to the map
+                if (data.analysis_layers) {
+                    addAnalysisLayers(data.analysis_layers);
+                }
+
+                // Reset the button
+                submitButton.disabled = false;
+                submitButton.textContent = "Analyze ROI";
+            })
+            .catch(error => {
+                console.error("Error analyzing ROI:", error);
+                alert("An error occurred while analyzing the ROI. Please try again.");
+                submitButton.disabled = false;
+                submitButton.textContent = "Analyze ROI";
+            });
+        };
+
+        // Add Rig Markers to Map
+function addRigMarkers(rigs) {
+    rigs.forEach(rig => {
+        const marker = L.marker([rig.latitude, rig.longitude]).addTo(map);
+        marker.bindPopup(`<strong>Rig:</strong> ${rig.sensor_id}<br><button class="btn btn-primary" onclick="analyzeRig(${rig.id})">Analyze ROI</button>`);
+    });
+}
+
+// Analyze ROI for a Selected Rig
+function analyzeRig(rigId) {
+    axios.post("http://flipsintel.org:8000/gis/analyze-roi/", { rig_id: rigId })
+        .then(response => {
+            const data = response.data.analysis_result;
+            alert(`Flood Area: ${data.flood_area_sq_km} sq km\nExposed Population: ${data.exposed_population}`);
+        })
+        .catch(error => {
+            console.error("Error analyzing rig ROI:", error);
+        });
+}
+
+// Fetch Rig Markers and Add to Map
+axios.get("http://flipsintel.org:8000/monitor/get_rig_location/")
+    .then(response => {
+        const rigs = response.data;
+        addRigMarkers(rigs);
+    })
+    .catch(error => {
+        console.error("Error fetching rig locations:", error);
+    });
+
+    </script>
+</body>
+</html>

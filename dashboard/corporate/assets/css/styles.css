@@ -1,0 +1,409 @@
+/* body {
+    background-color: white;
+} */
+
+
+/* Zoom in on hover */
+
+.card {
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    /* Slight zoom effect */
+}
+
+.card .card-img-top {
+    height: 120px;
+    object-fit: contain;
+    /* filter: invert(100%) grayscale(100%); */
+    /* Inverts color to white and applies grayscale */
+}
+
+.navbar {
+    height: 50px;
+    background-color: #349beb;
+    color: #fff;
+}
+
+.navbar .nav-item,
+.navbar .form-inline {
+    display: flex;
+    align-items: left;
+}
+
+.navbar .mx-auto {
+    width: 60%;
+}
+
+.navbar .form-control {
+    width: 80%;
+}
+
+.navbar-brand img {
+    height: 30px;
+}
+
+
+/* Hamburger Menu */
+
+.hamburger-menu {
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.sidebar {
+    position: fixed;
+    top: 39px;
+    left: -250px;
+    bottom: 100%;
+    width: 250px;
+    height: 100vh;
+    background-color: #262926;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease-in-out;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+
+/* Sidebar Links */
+
+.sidebar a {
+    display: block;
+    color: white;
+    padding: 5px;
+    text-decoration: none;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+
+/* Sidebar Link Hover Effect */
+
+.sidebar a:hover {
+    background-color: black;
+}
+
+
+/* Sidebar Active State */
+
+.sidebar.active {
+    left: 0;
+}
+
+.search-container {
+    width: 65%;
+    margin: 0 auto;
+    background-color: transparent;
+}
+
+.search-input::placeholder {
+    text-align: center;
+}
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background: #262926;
+    padding: 15px;
+    position: fixed;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    font-size: 14px;
+    color: #1c5aaa;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.sidebar a:hover {
+    background: green;
+}
+
+.submenu a {
+    padding-left: 35px;
+    font-size: 13px;
+    color: white;
+}
+
+
+/* Main content */
+
+.content {
+    transition: margin-left 0.3s;
+    margin-left: 0;
+}
+
+
+/* Adjust margin of content when sidebar is active */
+
+.sidebar.active~.content {
+    margin-left: 250px;
+}
+
+.custom-container {
+    width: 80%;
+    justify-content: center;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+
+/* Additional styles to ensure centering */
+
+.navbar {
+    position: relative;
+}
+
+.search-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.nav-link,
+.navbar-brand {
+    color: white;
+}
+
+
+/* Sidebar Styles */
+
+#sidebar {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: -250px;
+    /* Hide the sidebar initially */
+    background-color: #343a40;
+    transition: all 0.3s ease;
+}
+
+#sidebar.active {
+    left: 0;
+    /* Show the sidebar */
+}
+
+#sidebar ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+#sidebar ul li {
+    padding: 10px;
+    text-align: center;
+}
+
+#sidebar ul li a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+}
+
+
+/* Main content styles */
+
+#main-content {
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+#main-content.active {
+    width: 75%;
+    /* Reduce width when sidebar is visible */
+    margin-left: 250px;
+}
+
+
+/* Toggle button */
+
+#toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 10px;
+    z-index: 1000;
+    font-size: 24px;
+    cursor: pointer;
+    color: #343a40;
+}
+
+
+/* Parent Container */
+
+.card-container {
+    display: flex;
+    /* Use Flexbox for layout */
+    justify-content: center;
+    /* Center items horizontally */
+    flex-wrap: wrap;
+    /* Allow items to wrap to the next line */
+    gap: 20px;
+    /* Space between cards */
+    padding: 20px;
+    /* Padding around the container */
+}
+
+
+/* Smaller Card CSS */
+
+.small-card {
+    width: 9.7rem;
+    /* Smaller width */
+    background-color: none;
+    /* No background color */
+    color: rgb(65, 40, 40);
+    /* Text color */
+    margin: 0;
+    /* Remove margin from cards for better spacing control */
+    border-radius: 10px;
+    /* Slightly rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Subtle shadow for depth */
+    overflow: hidden;
+    /* Ensure content doesn't overflow */
+    text-align: center;
+    /* Center text */
+    cursor: pointer;
+    /* Makes it clear the card is clickable */
+    transition: transform 0.2s ease;
+    /* Optional: add hover effect */
+}
+
+.small-card:hover {
+    transform: scale(1.05);
+    /* Optional: slight zoom on hover */
+}
+
+.small-card img {
+    width: 80%;
+    /* Make image fit the card width */
+    height: 70px;
+    /* Set height */
+    object-fit: contain;
+    /* Maintain aspect ratio */
+    border-bottom: 1px solid #201c1c;
+    /* Border under the image */
+    padding: 10px;
+    /* Padding around the image */
+}
+
+.small-card .card-body {
+    padding: 10px;
+    /* Padding inside the card */
+}
+
+.small-card .card-title {
+    font-size: 1rem;
+    /* Smaller title font */
+    margin-bottom: 5px;
+    /* Reduce space below title */
+    color: #4caf50;
+    /* Green color for title */
+}
+
+.small-card .card-text {
+    font-size: 0.9rem;
+    /* Smaller text */
+    margin-bottom: 5px;
+    /* Reduce space below text */
+}
+
+
+/* Overlay styles (unchanged) */
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.overlay-content {
+    position: relative;
+    margin: 5% auto;
+    padding: 20px;
+    background-color: #393535;
+    width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+    border-radius: 10px;
+}
+
+.closebtn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 40px;
+    color: #333;
+    cursor: pointer;
+}
+
+
+
+  /* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(152, 147, 147, 0.8);
+    z-index: 9999;
+    padding-top: 20px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    width: 100%;
+    max-width: 1000px;
+    border-radius: 8px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#subscriptionDetails {
+    margin: 20px 0;
+}
+
+#upgradeButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+#upgradeButton:hover {
+    background-color: #45a049;
+}
+
+  

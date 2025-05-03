@@ -1,0 +1,43 @@
+#supportBotButton {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+#supportBotContainer {
+    display: none;
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    width: 400px;
+    height: 300px;
+    border: 1px solid #28a745;
+    border-radius: 5px;
+    background: white;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+#supportBotHeader {
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    text-align: center;
+}
+
+#supportBotBody {
+    padding: 10px;
+    height: 350px;
+    overflow-y: auto;
+}

@@ -1,0 +1,148 @@
+Prefix(:=<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5/>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+
+
+Ontology(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5>
+
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Access>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Corporate>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateDash>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateUser>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Dashboards>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Free>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeDash>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeUser>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Govt>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtDash>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtUser>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Plans>))
+Declaration(Class(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Users>))
+Declaration(ObjectProperty(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#hasAccessto>))
+Declaration(ObjectProperty(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#hasPlan>))
+Declaration(ObjectProperty(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#provides>))
+Declaration(NamedIndividual(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#corpdash>))
+Declaration(NamedIndividual(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#corporateplan>))
+Declaration(NamedIndividual(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freedash>))
+Declaration(NamedIndividual(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freeplan>))
+Declaration(NamedIndividual(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#govtdash>))
+Declaration(NamedIndividual(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#govtplan>))
+Declaration(NamedIndividual(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user1>))
+Declaration(NamedIndividual(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user2>))
+Declaration(NamedIndividual(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user3>))
+############################
+#   Object Properties
+############################
+
+# Object Property: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#hasAccessto> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#hasAccessto>)
+
+ObjectPropertyDomain(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#hasAccessto> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Users>)
+ObjectPropertyRange(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#hasAccessto> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Dashboards>)
+
+# Object Property: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#hasPlan> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#hasPlan>)
+
+ObjectPropertyDomain(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#hasPlan> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Users>)
+ObjectPropertyRange(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#hasPlan> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Plans>)
+
+# Object Property: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#provides> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#provides>)
+
+ObjectPropertyDomain(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#provides> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Plans>)
+ObjectPropertyRange(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#provides> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Dashboards>)
+
+
+############################
+#   Classes
+############################
+
+# Class: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Corporate> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Corporate>)
+
+SubClassOf(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Corporate> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Plans>)
+
+# Class: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateDash> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateDash>)
+
+SubClassOf(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Dashboards>)
+
+# Class: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateUser> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateUser>)
+
+SubClassOf(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Users>)
+
+# Class: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Free> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Free>)
+
+SubClassOf(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Free> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Plans>)
+
+# Class: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeDash> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeDash>)
+
+SubClassOf(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Dashboards>)
+
+# Class: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeUser> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeUser>)
+
+SubClassOf(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Users>)
+
+# Class: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Govt> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Govt>)
+
+SubClassOf(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Govt> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Plans>)
+
+# Class: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtDash> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtDash>)
+
+SubClassOf(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Dashboards>)
+
+# Class: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtUser> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtUser>)
+
+SubClassOf(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Users>)
+
+
+############################
+#   Named Individuals
+############################
+
+# Individual: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#corpdash> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#corpdash>)
+
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#corpdash>)
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#corpdash>)
+
+# Individual: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#corporateplan> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#corporateplan>)
+
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#corporateplan>)
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#corporateplan>)
+
+# Individual: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freedash> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freedash>)
+
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freedash>)
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freedash>)
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#Govt> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freedash>)
+
+# Individual: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freeplan> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freeplan>)
+
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freeplan>)
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#freeplan>)
+
+# Individual: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#govtdash> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#govtdash>)
+
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#govtdash>)
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#govtdash>)
+
+# Individual: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#govtplan> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#govtplan>)
+
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#govtplan>)
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#govtplan>)
+
+# Individual: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user1> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user1>)
+
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user1>)
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#FreeUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user1>)
+
+# Individual: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user2> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user2>)
+
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user2>)
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#CorporateUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user2>)
+
+# Individual: <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user3> (<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user3>)
+
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtDash> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user3>)
+ClassAssertion(<http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#GovtUser> <http://www.semanticweb.org/freak/ontologies/2024/8/untitled-ontology-5#user3>)
+
+
+)

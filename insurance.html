@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLIPS Insurance</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            position: fixed;
+            width: 100%;
+            z-index: 10;
+            transition: background-color 0.5s ease, box-shadow 0.3s ease;
+        }
+        .navbar-transparent {
+            background-color: transparent;
+            box-shadow: none;
+            font-weight: bold;
+        }
+        .navbar-scrolled {
+            font-weight: bold;
+            background-color: #fff;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.4);
+        }
+        .header {
+            position: relative;
+            background: url('https://www.doctorswithoutborders.org/sites/default/files/styles/crop_article_mobile_335_189/public/image_base_media/2024/08/MSB204822.jpg?h=2b802ba9&itok=l56vEn3l') center center/cover no-repeat;
+            height: 100vh;
+            color: #fff;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+        @media (max-width: 992px) {
+            .row {
+                height: auto;
+            }
+
+            .col-lg-6 {
+                min-height: auto;
+            }
+
+            .header {
+                height: auto;
+                padding-top: 5rem;
+                padding-bottom: 5rem;
+            }
+        }
+        .background-overlay {
+            background: url('https://www.fgdc.gov/img/slider/slider-bg-network.jpg/image') no-repeat center center/cover;
+            position: relative;
+        }
+        .background-overlay::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 1;
+        }
+        .content-wrapper {
+            position: relative;
+            z-index: 2;
+        }
+        .card {
+            background-size: cover;
+            background-position: center;
+            height: 300px;
+        }
+        .testimonial-card {
+            position: relative;
+            padding: 2rem 1.5rem 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .profile-img {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background-color: red;
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .full-width-dropdown {
+            width: 64vw;
+            left: -47em;
+            right: 0;
+            top: 100%;
+            z-index: 1000;
+            position: absolute;
+            background-color: white;
+            border-radius: 0;
+            padding: 2px 0;
+        }
+        .contact-dropdown {
+            border-radius: 0;
+            padding: 2px 0;
+        }
+        .dropdown-menu .row > .col-md-3 {
+            margin-bottom: 10px;
+        }
+        .nav-item.dropdown:hover .dropdown-menu {
+            display: block;
+        }
+        .dropdown-item {
+            color: #0A5EB0;
+            padding: 7px;
+        }
+        .list-unstyled :hover {
+            background-color: #ECEBDE;
+            color: #D91656;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-transparent">
+        <div class="container">
+            <a class="navbar-brand text-white" href="#">
+                <img src="logo.png" alt="Logo" height="50">
+            </a>
+            <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon text-white"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="#">Home</a>
+                    </li>
+                    <li class="nav-item dropdown position-relative">
+                        <a class="nav-link text-dark" href="#" id="insuranceDropdown" aria-expanded="false">
+                            Insurance Options +
+                        </a>
+                        <div class="dropdown-menu border-0 shadow mt-0 p-4 full-width-dropdown" aria-labelledby="insuranceDropdown">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <a href="#"><h6 class="text-dark">Vehicle Insurance > </h6></a>
+                                        <ul class="list-unstyled">
+                                            <li><a href="#" class="dropdown-item">> Auto Insurance</a></li>
+                                            <li><a href="#" class="dropdown-item">> Boat Insurance</a></li>
+                                            <li><a href="#" class="dropdown-item">> Motorcycle Insurance</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <a href="#"><h6 class="text-dark">Property Insurance > </h6></a>
+                                        <ul class="list-unstyled">
+                                            <li><a href="#" class="dropdown-item"> > Home Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Renter Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Flood Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > AirBnB Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Landlord Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Vacant Property Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Personal Umbrella Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Short Term Vacation Rental Insurance </a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <a href="#"><h6 class="text-dark">Business Insurance > </h6></a>
+                                        <ul class="list-unstyled">
+                                            <li><a href="#" class="dropdown-item"> > Commercial Auto Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Commercial Property Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Business Owner Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > General Liability Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Professional Liability Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Workers Compensation Insurance </a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <a href="#"><h6 class="text-dark">Group benefit & Financial Services > </h6></a>
+                                        <ul class="list-unstyled">
+                                            <li><a href="#" class="dropdown-item"> > Annuities </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Life Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Group Health Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Disability Insurance </a></li>
+                                            <li><a href="#" class="dropdown-item"> > Long Term Care Insurance </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown position-relative">
+                        <a class="nav-link text-dark" href="#" id="contactUsDropdown">Contact Us</a>
+                        <div class="dropdown-menu border-0 shadow mt-0 p-3 border-radius-0 contact-dropdown" aria-labelledby="contactUsDropdown">
+                            <div class="container-fluid">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#" class="dropdown-item">About Us</a></li>
+                                        <li><a href="#" class="dropdown-item">Our Team</a></li>
+                                        <li><a href="#" class="dropdown-item">Refer a Friend</a></li>
+                                        <li><a href="#" class="dropdown-item">Blog</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="#">Service Center</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-danger text-light" style="background: #0a0d57;" href="insurance_logins/register.html">Start Your Quote</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Header Section -->
+    <header class="header">
+        <!-- <div class="overlay"></div> -->
+        <div class="container h-100 d-flex align-items-center justify-content-center">
+            <div class="row w-100 mx-auto justify-content-center shadow-lg rounded" style="max-width: 80%; z-index: 1;">
+                <div class="col-lg-6 col-md-10 d-flex flex-column text-center text-lg-center p-4" style="background: rgba(0, 0, 0, 0.4); color: rgb(255, 255, 255);">
+                    <h2 class="mb-4 mt-5">INSURANCE <br /> THAT PUTS YOU, YOUR ENVIRONMENT AND YOUR BUSINESS FIRST</h2>
+                    <p class="lead mt-4">Get a feel of a reliable <br /> flood insurance solutions that protects you <br /> and your family, rebuild lives, and secure brighter tomorrows.</p>
+                    <div class="mt-5">
+                        <a href="#" class="btn btn-outline-light rounded-0 btn-lg me-3">Contact Us</a>
+                        <a href="#" class="btn btn-outline-light rounded-0 btn-lg">Get a Quote</a>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-10 d-flex flex-column justify-content-center p-4" style="background: rgba(4, 15, 82, 0.7);">
+                    <h2 class="mb-4">Start a Free Quote</h2>
+                    <form>
+                        <div class="mb-5">
+                            <label for="quoteType" class="form-label rounded-0">What would you like an insurance quote on?</label>
+                            <select id="quoteType" class="form-select rounded-0">
+                                <option>Select</option>
+                                <option>Auto</option>
+                                <option>Life</option>
+                                <option>Home</option>
+                                <option>Farm</option>
+                                <option>Business</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-md-4 mb-3">
+                                <input type="text" class="form-control rounded-0" placeholder="Name">
+                            </div>
+                            <div class="col-12 col-md-4 mb-3">
+                                <input type="tel" class="form-control rounded-0" placeholder="Phone Number">
+                            </div>
+                            <div class="col-12 col-md-4 mb-3">
+                                <input type="email" class="form-control rounded-0" placeholder="Email">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="referral" class="form-label mt-5">How did you find us today?</label>
+                            <select id="referral" class="form-select rounded-0">
+                                <option>Select</option>
+                                <option>Online</option>
+                                <option>Referral</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label mt-5">Would you like to receive updates through SMS texting?</label>
+                            <div>
+                                <input type="radio" name="sms" id="smsYes" value="yes">
+                                <label for="smsYes" class="form-check-label me-3">Yes</label>
+                                <input type="radio" name="sms" id="smsNo" value="no">
+                                <label for="smsNo" class="form-check-label">No</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label mt-3">Optional Message for Agent:</label>
+                            <textarea id="message" class="form-control rounded-0" rows="3" cols="30"></textarea>
+                        </div>
+                        <button type="submit" class="btn rounded-0 fw-bold p-3 text-white btn-outline-light" style="background: rgba(4, 15, 82, 0.7)">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Content -->
+    <main>
+        <section class="text-white text-center py-5" style="background: #0a0d57;">
+            <h2 class="fs-4 mb-4">WE OFFER INSURANCE SOLUTIONS FOR AFFECTED BUSINESS.</h2>
+            <div class="container">
+              <div class="row justify-content-center align-items-center p-5">
+                <!-- Auto Insurance -->
+                <div class="col-12 col-md-2 text-center mb-4 mb-md-0 me-4">
+                  <i class="fas fa-car fs-1 mb-2"></i>
+                  <p class="m-0">Auto Insurance</p>
+                </div>
+                <!-- Home Insurance -->
+                <div class="col-12 col-md-2 text-center mb-4 mb-md-0 me-4">
+                  <i class="fas fa-house-chimney fs-1 mb-2"></i>
+                  <p class="m-0">Home Insurance</p>
+                </div>
+                <!-- Commercial Insurance -->
+                <div class="col-12 col-md-2 text-center mb-4 mb-md-0 me-4">
+                  <i class="fas fa-building fs-1 mb-2"></i>
+                  <p class="m-0">Commercial Insurance</p>
+                </div>
+                <!-- Life Insurance -->
+                <div class="col-12 col-md-2 text-center mb-4 mb-md-0 me-4">
+                  <i class="fas fa-users fs-1 mb-2"></i>
+                  <p class="m-0">Life Insurance</p>
+                </div>
+              </div>
+            </div>
+        </section>
+        <section class="background-overlay py-5">
+            <div class="container content-wrapper">
+              <h2 class="text-uppercase text-center fw-bold mb-4">The FLIPS Insurance Experience</h2>
+              <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+              <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+              <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+              <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+              <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+              <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+            </div>
+        </section>
+        <section class="py-5" style="background-color: #0a0d57;">
+            <div class="container">
+                <h2 class="text-uppercase text-center text-white fw-bold mb-4">Why FLIPS Insurance</h2>
+                <div class="row gy-4">
+                    <div class="col-lg-4 col-md-6">
+                    <div class="card text-white" style="background-image: url('https://images.squarespace-cdn.com/content/v1/63064607eb816a4d50027fd1/5f14e93e-3e6c-4859-b063-edba5520b7a9/local-farmers-market.png');">
+                        <div class="d-flex flex-column justify-content-center align-items-center h-100 bg-dark bg-opacity-50 p-3">
+                        <h3 class="text-center">Local</h3>
+                        <p class="text-center">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,</p>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                    <div class="card text-white" style="background-image: url('https://careersportal.ie/sites/default/files/2022-12/Work%20Experience.png');">
+                        <div class="d-flex flex-column justify-content-center align-items-center h-100 bg-dark bg-opacity-50 p-3">
+                        <h3 class="text-center">Experience</h3>
+                        <p class="text-center">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,</p>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                    <div class="card text-white" style="background-image: url('https://becomingbetter.org/wp-content/uploads/2018/06/interdependence-title.jpg');">
+                        <div class="d-flex flex-column justify-content-center align-items-center h-100 bg-dark bg-opacity-50 p-3">
+                        <h3 class="text-center">Independence</h3>
+                        <p class="text-center">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,</p>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="py-5 bg-light">
+            <div class="container p-5">
+                <div class="text-center mb-5">
+                    <h2 class="text-uppercase text-center text-black fw-bold mb-4">Core Values</h2>
+                    <p class="text-muted">What drives us every day.</p>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex flex-column align-items-center text-center p-4 shadow bg-white rounded">
+                            <div class="mb-3">
+                                <i class="bi bi-shield-check text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="fw-bold">Integrity</h4>
+                            <p class="text-muted">
+                                We uphold the highest standards of honesty and transparency in all our dealings, ensuring trust and reliability in every interaction.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex flex-column align-items-center text-center p-4 shadow bg-white rounded">
+                            <div class="mb-3">
+                                <i class="bi bi-shield-check text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="fw-bold">Integrity</h4>
+                            <p class="text-muted">
+                                We uphold the highest standards of honesty and transparency in all our dealings, ensuring trust and reliability in every interaction.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex flex-column align-items-center text-center p-4 shadow bg-white rounded">
+                            <div class="mb-3">
+                                <i class="bi bi-shield-check text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="fw-bold">Integrity</h4>
+                            <p class="text-muted">
+                                We uphold the highest standards of honesty and transparency in all our dealings, ensuring trust and reliability in every interaction.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="py-5" style="background-color: #0a0d57;">
+            <div class="container">
+                <h2 class="text-uppercase text-center text-white fw-bold mb-4">Testimonials</h2>
+              <div class="row align-items-center">
+                <div class="col-md-6 mb-4 mb-md-0">
+                  <img src="https://cdn.prod.website-files.com/606e3b73301630008098f7f0/614295203f913e42b8ff4520_capsule-video-testimonial-tips-header.jpg" class="img-fluid rounded" alt="Testimonial Background">
+                </div>
+                <div class="col-md-6">
+                  <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                      <div class="carousel-item active">
+                        <div class="testimonial-card text-center p-4 shadow bg-white rounded">
+                          <img src="profile1.jpg" class="profile-img" alt="Profile 1">
+                          <h5 class="mt-4 mb-1">John Doe</h5>
+                          <p class="mb-0 text-black">"This service is absolutely amazing. It has changed my life for the better!"</p>
+                        </div>
+                      </div>
+                      <div class="carousel-item">
+                        <div class="testimonial-card text-center p-4 shadow bg-white rounded">
+                          <img src="profile2.jpg" class="profile-img" alt="Profile 2">
+                          <h5 class="mt-4 mb-1">Jane Smith</h5>
+                          <p class="mb-0 text-black">"I cannot recommend this enough. Their team is simply the best."</p>
+                        </div>
+                      </div>
+                      <div class="carousel-item">
+                        <div class="testimonial-card text-center p-4 shadow bg-white rounded">
+                          <img src="profile3.jpg" class="profile-img" alt="Profile 3">
+                          <h5 class="mt-4 mb-1">Alice Johnson</h5>
+                          <p class="mb-0 text-black">"Exceptional quality and outstanding support. Truly a game-changer."</p>
+                        </div>
+                      </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden">Next</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </section>
+        <section class="py-5">
+            <div class="container">
+              <div class="text-center mb-5">
+                <h2 class="text-uppercase text-center text-black fw-bold mb-4">Our Blog</h2>
+                <p class="text-muted">Stay updated with our insights and stories.</p>
+              </div>
+              <div class="row g-4">
+                <div class="col-md-4">
+                  <div class="card border-0 h-100">
+                    <img src="https://images.pexels.com/photos/262508/pexels-photo-262508.jpeg?cs=srgb&dl=pexels-pixabay-262508.jpg&fm=jpg" class="card-img-top" alt="Blog Image">
+                    <div class="card-body">
+                      <h5 class="card-title">Blog Title One</h5>
+                      <p class="text-muted small">November 29, 2024</p>
+                      <p class="card-text">
+                        We uphold the highest standards of honesty and transparency in all our dealings, ensuring trust and reliability in every interaction.
+                        <a href="#" class="text-primary">Read more</a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card border-0 h-100">
+                    <img src="https://images.pexels.com/photos/262508/pexels-photo-262508.jpeg?cs=srgb&dl=pexels-pixabay-262508.jpg&fm=jpg" class="card-img-top" alt="Blog Image">
+                    <div class="card-body">
+                      <h5 class="card-title">Blog Title Two</h5>
+                      <p class="text-muted small">November 28, 2024</p>
+                      <p class="card-text">
+                        We uphold the highest standards of honesty and transparency in all our dealings, ensuring trust and reliability in every interaction.
+                        <a href="#" class="text-primary">Read more</a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card border-0 h-100">
+                    <img src="https://images.pexels.com/photos/262508/pexels-photo-262508.jpeg?cs=srgb&dl=pexels-pixabay-262508.jpg&fm=jpg" class="card-img-top" alt="Blog Image">
+                    <div class="card-body">
+                      <h5 class="card-title">Blog Title Three</h5>
+                      <p class="text-muted small">November 27, 2024</p>
+                      <p class="card-text">
+                        We uphold the highest standards of honesty and transparency in all our dealings, ensuring trust and reliability in every interaction.
+                        <a href="#" class="text-primary">Read more</a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+    </main>
+    <footer class="bg-dark text-light py-5">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-4 mb-4">
+              <h5 class="fw-bold">FLIPS Insurance</h5>
+              <p class="mb-1"><i class="bi bi-telephone"></i> Phone: +123-456-7890</p>
+              <p class="mb-1"><i class="bi bi-geo-alt"></i> Address: 123 Insurance St, Nairobi, Kenya</p>
+              <p class="mb-1"><i class="bi bi-clock"></i> Office Hours: Mon - Fri: 8 AM - 6 PM</p>
+              <p class="mb-1"><a href="#" class="text-light text-decoration-none">Privacy Policy</a></p>
+            </div>
+            <div class="col-md-4 mb-4">
+              <h5 class="fw-bold">Useful Links</h5>
+              <ul class="list-unstyled">
+                <li><a href="#" class="text-light text-decoration-none">Home</a></li>
+                <li><a href="#" class="text-light text-decoration-none">Service Center</a></li>
+                <li><a href="#" class="text-light text-decoration-none">Claim & Payment</a></li>
+                <li><a href="#" class="text-light text-decoration-none">Get a Quote</a></li>
+                <li><a href="#" class="text-light text-decoration-none">Blog</a></li>
+              </ul>
+            </div>
+            <div class="col-md-4 mb-4">
+              <h5 class="fw-bold">Follow Us</h5>
+              <div class="d-flex gap-3">
+                <a href="#" class="text-light fs-4"><i class="bi bi-facebook"></i></a>
+                <a href="#" class="text-light fs-4"><i class="bi bi-twitter"></i></a>
+                <a href="#" class="text-light fs-4"><i class="bi bi-linkedin"></i></a>
+                <a href="#" class="text-light fs-4"><i class="bi bi-instagram"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="text-center pt-4 border-top border-light">
+            <p class="mb-0">© 2024 FLIPS Insurance. All Rights Reserved.</p>
+          </div>
+        </div>
+      </footer>      
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.addEventListener('scroll', function () {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.remove('navbar-transparent');
+                navbar.classList.add('navbar-scrolled');
+            } else {
+                navbar.classList.add('navbar-transparent');
+                navbar.classList.remove('navbar-scrolled');
+            }
+        });
+    </script>
+</body>
+</html>

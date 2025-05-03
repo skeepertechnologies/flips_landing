@@ -1,0 +1,974 @@
+ <!DOCTYPE html>
+<html>
+<head>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+    <!-- Axios Script and Event Listeners -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Bootstrap CSS -->
+     <script src="assets/js/userinfo.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap JavaScript Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+    <title>FLIPS Portal | GIS </title>
+    <style>
+/* body {
+    background-color: white;
+} */
+
+
+/* Zoom in on hover */
+
+.card {
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    /* Slight zoom effect */
+}
+
+.card .card-img-top {
+    height: 120px;
+    object-fit: contain;
+    /* filter: invert(100%) grayscale(100%); */
+    /* Inverts color to white and applies grayscale */
+}
+
+.navbar {
+    height: 50px;
+    background-color: #349beb;
+    color: #fff;
+}
+
+.navbar .nav-item,
+.navbar .form-inline {
+    display: flex;
+    align-items: left;
+}
+
+.navbar .mx-auto {
+    width: 60%;
+}
+
+.navbar .form-control {
+    width: 80%;
+}
+
+.navbar-brand img {
+    height: 30px;
+}
+
+
+/* Hamburger Menu */
+
+.hamburger-menu {
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.sidebar {
+    position: fixed;
+    top: 39px;
+    left: -250px;
+    bottom: 100%;
+    width: 250px;
+    height: 100vh;
+    background-color: #262926;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease-in-out;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+
+/* Sidebar Links */
+
+.sidebar a {
+    display: block;
+    color: white;
+    padding: 5px;
+    text-decoration: none;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+
+/* Sidebar Link Hover Effect */
+
+.sidebar a:hover {
+    background-color: black;
+}
+
+
+/* Sidebar Active State */
+
+.sidebar.active {
+    left: 0;
+}
+
+.search-container {
+    width: 65%;
+    margin: 0 auto;
+    background-color: transparent;
+}
+
+.search-input::placeholder {
+    text-align: center;
+}
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background: #262926;
+    padding: 15px;
+    position: fixed;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    font-size: 14px;
+    color: #1c5aaa;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.sidebar a:hover {
+    background: green;
+}
+
+.submenu a {
+    padding-left: 35px;
+    font-size: 13px;
+    color: white;
+}
+
+
+/* Main content */
+
+.content {
+    transition: margin-left 0.3s;
+    margin-left: 0;
+}
+
+
+/* Adjust margin of content when sidebar is active */
+
+.sidebar.active~.content {
+    margin-left: 250px;
+}
+
+.custom-container {
+    width: 80%;
+    justify-content: center;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+
+/* Additional styles to ensure centering */
+
+.navbar {
+    position: relative;
+}
+
+.search-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.nav-link,
+.navbar-brand {
+    color: white;
+}
+
+
+/* Sidebar Styles */
+
+#sidebar {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: -250px;
+    /* Hide the sidebar initially */
+    background-color: #343a40;
+    transition: all 0.3s ease;
+}
+
+#sidebar.active {
+    left: 0;
+    /* Show the sidebar */
+}
+
+#sidebar ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+#sidebar ul li {
+    padding: 10px;
+    text-align: center;
+}
+
+#sidebar ul li a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+}
+
+
+/* Main content styles */
+
+#main-content {
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+#main-content.active {
+    width: 75%;
+    /* Reduce width when sidebar is visible */
+    margin-left: 250px;
+}
+
+
+/* Toggle button */
+
+#toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 10px;
+    z-index: 1000;
+    font-size: 24px;
+    cursor: pointer;
+    color: #343a40;
+}
+
+
+/* Parent Container */
+
+.card-container {
+    display: flex;
+    /* Use Flexbox for layout */
+    justify-content: center;
+    /* Center items horizontally */
+    flex-wrap: wrap;
+    /* Allow items to wrap to the next line */
+    gap: 20px;
+    /* Space between cards */
+    padding: 20px;
+    /* Padding around the container */
+}
+
+
+/* Smaller Card CSS */
+
+.small-card {
+    width: 9.7rem;
+    /* Smaller width */
+    background-color: none;
+    /* No background color */
+    color: rgb(65, 40, 40);
+    /* Text color */
+    margin: 0;
+    /* Remove margin from cards for better spacing control */
+    border-radius: 10px;
+    /* Slightly rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Subtle shadow for depth */
+    overflow: hidden;
+    /* Ensure content doesn't overflow */
+    text-align: center;
+    /* Center text */
+    cursor: pointer;
+    /* Makes it clear the card is clickable */
+    transition: transform 0.2s ease;
+    /* Optional: add hover effect */
+}
+
+.small-card:hover {
+    transform: scale(1.05);
+    /* Optional: slight zoom on hover */
+}
+
+.small-card img {
+    width: 80%;
+    /* Make image fit the card width */
+    height: 70px;
+    /* Set height */
+    object-fit: contain;
+    /* Maintain aspect ratio */
+    border-bottom: 1px solid #201c1c;
+    /* Border under the image */
+    padding: 10px;
+    /* Padding around the image */
+}
+
+.small-card .card-body {
+    padding: 10px;
+    /* Padding inside the card */
+}
+
+.small-card .card-title {
+    font-size: 1rem;
+    /* Smaller title font */
+    margin-bottom: 5px;
+    /* Reduce space below title */
+    color: #4caf50;
+    /* Green color for title */
+}
+
+.small-card .card-text {
+    font-size: 0.9rem;
+    /* Smaller text */
+    margin-bottom: 5px;
+    /* Reduce space below text */
+}
+
+
+/* Overlay styles (unchanged) */
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.overlay-content {
+    position: relative;
+    margin: 5% auto;
+    padding: 20px;
+    background-color: #393535;
+    width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+    border-radius: 10px;
+}
+
+.closebtn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 40px;
+    color: #333;
+    cursor: pointer;
+}
+
+
+
+  /* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(152, 147, 147, 0.8);
+    z-index: 9999;
+    padding-top: 20px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    width: 100%;
+    max-width: 1000px;
+    border-radius: 8px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#subscriptionDetails {
+    margin: 20px 0;
+}
+
+#upgradeButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+#upgradeButton:hover {
+    background-color: #45a049;
+}
+
+  .modal-content {
+            border-radius: 8px;
+        }
+
+        .modal-header {
+            background-color: #1d0979;
+            color: white;
+        }
+    </style>
+
+</head>
+
+<body>
+         <!-- Add this to your existing HTML -->
+         <div id="spinner" class="spinner" style="display: none;">
+            <div class="loader"></div> <!-- Create your loader here -->
+            <p>Loading...</p>
+        </div>
+    <nav class="navbar navbar-expand-lg" style="background: #1d0979;">
+        <div class="hamburger-menu" onclick="toggleSidebar()">&#9776;</div>
+        <a class="navbar-brand" href="#">
+            <li class="nav-item active">
+                <a class="nav-link" href=""><strong>FLIPS</strong> <span class="sr-only">(current)</span></a>
+            </li>
+        </a>
+        <div class="search-container">
+            <input class="form-control search-input" type="search" placeholder="Start typing to search..."
+                style="background-color: #fff; max-height: 34px; outline: none; border: none" />
+        </div>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ml-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" title="Feedback">
+                        <i class="fas fa-comment-dots"></i>
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                   <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown"
+    role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <img src="assets/images.png" alt="Profile Image" class="rounded-circle"
+        style="height: 20px; width: 20px" />
+    <span class="ml-2" style="color: #fff; font-size: small; font-weight: bold;"
+        id="username">Loading..</span>
+</a>
+                    <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="profileDropdown"
+                        style="width: 320px">
+                        <div class="row">
+                            <!-- Column 1 - Profile Dropdown Menu -->
+                            <div class="col-12 d-flex flex-column">
+                                <!-- Settings Dropdown -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#settingsSection" aria-expanded="false"
+                                        aria-controls="settingsSection">
+                                        Settings <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="settingsSection">
+                                        <a class="dropdown-item" id="accountSettingsLink" data-toggle="modal" data-target="#subscriptionModal"><i
+                                                class="fas fa-user-cog mr-2"></i> Account Settings</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-cog mr-2"></i> General
+                                            Settings</a>
+                                    </div>
+                                </div>
+
+                                <!-- Notifications Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#notificationsSection" aria-expanded="false"
+                                        aria-controls="notificationsSection">
+                                        Notifications <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="notificationsSection">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-bell mr-2"></i> View
+                                            Notifications</a>
+                                    </div>
+                                </div>
+
+                                <!-- Subscription Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#subscriptionSection" aria-expanded="false"
+                                        aria-controls="subscriptionSection">
+                                        Subscription <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="subscriptionSection">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-star mr-2"></i>
+                                            Tier/Subscription Plan</a>
+                                    </div>
+                                </div>
+
+                                <!-- Feedback Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#feedbackSection" aria-expanded="false"
+                                        aria-controls="feedbackSection">
+                                        Feedback <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="feedbackSection">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-comment-dots mr-2"></i> Send
+                                            Feedback</a>
+                                    </div>
+                                </div>
+
+                                <!-- Follow Us Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#followUsSection" aria-expanded="false"
+                                        aria-controls="followUsSection">
+                                        Follow Us <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="followUsSection">
+                                        <a class="dropdown-item" href="#"><i class="fab fa-facebook mr-2"></i>
+                                            Facebook</a>
+                                        <a class="dropdown-item" href="#"><i class="fab fa-twitter mr-2"></i>
+                                            Twitter</a>
+                                        <a class="dropdown-item" href="#"><i class="fab fa-linkedin mr-2"></i>
+                                            LinkedIn</a>
+                                    </div>
+                                </div>
+                                <!-- Logout Button -->
+                                <button class="btn w-100 mt-2" onclick="handleLogout()"
+                                    style="background: #1d0979; color: #fff; border-radius: 5px;">
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+         <!-- Main Content -->
+    <div class="container-fluid">
+        <!-- Map Section -->
+    <div id="map_c1881b165021d14db17b6f95191e7a29" style="margin-top: 10px; width: 100%; height: 600px;"></div>
+
+        <!-- ROI Analysis Form -->
+        <form id="aoiForm" method="POST" action="{% url 'analyze_roi' %}" class="mt-3">
+            {% csrf_token %}
+            <input type="hidden" id="aoiInput" name="aoi">
+            <button type="submit" id="btn_submit" class="btn btn-primary">Analyze ROI</button>
+        </form>
+
+   <div class="modal fade" id="resultsModal" tabindex="-1" aria-labelledby="resultsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultsModalLabel">Analysis Results</h5>
+                <!-- Close Button -->
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Exposed Population:</strong> <span id="exposedPopulation"></span></p>
+                <p><strong>Flood Area (sq km):</strong> <span id="floodArea"></span></p>
+            </div>
+            <div class="modal-footer">
+                <!-- Close Button -->
+<!-- Modal Close Button -->
+<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        var map = L.map("map_c1881b165021d14db17b6f95191e7a29", {
+            center: [-0.881, 37.464],
+            crs: L.CRS.EPSG3857,
+            zoom: 12,
+            zoomControl: true,
+            preferCanvas: false,
+        });
+
+        var baseLayer = L.tileLayer(
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {"attribution": "&copy; OpenStreetMap contributors", "maxZoom": 19}
+        ).addTo(map);
+
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        var drawControl = new L.Control.Draw({
+            draw: {
+                polygon: true,
+                polyline: false,
+                rectangle: false,
+                circle: false,
+                marker: false,
+            },
+            edit: {
+                featureGroup: drawnItems,
+                edit: false,
+                remove: false,
+            }
+        });
+        map.addControl(drawControl);
+
+        map.on(L.Draw.Event.CREATED, function (event) {
+            var layer = event.layer;
+            drawnItems.addLayer(layer);
+            document.getElementById('aoiInput').value = JSON.stringify(layer.toGeoJSON().geometry);
+            console.log(JSON.stringify(layer.toGeoJSON().geometry))
+        });
+
+        document.getElementById('aoiForm').onsubmit = function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('results').innerHTML = `
+                    <p>Exposed Population: ${data.exposed_population}</p>
+                    <p>Flood Area (sq km): ${data.flood_area_sq_km}</p>
+                `;
+                addAnalysisLayers(data.analysis_layers);
+            })
+            .catch(error => console.error('Error:', error));
+        };
+
+        map.on('click', function(e) {
+            var lat = e.latlng.lat;
+            var lng = e.latlng.lng;
+
+            console.log("Clicked at: " + lat + ", " + lng);
+
+            L.marker([lat, lng]).addTo(map).bindPopup("Coordinates: " + lat + ", " + lng).openPopup();
+        });
+
+        // draw sense points
+        let p1Lat = "{{Senser1_Lat}}";
+        let p1Lng = "{{Senser1_Long}}";
+        let p2Lat = "{{Senser2_Lat}}";
+        let p2Lng = "{{Senser2_Long}}";
+        
+        console.log("Sensor", "{{Senser1_Lat}}", ">>", p1Lng);
+
+        let position1 = [p1Lat, p1Lng];
+        let position2 = [p2Lat, p2Lng];
+        
+        let marker1 = L.marker(position1, {
+            draggable:true // make the marker dragable throughout the tile
+        }).addTo(map);
+        // click event (do the AOI analysis)
+        marker1.on("click", function(e){
+            // submit the geofence to the engine
+            let p1GeoData = "{{senser1Geofence}}";
+            p1GeoData =  new DOMParser().parseFromString(p1GeoData, "text/html").documentElement.textContent;
+            console.log(p1GeoData);
+
+            // Click the submit button programatically to submit the form after filling the data 
+            p1GeoData = p1GeoData.split("'").join('"');
+            document.getElementById("aoiInput").value = p1GeoData;
+            document.getElementById("btn_submit").click();
+        })
+
+        let marker2 = L.marker(position2, {
+            draggable:true // make the marker dragable throughout the tile
+        }).addTo(map);
+        // click event (do the AOI analysis)
+        marker2.on("click", function(e){
+            // submit the geofence to the engine
+            let p2GeoData = "{{senser2Geofence}}";
+            p2GeoData =  new DOMParser().parseFromString(p2GeoData, "text/html").documentElement.textContent;
+            console.log(p2GeoData);
+
+            // Click the submit button programatically to submit the form after filling the data 
+            p2GeoData = p2GeoData.split("'").join('"');
+            document.getElementById("aoiInput").value = p2GeoData;
+            document.getElementById("btn_submit").click();
+        })
+
+        var analysisLayers = {};
+
+        function addAnalysisLayers(layers) {
+            // Clear previous layers
+            drawnItems.clearLayers();
+            
+            if (layers.aoi) {
+                var aoiLayer = L.geoJSON(layers.aoi);
+                drawnItems.addLayer(aoiLayer);
+                analysisLayers["Region of Interest"] = aoiLayer;
+            }
+
+            // Add the 4 missing layers
+            analysisLayers["Water Occurrence"] = L.tileLayer(layers.water_occurrence, {"attribution": "Google Earth Engine"});
+            analysisLayers["NDWI"] = L.tileLayer(layers.ndwi, {"attribution": "Google Earth Engine"});
+            analysisLayers["flow_time_minutes"] = L.tileLayer(layers.flow_time_minutes, {"attribution": "Google Earth Engine"});
+            analysisLayers["distance"] = L.tileLayer(layers.distance, {"attribution": "Google Earth Engine"});
+            analysisLayers["Sentinel Data"] = L.tileLayer(layers.dataset_without_cloud, {"attribution": "Google Earth Engine"});
+            analysisLayers["DEM"] = L.tileLayer(layers.elevation, {"attribution": "Google Earth Engine"});
+            analysisLayers["Slope"] = L.tileLayer(layers.slope, {"attribution": "Google Earth Engine"});
+            analysisLayers["Flood Mask"] = L.tileLayer(layers.flood_mask, {"attribution": "Google Earth Engine"});
+            analysisLayers["Population"] = L.tileLayer(layers.population, {"attribution": "Google Earth Engine"});
+            analysisLayers["permanent_water"] = L.tileLayer(layers.permanent_water, {"attribution": "Google Earth Engine"});
+
+            // Add the layers control to the map
+            var layerControl = L.control.layers(null, analysisLayers, {"autoZIndex": true, "collapsed": true, "position": "topright"}).addTo(map);
+            for (var key in analysisLayers) {
+                analysisLayers[key].addTo(map);
+            }
+        }
+
+        document.getElementById('aoiForm').onsubmit = function (event) {
+    event.preventDefault();
+    var formData = new FormData(this);
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            // Populate modal content
+            document.getElementById('exposedPopulation').textContent = data.exposed_population || 'N/A';
+            document.getElementById('floodArea').textContent = data.flood_area_sq_km || 'N/A';
+
+            // Show the modal
+            $('#resultsModal').modal('show');
+
+            // Add analysis layers to the map
+            if (data.analysis_layers) {
+                addAnalysisLayers(data.analysis_layers);
+            }
+
+            // Auto-clear and hide modal after 10 seconds
+            setTimeout(() => {
+                $('#resultsModal').modal('hide');
+                // Clear modal content
+                document.getElementById('exposedPopulation').textContent = '';
+                document.getElementById('floodArea').textContent = '';
+            }, 10000); // 10 seconds in milliseconds
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+};
+
+function addAnalysisLayers(layers) {
+    // Clear previous layers
+    drawnItems.clearLayers();
+
+    if (layers.aoi) {
+        var aoiLayer = L.geoJSON(layers.aoi);
+        drawnItems.addLayer(aoiLayer);
+        analysisLayers['Region of Interest'] = aoiLayer;
+    }
+
+    // Add the analysis layers to the map
+    analysisLayers['Water Occurrence'] = L.tileLayer(layers.water_occurrence, {
+        attribution: 'Google Earth Engine',
+    });
+    analysisLayers['NDWI'] = L.tileLayer(layers.ndwi, { attribution: 'Google Earth Engine' });
+    analysisLayers['Flow Time (minutes)'] = L.tileLayer(layers.flow_time_minutes, {
+        attribution: 'Google Earth Engine',
+    });
+    analysisLayers['Distance'] = L.tileLayer(layers.distance, { attribution: 'Google Earth Engine' });
+    analysisLayers['Sentinel Data'] = L.tileLayer(layers.dataset_without_cloud, {
+        attribution: 'Google Earth Engine',
+    });
+    analysisLayers['DEM'] = L.tileLayer(layers.elevation, { attribution: 'Google Earth Engine' });
+    analysisLayers['Slope'] = L.tileLayer(layers.slope, { attribution: 'Google Earth Engine' });
+    analysisLayers['Flood Mask'] = L.tileLayer(layers.flood_mask, { attribution: 'Google Earth Engine' });
+    analysisLayers['Population'] = L.tileLayer(layers.population, { attribution: 'Google Earth Engine' });
+    analysisLayers['Permanent Water'] = L.tileLayer(layers.permanent_water, {
+        attribution: 'Google Earth Engine',
+    });
+
+    // Add the layers control to the map
+    var layerControl = L.control.layers(null, analysisLayers, {
+        autoZIndex: true,
+        collapsed: true,
+        position: 'topright',
+    }).addTo(map);
+
+    for (var key in analysisLayers) {
+        analysisLayers[key].addTo(map);
+    }
+}
+
+
+
+// Function to read query parameters
+function getQueryParam(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+// Function to decrypt the payload
+function decryptPayload(payload) {
+    const [encryptedData, key] = payload.split(':');
+    if (key !== '1234') {
+        console.error('Invalid encryption key');
+        return null;
+    }
+    try {
+        const decryptedData = JSON.parse(atob(encryptedData)); // Decode Base64 and parse JSON
+        return decryptedData;
+    } catch (error) {
+        console.error('Failed to decrypt payload:', error);
+        return null;
+    }
+}
+
+// Decrypt payload and initialize user info on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const payload = getQueryParam('payload');
+    if (!payload) {
+        alert('Missing payload. Redirecting to login.');
+        window.location.href = '/login.html'; // Redirect if no payload is found
+        return;
+    }
+
+    const userInfo = decryptPayload(payload);
+    if (!userInfo) {
+        alert('Failed to decrypt user info. Redirecting to login.');
+        window.location.href = '/login.html'; // Redirect on decryption failure
+        return;
+    }
+
+
+    // Store user info in localStorage for use in the GIS platform
+    localStorage.setItem('username', userInfo.username);
+    localStorage.setItem('email', userInfo.email);
+    localStorage.setItem('token', userInfo.token);
+
+    // Optionally, update the UI with user info
+    const usernameElement = document.getElementById('username');
+    if (usernameElement) {
+        usernameElement.textContent = userInfo.username || 'Unknown User';
+    }
+
+    // Call fetchUserInfo after storing the token
+    fetchUserInfo();
+});
+
+
+
+     // Function to fetch user information
+    function fetchUserInfo() {
+        const token = localStorage.getItem('token'); // Get the token from localStorage
+
+        // Check if the token exists
+        if (!token) {
+            alert('No token found. Please log in.');
+            window.location.href = 'login.html'; // Redirect to login page
+            return;
+        }
+
+        // Fetch user information from the API
+        axios.get('http://127.0.0.1:8000/api/user-info/', {
+            headers: {
+                'Authorization': `Token ${token}`,
+            },
+        })
+        .then(response => {
+            const userData = response.data;
+
+            // Update the username in the dropdown
+            const usernameElement = document.getElementById('username');
+            usernameElement.textContent = userData.username || 'Unknown User';
+
+            // Optionally, you can store additional user data in localStorage
+            localStorage.setItem('userEmail', userData.email || '');
+        })
+        .catch(error => {
+            console.error('Failed to fetch user info:', error);
+
+            // Handle token expiration or invalid token
+            if (error.response && error.response.status === 401) {
+                alert('Session expired. Please log in again.');
+                localStorage.removeItem('token'); // Clear invalid token
+                window.location.href = 'login.html'; // Redirect to login page
+            }
+        });
+    }
+
+
+
+
+
+    // logout fucntion
+function handleLogout() {
+            const token = localStorage.getItem('token');
+            axios.post('http://127.0.0.1:8000/logout/', {}, {
+                headers: {
+                    'Authorization': 'Token ' + token,
+                },
+            }).then(function (response) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('graphDataCache'); // Clear the graph data from localStorage
+                window.location.href = '127.0.0.1/index.html';
+            }).catch(function (error) {
+                console.error('Logout failed', error);
+            });
+        }
+
+
+    </script>
+</body>
+</html>

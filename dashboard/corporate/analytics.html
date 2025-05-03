@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+    <!-- Axios Script and Event Listeners -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Bootstrap CSS -->
+     <script src="assets/js/userinfo.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap JavaScript Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+    <title>FLIPS Portal | Enterprise | </title>
+    <style>
+/* body {
+    background-color: white;
+} */
+
+
+/* Zoom in on hover */
+
+.card {
+    transition: transform 0.3s ease;
+}
+
+
+
+.card .card-img-top {
+    height: 120px;
+    object-fit: contain;
+    /* filter: invert(100%) grayscale(100%); */
+    /* Inverts color to white and applies grayscale */
+}
+
+.navbar {
+    height: 50px;
+    background-color: #349beb;
+    color: #fff;
+}
+
+.navbar .nav-item,
+.navbar .form-inline {
+    display: flex;
+    align-items: left;
+}
+
+.navbar .mx-auto {
+    width: 60%;
+}
+
+.navbar .form-control {
+    width: 80%;
+}
+
+.navbar-brand img {
+    height: 30px;
+}
+
+
+/* Hamburger Menu */
+
+.hamburger-menu {
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.sidebar {
+    position: fixed;
+    top: 39px;
+    left: -250px;
+    bottom: 100%;
+    width: 250px;
+    height: 100vh;
+    background-color: #262926;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease-in-out;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+
+/* Sidebar Links */
+
+.sidebar a {
+    display: block;
+    color: white;
+    padding: 5px;
+    text-decoration: none;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+
+/* Sidebar Link Hover Effect */
+
+.sidebar a:hover {
+    background-color: black;
+}
+
+
+/* Sidebar Active State */
+
+.sidebar.active {
+    left: 0;
+}
+
+.search-container {
+    width: 65%;
+    margin: 0 auto;
+    background-color: transparent;
+}
+
+.search-input::placeholder {
+    text-align: center;
+}
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background: #262926;
+    padding: 15px;
+    position: fixed;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    font-size: 14px;
+    color: #1c5aaa;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.sidebar a:hover {
+    background: green;
+}
+
+.submenu a {
+    padding-left: 35px;
+    font-size: 13px;
+    color: white;
+}
+
+
+/* Main content */
+
+.content {
+    transition: margin-left 0.3s;
+    margin-left: 0;
+}
+
+
+/* Adjust margin of content when sidebar is active */
+
+.sidebar.active~.content {
+    margin-left: 250px;
+}
+
+.custom-container {
+    width: 80%;
+    justify-content: center;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+
+/* Additional styles to ensure centering */
+
+.navbar {
+    position: relative;
+}
+
+.search-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.nav-link,
+.navbar-brand {
+    color: white;
+}
+
+
+/* Sidebar Styles */
+
+#sidebar {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: -250px;
+    /* Hide the sidebar initially */
+    background-color: #343a40;
+    transition: all 0.3s ease;
+}
+
+#sidebar.active {
+    left: 0;
+    /* Show the sidebar */
+}
+
+#sidebar ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+#sidebar ul li {
+    padding: 10px;
+    text-align: center;
+}
+
+#sidebar ul li a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+}
+
+
+/* Main content styles */
+
+#main-content {
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+#main-content.active {
+    width: 75%;
+    /* Reduce width when sidebar is visible */
+    margin-left: 250px;
+}
+
+
+/* Toggle button */
+
+#toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 10px;
+    z-index: 1000;
+    font-size: 24px;
+    cursor: pointer;
+    color: #343a40;
+}
+
+
+/* Parent Container */
+
+.card-container {
+    display: flex;
+    /* Use Flexbox for layout */
+    justify-content: center;
+    /* Center items horizontally */
+    flex-wrap: wrap;
+    /* Allow items to wrap to the next line */
+    gap: 20px;
+    /* Space between cards */
+    padding: 20px;
+    /* Padding around the container */
+}
+
+
+/* Smaller Card CSS */
+
+.small-card {
+    width: 9.7rem;
+    /* Smaller width */
+    background-color: none;
+    /* No background color */
+    color: rgb(65, 40, 40);
+    /* Text color */
+    margin: 0;
+    /* Remove margin from cards for better spacing control */
+    border-radius: 10px;
+    /* Slightly rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Subtle shadow for depth */
+    overflow: hidden;
+    /* Ensure content doesn't overflow */
+    text-align: center;
+    /* Center text */
+    cursor: pointer;
+    /* Makes it clear the card is clickable */
+    transition: transform 0.2s ease;
+    /* Optional: add hover effect */
+}
+
+.small-card:hover {
+    transform: scale(1.05);
+    /* Optional: slight zoom on hover */
+}
+
+.small-card img {
+    width: 80%;
+    /* Make image fit the card width */
+    height: 70px;
+    /* Set height */
+    object-fit: contain;
+    /* Maintain aspect ratio */
+    border-bottom: 1px solid #201c1c;
+    /* Border under the image */
+    padding: 10px;
+    /* Padding around the image */
+}
+
+.small-card .card-body {
+    padding: 10px;
+    /* Padding inside the card */
+}
+
+.small-card .card-title {
+    font-size: 1rem;
+    /* Smaller title font */
+    margin-bottom: 5px;
+    /* Reduce space below title */
+    color: #4caf50;
+    /* Green color for title */
+}
+
+.small-card .card-text {
+    font-size: 0.9rem;
+    /* Smaller text */
+    margin-bottom: 5px;
+    /* Reduce space below text */
+}
+
+
+/* Overlay styles (unchanged) */
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.overlay-content {
+    position: relative;
+    margin: 5% auto;
+    padding: 20px;
+    background-color: #393535;
+    width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+    border-radius: 10px;
+}
+
+.closebtn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 40px;
+    color: #333;
+    cursor: pointer;
+}
+
+
+
+  /* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(152, 147, 147, 0.8);
+    z-index: 9999;
+    padding-top: 20px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    width: 100%;
+    max-width: 1000px;
+    border-radius: 8px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#subscriptionDetails {
+    margin: 20px 0;
+}
+
+#upgradeButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+#upgradeButton:hover {
+    background-color: #45a049;
+}
+
+         /* Spinner Styles */
+        #spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            text-align: center;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .spinner-text {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: #007bff;
+        }
+
+    </style>
+
+</head>
+
+<body>
+         <!-- Add this to your existing HTML -->
+         <div id="spinner" class="spinner" style="display: none;">
+            <div class="loader"></div> <!-- Create your loader here -->
+            <p>Loading...</p>
+        </div>
+    <nav class="navbar navbar-expand-lg" style="background: #1d0979;">
+        <div class="hamburger-menu" onclick="toggleSidebar()">&#9776;</div>
+        <a class="navbar-brand" href="#">
+            <li class="nav-item active">
+                <a class="nav-link" href=""><strong>FLIPS</strong> <span class="sr-only">(current)</span></a>
+            </li>
+        </a>
+        <div class="search-container">
+            <input class="form-control search-input" type="search" placeholder="Start typing to search..."
+                style="background-color: #fff; max-height: 34px; outline: none; border: none" />
+        </div>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ml-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" title="Feedback">
+                        <i class="fas fa-comment-dots"></i>
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                   <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown"
+    role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <img src="assets/images.png" alt="Profile Image" class="rounded-circle"
+        style="height: 20px; width: 20px" />
+    <span class="ml-2" style="color: #fff; font-size: small; font-weight: bold;"
+        id="username">Loading..</span>
+</a>
+                    <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="profileDropdown"
+                        style="width: 320px">
+                        <div class="row">
+                            <!-- Column 1 - Profile Dropdown Menu -->
+                            <div class="col-12 d-flex flex-column">
+                                <!-- Settings Dropdown -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#settingsSection" aria-expanded="false"
+                                        aria-controls="settingsSection">
+                                        Settings <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="settingsSection">
+                                        <a class="dropdown-item" id="accountSettingsLink" data-toggle="modal" data-target="#subscriptionModal"><i
+                                                class="fas fa-user-cog mr-2"></i> Account Settings</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-cog mr-2"></i> General
+                                            Settings</a>
+                                    </div>
+                                </div>
+
+                                <!-- Notifications Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#notificationsSection" aria-expanded="false"
+                                        aria-controls="notificationsSection">
+                                        Notifications <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="notificationsSection">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-bell mr-2"></i> View
+                                            Notifications</a>
+                                    </div>
+                                </div>
+
+                                <!-- Subscription Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#subscriptionSection" aria-expanded="false"
+                                        aria-controls="subscriptionSection">
+                                        Subscription <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="subscriptionSection">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-star mr-2"></i>
+                                            Tier/Subscription Plan</a>
+                                    </div>
+                                </div>
+
+                                <!-- Feedback Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#feedbackSection" aria-expanded="false"
+                                        aria-controls="feedbackSection">
+                                        Feedback <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="feedbackSection">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-comment-dots mr-2"></i> Send
+                                            Feedback</a>
+                                    </div>
+                                </div>
+
+                                <!-- Follow Us Section -->
+                                <div class="mb-2">
+                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
+                                        data-toggle="collapse" data-target="#followUsSection" aria-expanded="false"
+                                        aria-controls="followUsSection">
+                                        Follow Us <i class="fas fa-chevron-down"></i>
+                                    </h6>
+                                    <div class="collapse" id="followUsSection">
+                                        <a class="dropdown-item" href="#"><i class="fab fa-facebook mr-2"></i>
+                                            Facebook</a>
+                                        <a class="dropdown-item" href="#"><i class="fab fa-twitter mr-2"></i>
+                                            Twitter</a>
+                                        <a class="dropdown-item" href="#"><i class="fab fa-linkedin mr-2"></i>
+                                            LinkedIn</a>
+                                    </div>
+                                </div>
+                                <!-- Logout Button -->
+                                <button class="btn w-100 mt-2" onclick="handleLogout()"
+                                    style="background: #1d0979; color: #fff; border-radius: 5px;">
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+         <script src="https://code.highcharts.com/highcharts.js"></script>
+
+
+
+
+    <div class="container-fluid mt-4">
+        <div class="content">
+            <!-- Title -->
+            <div class="row">
+    <div class="col-md-12 d-flex justify-content-between align-items-center">
+        <h3 class="text-center mb-0">Analytics Dashboard</h3>
+        <a href="index.html" class="btn btn-primary btn-sm" style="float: right;">
+            Back to Home
+        </a>
+    </div>
+</div>
+
+
+           <!-- Spinner -->
+            <div id="spinner">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="spinner-text">Loading...</p>
+            </div>
+
+<!-- Predicted Value Chart -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div id="modelPerformanceChart" style="min-height: 700px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global variable for the chart instance
+    let predictedValueChart;
+
+    // Function to fetch and log data
+    function fetchPredictedData() {
+        const token = localStorage.getItem('token');
+        console.log("Fetching data...");
+
+        axios
+            .get('http://127.0.0.1:8000/monitor/predicted-data/', {
+                headers: { Authorization: `Token ${token}` },
+            })
+            .then((response) => {
+                console.log("Raw API Response:");
+                console.log(response);
+
+                if (response.status === 200) {
+                    const data = response.data;
+                    console.log("Data fetched successfully:", data);
+
+                    // Call the chart update function with fetched data
+                    updatePredictionChart(data);
+                } else {
+                    console.error(`Unexpected status code: ${response.status}`);
+                }
+            })
+            .catch((error) => {
+                console.error("Error occurred while fetching data:");
+                console.error(error);
+            });
+    }
+
+    // Function to initialize or update the chart
+    function updatePredictionChart(data) {
+        const predictedData = data.predicted_data;
+
+        if (!predictedData || Object.keys(predictedData).length === 0) {
+            console.error("No predicted data available.");
+            return;
+        }
+
+        console.log("Updating chart with data:", predictedData);
+
+        // Prepare series for predicted data
+        const predictedSeries = Object.keys(predictedData).map((model) => ({
+            name: `${model} Predictions`,
+            data: predictedData[model].map((entry) => ({
+                name: entry.name, // Label for x-axis
+                y: entry.y,       // Predicted value
+            })),
+        }));
+
+        // Render or update the chart
+        if (!predictedValueChart) {
+            // Initialize the chart
+            predictedValueChart = Highcharts.chart("modelPerformanceChart", {
+                chart: { type: "line" },
+                title: { text: "Live Predicted Values" },
+                xAxis: { title: { text: "Timestamps" }, categories: [] }, // Categories are set dynamically
+                yAxis: { title: { text: "Predicted Values" } },
+                tooltip: {
+                    shared: true,
+                    useHTML: true,
+                    headerFormat: "<small>{point.key}</small><table>",
+                    pointFormat:
+                        "<tr><td style='color: {series.color}'>{series.name}: </td>" +
+                        "<td style='text-align: right'><b>{point.y}</b></td></tr>",
+                    footerFormat: "</table>",
+                    valueDecimals: 2,
+                },
+                series: predictedSeries,
+            });
+        } else {
+            // Update the existing chart series
+            predictedSeries.forEach((series, index) => {
+                if (predictedValueChart.series[index]) {
+                    predictedValueChart.series[index].update({
+                        name: series.name,
+                        data: series.data,
+                    }, false); // Avoid redraw for each series
+                } else {
+                    predictedValueChart.addSeries(series, false); // Add new series if it doesn't exist
+                }
+            });
+
+            // Redraw the chart after updating all series
+            predictedValueChart.redraw();
+        }
+    }
+
+    // Initial chart rendering
+    fetchPredictedData();
+
+    // Auto-refresh every 6 seconds
+    setInterval(fetchPredictedData, 6000);
+</script>
+
+
+            <!-- Analytics and Model Performance Cards -->
+            <div class="row mt-5 d-flex justify-content-center">
+                <!-- Analytics Card -->
+                <div class="col-md-4">
+                    <div id="analytic" class="card"
+                        style="width: 18rem; color: #2a1b1b; text-align:center; cursor:pointer; border: none; background: #FFE4C4;">
+                        <img src="assets/img/analytics.png" class="card-img-top" alt="Analytics Image">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color: #1c1e23">Enhanced Analytics with Accuracies</h5>
+                            <p class="card-text">Models, Weather Forecast, weather conditions, GIS</p>
+                            <button class="btn btn-primary" onclick="showDrawnPredictedValues()">View Analytics</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Performance Card -->
+                <div class="col-md-4">
+                    <div id="performance" class="card"
+                        style="width: 18rem; color: #2a1b1b; text-align:center; cursor:pointer; border: none; background: #B0E0E6;">
+                        <img src="assets/img/analytics.png" class="card-img-top" alt="Analytics Image">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color: #1c1e23">Model Performance</h5>
+                            <p class="card-text">Track model accuracy and performance over time.</p>
+                            <button class="btn btn-primary" onclick="showDrawnPerfromanceValues()">View Performance</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script>
+         // Show and Hide Spinner
+        function showSpinner() {
+            document.getElementById('spinner').style.display = 'block';
+        }
+
+        function hideSpinner() {
+            document.getElementById('spinner').style.display = 'none';
+        }
+
+        // Model Performance Chart
+        function fetchPerformanceData() {
+            showSpinner();
+            const token = localStorage.getItem('token');
+            axios.get('http://127.0.0.1:8000/monitor/performance/', {
+                headers: { 'Authorization': 'Token ' + token },
+            })
+                .then(response => {
+                    const data = response.data;
+                    renderPerformance(data.current_performance_data, data.model_accuracies, data.accuracy_percentages);
+                })
+                .catch(error => {
+                    console.error('Error fetching performance data:', error);
+                })
+                .finally(() => {
+                    hideSpinner();
+                });
+        }
+
+        function renderPerformance(currentPerformanceData, modelAccuracies, accuracyPercentages) {
+            const seriesData = Object.keys(currentPerformanceData).map(location => (
+                Object.keys(modelAccuracies).map(model => ({
+                    name: `${model} Prediction (Accuracy: ${accuracyPercentages[model].toFixed(2)}%)`,
+                    data: currentPerformanceData[location].levels.map((level, index) => ({
+                        name: new Date(currentPerformanceData[location].timestamps[index]).toLocaleString(),
+                        y: level
+                    }))
+                }))
+            )).flat();
+
+            const categories = currentPerformanceData[Object.keys(currentPerformanceData)[0]].timestamps.map(ts => new Date(ts).toLocaleString());
+
+            Highcharts.chart('modelPerformanceChart', {
+                chart: { type: 'line' },
+                title: { text: 'Model Performance' },
+                xAxis: { categories, title: { text: 'Time' } },
+                yAxis: { title: { text: 'Water Levels' } },
+                series: seriesData
+            });
+        }
+
+        // Analytics Chart Functionality
+        function showDrawnPredictedValues() {
+            showSpinner();
+            document.getElementById('analysis-results').innerHTML = `
+                <div class="container-fluid p-4 m-0">
+                    <h2>Model Predictions and Accuracies</h2>
+                    <div id="modelPredictionChart" style="min-height: 700px;"></div>
+                </div>
+            `;
+            initializePredictionChart();
+        }
+
+        function initializePredictionChart() {
+            const token = localStorage.getItem('token');
+            axios.get('http://127.0.0.1:8000/monitor/predicted-data/', {
+                headers: { 'Authorization': 'Token ' + token },
+            })
+                .then(response => {
+                    const data = response.data;
+                    renderPredictionChart(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching predictive model data:', error);
+                })
+                .finally(() => {
+                    hideSpinner();
+                });
+        }
+
+        function renderPredictionChart(data) {
+            const predictedData = data.predicted_data;
+            const accuracies = data.model_details.accuracies;
+
+            const seriesData = Object.keys(predictedData).map(model => ({
+                name: `${model} Prediction (Accuracy: ${accuracies[model].toFixed(2)}%)`,
+                data: predictedData[model].map(entry => ({
+                    name: entry.name,
+                    y: entry.y
+                }))
+            }));
+
+            const categories = predictedData[Object.keys(predictedData)[0]].map(entry => entry.name);
+
+            Highcharts.chart('modelPredictionChart', {
+                chart: { type: 'line' },
+                title: { text: 'Model Predictions and Accuracies' },
+                xAxis: { title: { text: 'Locations' }, categories: categories },
+                yAxis: { title: { text: 'Water Levels' } },
+                series: seriesData
+            });
+        }
+
+        // Default Load: Model Performance
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPerformanceData(); // Load performance data and chart on page load
+        });
+    </script>
+
+
+
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <script src="assets/js/perfornamce.js"></script>
+     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/georaster"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet/dist/georaster-layer-for-leaflet.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/georaster"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css" rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.js"></script>
+<script src="https://unpkg.com/georaster"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+
+
+    <!-- Add this in the HTML where you include Highcharts -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="assets/js/analytics.js"></script>
+    <script src="assets/js/performance.js"></script>
+
+
+</body>
+
+</html>

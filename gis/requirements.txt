@@ -1,0 +1,6 @@
+django
+django-leaflet
+psycopg2-binary
+folium
+earthengine-api
+gunicorn

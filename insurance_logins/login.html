@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Page</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            position: relative;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://png.pngtree.com/thumb_back/fh260/background/20241124/pngtree-abstract-digital-wave-glowing-blue-energy-futuristic-technology-elec-wallpaper-background-image_16625748.jpg') no-repeat center center fixed;
+            background-size: cover;
+            filter: blur(5px);
+            z-index: -1;
+        }
+
+        .registration-container {
+            background-color: rgba(10, 13, 70, 0.8);
+            border: 1px solid #fff;
+            border-radius: 8px;
+            padding: 40px 50px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo img {
+            width: 50px;
+            margin-top: 20px;
+        }
+
+        .form-title {
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            font-family: courier;
+            color: #fff;
+        }
+
+        .form-control {
+            border: 1px solid #fff;
+            border-radius: 0;
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="container vh-100 d-flex justify-content-center align-items-center">
+        <div class="col-lg-8 col-md-10 col-sm-12">
+            <div class="registration-container">
+                <div class="logo text-center mb-3">
+                    <img src="logo.png" alt="Logo">
+                </div>
+                <h4 class="form-title">Log In to my Account</h4>
+                <p class="text-light text-center mb-5">Don't have an Account? <a href="register.html" class="text-info fw-bold">Sign Up here</a></p>
+                <form>
+                    <div class="mb-5">
+                        <label for="email" class="form-label text-light">Email Address</label>
+                        <input type="email" class="form-control" id="email">
+                    </div>
+                    <div class="mb-5">
+                        <label for="password" class="form-label text-light">Password</label>
+                        <input type="password" class="form-control" id="password">
+                    </div>
+                    <div class="d-flex mb-3">
+                        <button type="submit" class="btn btn-info fw-bold w-100 rounded-0">Log In</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

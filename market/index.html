@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>FLIPS - Pay as You Go</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="public/assets/img/favicon.png" rel="icon" />
+
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-color: #f2faff;
+            color: #000;
+            font-family: Arial, sans-serif;
+            transition: filter 0.5s ease-in-out;
+        }
+
+        /* Spinner Styles */
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        /* Blur Effect */
+        .blurred {
+            filter: blur(850px);
+            /* Reduced blur intensity */
+            pointer-events: none;
+            /* Prevent interaction while blurred */
+        }
+
+        .header {
+            padding: 3rem 1.5rem;
+            background-color: #1d0979;
+            color: #fff;
+        }
+
+        .navbar-brand span {
+            font-weight: bold;
+            color: #1d0979;
+        }
+
+        .custom-button {
+            background-color: #1d0979;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .custom-button-alt {
+            background-color: #fff;
+            color: #1d0979;
+            border: 2px solid #1d0979;
+        }
+
+        .card-custom {
+            padding: 1.5rem;
+            border: 1px solid #e5e5e5;
+            border-radius: 1.25rem;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer {
+            background-color: #1d0979;
+            color: #fff;
+        }
+
+        .footer h4,
+        .footer p {
+            color: #fff;
+        }
+
+        .footer .social-links a {
+            color: #fff;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .footer .footer-links ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer .footer-links ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer .footer-links ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .footer .footer-links ul li a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Spinner -->
+    <div id="spinner" class="spinner-overlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+        <div class="container">
+            <img src="../public/assets/img/logo.png" alt="FLIPS Logo" class="me-2" style="height: 90px;">
+
+            <a href="#" class="navbar-brand">FLIPS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Docs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../login/login.html">Sign In</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-4">Choose the Right Account</h2>
+            <p class="text-center">Try FLIPS free for up to 30 days or pay as you go—no upfront commitment required.</p>
+            <div class="row g-4 mt-5">
+                <!-- Free Account -->
+                <div class="col-md-6">
+                    <div class="card card-custom">
+                        <h4 class="fw-bold">FLIPS Free Account</h4>
+                        <ul>
+                            <li>✔ Basic live data dashboard</li>
+                            <li>✔ Access to one sensor/rig</li>
+                            <li>✔ Limited access to historical data</li>
+                            <li>✔ Once a day notification alert</li>
+                        </ul>
+                        <h3>KES 0.00</h3>
+                        <p>Free for 30 days for new users</p>
+                        <a href="../login/register.html" class="btn btn-primary">Sign Up</a>
+                    </div>
+                </div>
+
+                <!-- Pay as You Go -->
+                <div class="col-md-6">
+                    <div class="card card-custom">
+                        <h4 class="fw-bold">Pay as You Go</h4>
+                        <ul>
+                            <li>✔ Advanced historical data</li>
+                            <li>✔ Predictive analytics</li>
+                            <li>✔ Advanced GIS layers</li>
+                            <li>✔ Technical support</li>
+                        </ul>
+                        <h3>KES 10,000+</h3>
+                        <p>Billed monthly based on usage</p>
+                        <a href="../login/register.html" class="btn btn-primary">Sign Up</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-4">Get in Touch</h2>
+            <div class="row g-4">
+                <!-- Contact Info -->
+                <div class="col-md-6">
+                    <div class="card card-custom p-4">
+                        <h5><i class="bi bi-geo-alt"></i> Address</h5>
+                        <p>Nairobi, Kenya</p>
+                        <h5><i class="bi bi-telephone"></i> Phone</h5>
+                        <p>+254 700 168 812</p>
+                        <h5><i class="bi bi-envelope"></i> Email</h5>
+                        <p>flipsintelligence@gmail.com</p>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="col-md-6">
+                    <form id="contactForm" class="card card-custom p-4">
+                        <div class="mb-3">
+                            <input type="text" name="name" class="form-control" placeholder="Your Name" required />
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" name="email" class="form-control" placeholder="Your Email" required />
+                        </div>
+                        <div class="mb-3">
+                            <textarea name="message" class="form-control" placeholder="Message" rows="4"
+                                required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>About FLIPS</h4>
+                    <p>FLIPS provides innovative solutions for flood monitoring and management.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="bi bi-facebook"></i></a>
+                        <a href="#"><i class="bi bi-twitter"></i></a>
+                        <a href="#"><i class="bi bi-instagram"></i></a>
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                // Hide spinner and remove blur
+                const spinner = document.getElementById("spinner");
+                if (spinner) {
+                    spinner.style.display = "none";
+                }
+                document.body.classList.remove("blurred");
+            }, 2000); // 2-second delay
+        });
+        const loadPlans = () => {
+            axios
+                .get("http://197.254.53.253:8000/subscription/plans/")
+                .then((response) => {
+                    const plansContainer = document.getElementById("plansContainer");
+                    plansContainer.innerHTML = ""; // Clear any previous content
+
+                    response.data.forEach((plan, index) => {
+                        let promotionBadge = "";
+                        if (plan.is_promotion_active) {
+                            promotionBadge =
+                                '<span class="badge badge-primary">Promotion Active</span>';
+                        }
+
+                        const planHtml = `
+            <div class="col-lg-4 col-md-6" data-aos="zoom-in" data-aos-delay="${100 * (index + 1)
+                            }">
+              <div class="box">
+                <h3 style="color: ${plan.color}">${plan.name}</h3>
+                <div class="price"><sup>Kes</sup>${plan.price
+                            }<span> / mo</span></div>
+                ${promotionBadge}
+                <p>${plan.description}</p>
+                <a href="#" class="btn-buy" onclick="subscribeToPlan('${plan.id
+                            }')">Subscribe</a>
+              </div>
+            </div>`;
+
+                        plansContainer.insertAdjacentHTML("beforeend", planHtml);
+                    });
+                })
+                .catch((error) => {
+                    document.getElementById("plansContainer").innerHTML =
+                        "<p>Error loading plans. Please try again later.</p>";
+                });
+        };
+
+        const checkLoginStatus = () => {
+            // Sample logic to check if a user is logged in
+            // Replace this with actual logic based on your authentication system
+            return !!localStorage.getItem("userLoggedIn");
+        };
+
+        const subscribeToPlan = (planId) => {
+            if (checkLoginStatus()) {
+                window.location.href = "dashboard/index.html";
+            } else {
+                window.location.href = "login/login.html";
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", loadPlans);
+
+
+
+        (function () {
+            function gC(n) {
+                let cV = null;
+                if (document.cookie && document.cookie !== "") {
+                    const cs = document.cookie.split(";");
+                    for (let i = 0; i < cs.length; i++) {
+                        const c = cs[i].trim();
+                        if (c.substring(0, n.length + 1) === n + "=") {
+                            cV = decodeURIComponent(c.substring(n.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cV;
+            }
+
+            const cT = gC("csrftoken");
+
+            document
+                .getElementById("contactForm")
+                .addEventListener("submit", function (ev) {
+                    ev.preventDefault();
+                    const f = ev.target;
+                    const fD = new FormData(f);
+                    const d = {};
+                    fD.forEach((v, k) => {
+                        d[k] = v;
+                    });
+
+                    f.querySelector(".loading").style.display = "block";
+                    f.querySelector(".error-message").style.display = "none";
+                    f.querySelector(".sent-message").style.display = "none";
+
+                    fetch(
+                        atob(
+                            "aHR0cDovLzEyNy4wLjAuMTo4MDAwL2NvbnRhY3Qvc3VibWl0Lw=="
+                        ), {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": cT,
+                        },
+                        body: JSON.stringify(d),
+                    }
+                    )
+                        .then((r) => r.json())
+                        .then((r) => {
+                            f.querySelector(".loading").style.display = "none";
+                            if (r.message) {
+                                f.querySelector(".sent-message").style.display =
+                                    "block";
+                            } else {
+                                f.querySelector(".error-message").innerText = atob(
+                                    "QW4gZXJyb3Igb2NjdXJyZWQuIFBsZWFzZSB0cnkgYWdhaW4u"
+                                );
+                                f.querySelector(".error-message").style.display =
+                                    "block";
+                            }
+                        })
+                        .catch((e) => {
+                            console.error(
+                                atob("RXJyb3Igc3VibWl0dGluZyBmb3JtOg=="),
+                                e
+                            );
+                            f.querySelector(".loading").style.display = "none";
+                            f.querySelector(".error-message").innerText = atob(
+                                "QW4gZXJyb3Igb2NjdXJyZWQuIFBsZWFzZSB0cnkgYWdhaW4u"
+                            );
+                            f.querySelector(".error-message").style.display = "block";
+                        });
+                });
+        })();
+
+        document
+            .getElementById("newsletter-form")
+            .addEventListener("submit", function (e) {
+                e.preventDefault();
+                const email = document.getElementById("email").value;
+                const endpoint = "http://197.254.53.253:8000/newsletter/subscribe/";
+                const data = {
+                    email: email
+                };
+
+                fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        document.getElementById("message").textContent =
+                            "Thank you for subscribing!";
+                    })
+                    .catch((error) => {
+                        document.getElementById("message").textContent =
+                            "An error occurred. Please try again.";
+                    });
+            });
+
+
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

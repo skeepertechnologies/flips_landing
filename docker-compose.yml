@@ -1,0 +1,86 @@
+services:
+  db:
+    image: postgis/postgis:13-3.1
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    restart: always
+
+  redis:
+    image: redis:alpine
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+    restart: always
+
+  data_sender:
+    build:
+      context: .
+      dockerfile: data_sender.Dockerfile
+    volumes:
+      - ./data_sender:/app
+    depends_on:
+      - redis
+    networks:
+      - backend
+      - frontend
+    command: >
+      sh -c "python send_data.py"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - API_HOST=https://197.254.53.253  # Proxy through nginx
+    restart: always
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./static:/usr/share/nginx/html/static
+      - ./media:/usr/share/nginx/html/media
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    expose:
+      - "80"
+    networks:
+      frontend:
+        aliases:
+          - nginx.localhost
+      backend:
+    environment:
+      - NGINX_HOST=flipsintel.org
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx.rule=Host(`197.254.53.253`,`flipsintel.org`)"
+      - "traefik.http.routers.nginx.entrypoints=websecure"
+      - "traefik.http.routers.nginx.tls=true"
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment | FLIPS</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f9f9f9;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: #007bff;
+        }
+
+        .navbar-brand, .navbar-text, .nav-link {
+            color: white !important;
+        }
+
+        .navbar-brand:hover, .nav-link:hover {
+            color: #e0f7fa !important;
+        }
+
+        .container {
+            margin-top: 2rem;
+            flex: 1;
+        }
+
+        h2 {
+            color: #007bff;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            font-weight: bold;
+            font-size: 1.25rem;
+            background-color: #007bff;
+            color: white;
+            border-bottom: none;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .form-check-label {
+            font-size: 1rem;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .form-check-input {
+            margin-top: 0.3rem;
+        }
+
+        .form-check-input:checked {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            border-color: #007bff;
+        }
+
+        footer {
+            padding: 1.5rem 0;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="#">FLIPS</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Features</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Pricing</a>
+                </li>
+            </ul>
+            <span class="navbar-text">
+                Logged in as: <span id="userInfo">Loading...</span> | 
+                Payment Status: <span id="paymentStatus">Loading...</span> | 
+                Verification Wait Time: <span id="verificationWaitTime">Loading...</span>
+            </span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Select Payment Method and Plan</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Subscription Plans</div>
+                    <div class="card-body" id="subscriptionPlans">
+                        <div class="loading">Loading plans...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Payment Methods</div>
+                    <div class="card-body" id="paymentMethods">
+                        <div class="loading">Loading payment methods...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="paymentForm" class="card" style="display: none;">
+            <div class="card-header">Payment Details</div>
+            <div class="card-body">
+                <form id="paymentSubmissionForm">
+                    <div class="form-group">
+                        <label for="amount">Amount ($)</label>
+                        <input type="text" class="form-control" id="amount" name="amount" readonly required>
+                    </div>
+                    <div id="selectedPaymentMethodDetails"></div>
+                    <button type="submit" class="btn btn-primary w-100">Initiate Payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 FLIPS. All rights reserved. | 
+            <a href="#">Privacy Policy</a> | 
+            <a href="#">Terms of Service</a>
+        </p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.4.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Base URL for all AJAX requests
+        const BASE_URL = 'http://flipsintel.org:8000';
+
+        class PaymentLogger {
+            static info(message) {
+                console.log(`[INFO] ${new Date().toISOString()} - ${message}`);
+            }
+            static error(message, error) {
+                console.error(`[ERROR] ${new Date().toISOString()} - ${message}`, error);
+            }
+            static warn(message) {
+                console.warn(`[WARN] ${new Date().toISOString()} - ${message}`);
+            }
+        }
+
+        class PaymentHandler {
+            constructor() {
+                this.token = localStorage.getItem('token');
+                this.selectedPlan = null;
+                this.selectedPlanPrice = 0;
+            }
+
+            init() {
+                if (!this.token) {
+                    this.handleUnauthenticated();
+                    return;
+                }
+                this.setupEventListeners();
+                this.fetchUserInfo();
+                this.fetchPaymentData();
+            }
+
+            handleUnauthenticated() {
+                PaymentLogger.warn('No authentication token found');
+                alert('Please log in to proceed with payment.');
+                window.location.href = '/login.html';
+            }
+
+            setupEventListeners() {
+                document.getElementById('paymentSubmissionForm')
+                    .addEventListener('submit', this.handlePaymentSubmission.bind(this));
+            }
+
+            async fetchUserInfo() {
+                try {
+                    const response = await axios.get(`${BASE_URL}/api/user-info/`, {
+                        headers: { Authorization: `Token ${this.token}` }
+                    });
+                    this.updateUserInfo(response.data);
+                    PaymentLogger.info('User info fetched successfully');
+                } catch (error) {
+                    PaymentLogger.error('Failed to fetch user info', error);
+                    this.updateUserInfoError();
+                }
+            }
+
+            updateUserInfo(data) {
+                document.getElementById('userInfo').textContent = data.username || 'N/A';
+                document.getElementById('paymentStatus').textContent = data.payment_status || 'N/A';
+                document.getElementById('verificationWaitTime').textContent = data.verification_wait_time || 'N/A';
+            }
+
+            updateUserInfoError() {
+                document.getElementById('userInfo').textContent = 'Error';
+                document.getElementById('paymentStatus').textContent = 'Error';
+                document.getElementById('verificationWaitTime').textContent = 'Error';
+            }
+
+            async fetchPaymentData() {
+                try {
+                    const response = await axios.get(`${BASE_URL}/payments/payment-page/`, {
+                        headers: { Authorization: `Token ${this.token}` }
+                    });
+                    this.renderPlans(response.data.plans);
+                    this.renderPaymentMethods(response.data.payment_methods);
+                    PaymentLogger.info('Payment data fetched successfully');
+                } catch (error) {
+                    PaymentLogger.error('Failed to fetch payment data', error);
+                    this.handlePaymentDataError(error);
+                }
+            }
+
+            renderPlans(plans) {
+                const container = document.getElementById('subscriptionPlans');
+                container.innerHTML = '';
+                
+                if (!plans?.length) {
+                    container.innerHTML = '<p>No subscription plans available.</p>';
+                    return;
+                }
+
+                plans.forEach(plan => {
+                    const price = parseFloat(plan.price);
+                    const finalPrice = isNaN(price) ? 'N/A' : price.toFixed(2);
+                    const planDiv = this.createRadioOption(
+                        'subscriptionPlan',
+                        `plan-${plan.id}`,
+                        plan.id,
+                        `${plan.name} ($${finalPrice})`,
+                        () => {
+                            this.selectedPlan = plan.id;
+                            this.selectedPlanPrice = finalPrice;
+                            document.getElementById('amount').value = finalPrice;
+                        }
+                    );
+                    container.appendChild(planDiv);
+                });
+            }
+
+            renderPaymentMethods(methods) {
+                const container = document.getElementById('paymentMethods');
+                container.innerHTML = '';
+
+                if (!methods?.length) {
+                    container.innerHTML = '<p>No payment methods available.</p>';
+                    return;
+                }
+
+                methods.forEach(method => {
+                    const methodDiv = this.createRadioOption(
+                        'paymentMethod',
+                        `method-${method.id}`,
+                        method.id,
+                        method.name,
+                        () => this.showPaymentForm(method)
+                    );
+                    container.appendChild(methodDiv);
+                });
+            }
+
+            createRadioOption(name, id, value, label, onChange) {
+                const div = document.createElement('div');
+                div.className = 'form-check';
+                div.innerHTML = `
+                    <input class="form-check-input" type="radio" name="${name}" value="${value}" id="${id}">
+                    <label class="form-check-label" for="${id}">${label}</label>
+                `;
+                div.querySelector('input').addEventListener('change', onChange);
+                return div;
+            }
+
+            showPaymentForm(method) {
+                const form = document.getElementById('paymentForm');
+                const details = document.getElementById('selectedPaymentMethodDetails');
+                
+                details.innerHTML = `
+                    <div class="form-group">
+                        <label for="accountNumber">Account Number</label>
+                        <input type="text" class="form-control" id="accountNumber" value="${method.account_number || ''}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="paybillNumber">Paybill Number</label>
+                        <input type="text" class="form-control" id="paybillNumber" value="${method.paybill_number || ''}" readonly>
+                    </div>
+                `;
+                form.style.display = 'block';
+            }
+
+            async handlePaymentSubmission(event) {
+                event.preventDefault();
+                const selectedPaymentMethodId = document.querySelector('input[name="paymentMethod"]:checked')?.value;
+
+                if (!this.validateSelection(selectedPaymentMethodId)) return;
+
+                try {
+                    const response = await axios.post(`${BASE_URL}/payments/methods/`, {
+                        plan: this.selectedPlan,
+                        payment_method: selectedPaymentMethodId,
+                        amount: this.selectedPlanPrice
+                    }, {
+                        headers: { Authorization: `Token ${this.token}` }
+                    });
+
+                    this.handlePaymentSuccess(response.data);
+                } catch (error) {
+                    PaymentLogger.error('Payment initiation failed', error);
+                    alert('Failed to initiate payment. Please try again.');
+                }
+            }
+
+            validateSelection(paymentMethodId) {
+                if (!this.selectedPlan || !paymentMethodId || this.selectedPlanPrice === 'N/A') {
+                    PaymentLogger.warn('Invalid selection attempted');
+                    alert('Please select a valid plan and payment method.');
+                    return false;
+                }
+                return true;
+            }
+
+            handlePaymentSuccess(data) {
+                const uniqueReference = data.unique_reference;
+                localStorage.setItem('paymentReference', uniqueReference);
+                PaymentLogger.info(`Payment initiated successfully. Reference: ${uniqueReference}`);
+                alert('Payment initiated successfully. Follow the instructions to complete the payment.');
+                window.location.href = '../index.html';
+            }
+
+            handlePaymentDataError(error) {
+                if (error.response?.status === 401) {
+                    PaymentLogger.warn('Session expired');
+                    alert('Session expired. Please log in again.');
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                }
+                document.getElementById('subscriptionPlans').innerHTML = '<p>Error loading plans</p>';
+                document.getElementById('paymentMethods').innerHTML = '<p>Error loading payment methods</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const paymentHandler = new PaymentHandler();
+            paymentHandler.init();
+        });
+    </script>
+</body>
+</html>

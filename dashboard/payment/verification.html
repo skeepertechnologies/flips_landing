@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Verification | FLIPS</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+        }
+
+        .navbar {
+            background-color: #007bff;
+        }
+
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+
+        .navbar-brand:hover, .nav-link:hover {
+            color: #e0f7fa !important;
+        }
+
+        .waiting-game {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .modal-dialog-centered {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 1rem);
+        }
+
+        .modal-content {
+            border-radius: 10px;
+        }
+
+        .modal-header {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .modal-footer {
+            justify-content: center;
+        }
+
+        .spinner-border {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="#">FLIPS</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./payment.html">Payments</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="logoutButton">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="text-center">Verify Your Payments</h2>
+        <div id="paymentContainer" class="row mt-4">
+            <!-- Payments will be dynamically inserted here -->
+        </div>
+        <div class="waiting-game">
+            <p>We are in the process of confirming your payments. Please wait a moment...</p>
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Payment Verified</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Payment verified successfully. You will be redirected to your dashboard shortly.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    An error occurred. Please try again or contact support.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Error Modal -->
+    <div class="modal fade" id="authErrorModal" tabindex="-1" aria-labelledby="authErrorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="authErrorModalLabel">Authentication Required</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    You are not logged in. Please log in to proceed.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='./login.html'">Log In</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.4.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Base URL for all AJAX requests
+        const BASE_URL = 'http://flipsintel.org:8000';
+        const VERIFICATION_WAIT_TIME_MS = 7 * 60 * 60 * 1000; // 7 hours in milliseconds
+
+        async function checkAuthentication(token) {
+            try {
+                const response = await axios.get(`${BASE_URL}/api/user-info/`, {
+                    headers: {
+                        'Authorization': `Token ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.status === 200) return response.data;
+                throw new Error('User authentication failed.');
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        async function fetchPaymentDetails(token) {
+            try {
+                const response = await axios.get(`${BASE_URL}/payments/verification/`, {
+                    headers: {
+                        'Authorization': `Token ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.status === 200) return response.data;
+                throw new Error('Failed to fetch payment details.');
+            } catch (error) {
+                // Attempt verification if fetching details fails
+                verifyPayment();
+                throw error;
+            }
+        }
+
+        async function verifyPayment(uniqueReference, token) {
+            try {
+                const response = await axios.post(`${BASE_URL}/payments/verify/`, {
+                    unique_reference: uniqueReference
+                }, {
+                    headers: {
+                        'Authorization': `Token ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 200) {
+                    $('#successModal').modal('show');
+                    setTimeout(() => {
+                        window.location.href = response.data.redirect_url || '../index.html';
+                    }, 2000); // 2 seconds delay
+                } else {
+                    $('#errorModal').modal('show');
+                }
+            } catch (error) {
+                console.error('Error verifying payment:', error);
+                $('#errorModal').modal('show');
+            }
+        }
+
+        async function redirectToDashboard() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await axios.get(`${BASE_URL}/subscription/get-dashboard-url/`, {
+                    headers: {
+                        'Authorization': `Token ${token}`
+                    }
+                });
+                window.location.href = response.data.url || '../index.html';
+            } catch (error) {
+                console.error('Failed to get dashboard URL:', error);
+                $('#errorModal').modal('show');
+            }
+        }
+
+        function isWithinWorkingHours(date) {
+            const workStartHour = 8;
+            const workEndHour = 17;
+            const workWeekDays = [1, 2, 3, 4, 5]; // Monday to Friday
+
+            const day = date.getDay();
+            const hour = date.getHours();
+            return workWeekDays.includes(day) && hour >= workStartHour && hour < workEndHour;
+        }
+
+        function getNextWorkingTime(date) {
+            const nextDate = new Date(date);
+            const workStartHour = 8;
+            const workEndHour = 17;
+
+            if (nextDate.getHours() >= workEndHour || nextDate.getHours() < workStartHour) {
+                nextDate.setHours(workStartHour, 0, 0, 0);
+                if (nextDate.getDay() === 5) {
+                    nextDate.setDate(nextDate.getDate() + 3);
+                } else {
+                    nextDate.setDate(nextDate.getDate() + 1);
+                }
+            }
+
+            if (nextDate.getDay() === 0 || nextDate.getDay() === 6) {
+                nextDate.setDate(nextDate.getDate() + (1 + 7 - nextDate.getDay()) % 7);
+            }
+
+            return nextDate;
+        }
+
+        function adjustForWorkingHours(startDate, waitTimeMs) {
+            let currentDate = startDate;
+            let timeLeft = waitTimeMs;
+            const workEndHour = 17;
+
+            while (timeLeft > 0) {
+                if (isWithinWorkingHours(currentDate)) {
+                    let endOfWorkDay = new Date(currentDate);
+                    endOfWorkDay.setHours(workEndHour, 0, 0, 0);
+                    const remainingWorkDayMs = endOfWorkDay - currentDate;
+
+                    if (timeLeft > remainingWorkDayMs) {
+                        timeLeft -= remainingWorkDayMs;
+                        currentDate = getNextWorkingTime(endOfWorkDay);
+                    } else {
+                        currentDate = new Date(currentDate.getTime() + timeLeft);
+                        timeLeft = 0;
+                    }
+                } else {
+                    currentDate = getNextWorkingTime(currentDate);
+                }
+            }
+            return currentDate;
+        }
+
+        function updateTimer(paymentElement, verificationDeadline) {
+            const interval = setInterval(() => {
+                const now = new Date();
+                const timeLeft = verificationDeadline - now;
+
+                if (timeLeft <= 0) {
+                    paymentElement.textContent = 'Payment verification has expired. Please contact support.';
+                    paymentElement.classList.remove('text-info');
+                    paymentElement.classList.add('text-danger');
+                    clearInterval(interval);
+                } else {
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    paymentElement.textContent = `Verification in progress. Estimated time left: ${hours}h ${minutes}m ${seconds}s`;
+                }
+            }, 1000);
+        }
+
+        async function initializePage() {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                $('#authErrorModal').modal('show');
+                return;
+            }
+
+            try {
+                await checkAuthentication(token);
+
+                const paymentDetails = await fetchPaymentDetails(token);
+
+                const paymentContainer = document.getElementById('paymentContainer');
+                if (!paymentContainer) {
+                    console.error('Payment container not found');
+                    return;
+                }
+                paymentContainer.innerHTML = '';
+
+                if (!paymentDetails || paymentDetails.length === 0) {
+                    paymentContainer.innerHTML = '<p class="col-12 text-center">No payments found.</p>';
+                    return;
+                }
+
+                paymentDetails.forEach(payment => {
+                    const cardHtml = `
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${payment.plan || 'N/A'}</h5>
+                                    <p class="card-text">
+                                        Amount: $${payment.amount || 'N/A'}<br>
+                                        Reference: ${payment.unique_reference || 'N/A'}<br>
+                                        Created At: ${payment.created_at ? new Date(payment.created_at).toLocaleString() : 'N/A'}<br>
+                                        <span class="text-info verification-timer" data-created-at="${payment.created_at || ''}"></span>
+                                    </p>
+                                    <button class="btn btn-primary btn-sm verify-payment-btn" data-reference="${payment.unique_reference}">Verify Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    paymentContainer.innerHTML += cardHtml;
+                });
+
+                // Attach event listeners to verify buttons
+                document.querySelectorAll('.verify-payment-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const uniqueReference = button.dataset.reference;
+                        verifyPayment(uniqueReference, token);
+                    });
+                });
+
+                // Update timers for verification deadlines
+                const payments = document.querySelectorAll('.verification-timer');
+                payments.forEach(payment => {
+                    const createdAt = payment.dataset.createdAt;
+                    if (createdAt) {
+                        const verificationDeadline = adjustForWorkingHours(new Date(createdAt), VERIFICATION_WAIT_TIME_MS);
+                        updateTimer(payment, verificationDeadline);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Initialization error:', error);
+                $('#errorModal').modal('show');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializePage();
+        });
+
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            $('#successModal').modal('show');
+            setTimeout(() => {
+                window.location.href = './login.html';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

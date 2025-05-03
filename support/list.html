@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tickets</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>My Tickets</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                </tr>
+            </thead>
+            <tbody id="tickets-table-body">
+                <!-- Tickets will be populated here -->
+            </tbody>
+        </table>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            axios.get('http://127.0.0.1:8000/support/')
+                .then(response => {
+                    const tickets = response.data.tickets;
+                    const tableBody = document.getElementById('tickets-table-body');
+                    tickets.forEach(ticket => {
+                        const row = `<tr>
+                            <td>${ticket.subject}</td>
+                            <td>${ticket.status}</td>
+                            <td>${new Date(ticket.created_at).toLocaleString()}</td>
+                            <td>${new Date(ticket.updated_at).toLocaleString()}</td>
+                        </tr>`;
+                        tableBody.insertAdjacentHTML('beforeend', row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Run on push to the main branch
+  pull_request:
+    branches:
+      - main  # Run on pull requests to the main branch
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
+          # Install PostgreSQL dev packages if necessary
+          sudo apt-get update && sudo apt-get install -y libpq-dev
+          pip install psycopg2-binary  # Ensure PostgreSQL client libraries are installed
+
+      - name: Configure PostgreSQL
+        run: |
+          sudo apt-get install -y postgresql-client  # Install PostgreSQL client for psql command if necessary
+          export PGPASSWORD='test_password'
+          psql -h 127.0.0.1 -U test_user -d test_db -c "SELECT 1"
+
+      - name: Run migrations
+        run: |
+          source .venv/bin/activate
+          python auth/manage.py migrate
+
+      - name: Start Django server
+        run: |
+          source .venv/bin/activate
+          nohup python auth/manage.py runserver 0.0.0.0:8000 &
+        continue-on-error: true
+
+      - name: Wait for server to be ready
+        run: sleep 20  # Wait longer to ensure the server has enough time to start
+
+      - name: Run endpoint and test script
+        run: |
+          source .venv/bin/activate
+          python auth/endpoint.py
+
+      # Optional: Add a step to run your unit tests, e.g., if using pytest
+      - name: Run Tests
+        run: |
+          source .venv/bin/activate
+          pytest
