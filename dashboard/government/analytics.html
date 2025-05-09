@@ -648,7 +648,7 @@
         console.log("Fetching data...");
 
         axios
-            .get('http://flipsintel.org:8000/monitor/predicted-data/', {
+            .get('https://api.flipsintel.org:8000/monitor/predicted-data/', {
                 headers: { Authorization: `Token ${token}` },
             })
             .then((response) => {
@@ -785,7 +785,7 @@
         function fetchPerformanceData() {
             showSpinner();
             const token = localStorage.getItem('token');
-            axios.get('http://flipsintel.org:8000/monitor/performance/', {
+            axios.get('https://api.flipsintel.org/monitor/performance/', {
                 headers: { 'Authorization': 'Token ' + token },
             })
                 .then(response => {
@@ -836,7 +836,7 @@
 
         function initializePredictionChart() {
             const token = localStorage.getItem('token');
-            axios.get('http://flipsintel.org:8000/monitor/predicted-data/', {
+            axios.get('https://api.flipsintel.org/monitor/predicted-data/', {
                 headers: { 'Authorization': 'Token ' + token },
             })
                 .then(response => {

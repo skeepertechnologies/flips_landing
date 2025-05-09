@@ -814,7 +814,7 @@ function redirectToGIS() {
     }
 
     // Fetch user information
-    axios.get('http://127.0.0.1:8000/api/user-info/', {
+    axios.get('https://api.flipsintel.org/api/user-info/', {
         headers: {
             'Authorization': `Token ${token}`,
         },

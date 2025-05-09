@@ -786,7 +786,7 @@ function saveModel(event) {
 
 function fetchRigs() {
     const token = localStorage.getItem('token');
-    const backendBaseUrl = 'http://flipsintel.org:8000';
+    const backendBaseUrl = 'https://api.flipsintel.org';
 
     console.log('Fetching rigs...');
     axios.get(`${backendBaseUrl}/monitor/rigs/`, {
@@ -812,7 +812,7 @@ function fetchRigs() {
 
 function fetchUserModels() {
     const token = localStorage.getItem('token');
-    const backendBaseUrl = 'http://flipsintel.org:8000';
+    const backendBaseUrl = 'https://api.flipsintel.org';
 
     console.log('Fetching user models...');
     axios.get(`${backendBaseUrl}/modelbuilder/user-models/`, {

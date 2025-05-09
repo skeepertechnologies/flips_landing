@@ -238,7 +238,7 @@
           document.getElementById("newsletter-form").addEventListener("submit", function (e) {
             e.preventDefault();
             const email = document.getElementById("email").value;
-            fetch("http://127.0.0.1:8000/newsletter/subscribe/", {
+            fetch("https://api.flipsintel.org/newsletter/subscribe/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),

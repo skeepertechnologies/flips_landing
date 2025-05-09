@@ -177,7 +177,7 @@
             submitButton.textContent = "Analyzing...";
 
             // Call the API endpoint
-            axios.post("http://flipsintel.org:8000/gis/analyze-roi/", {
+            axios.post("https://api.flipsintel.org/gis/analyze-roi/", {
                 aoi: JSON.parse(aoiGeoJSON)
             })
             .then(response => {
@@ -218,7 +218,7 @@ function addRigMarkers(rigs) {
 
 // Analyze ROI for a Selected Rig
 function analyzeRig(rigId) {
-    axios.post("http://flipsintel.org:8000/gis/analyze-roi/", { rig_id: rigId })
+    axios.post("https://api.flipsintel.org/gis/analyze-roi/", { rig_id: rigId })
         .then(response => {
             const data = response.data.analysis_result;
             alert(`Flood Area: ${data.flood_area_sq_km} sq km\nExposed Population: ${data.exposed_population}`);
@@ -229,7 +229,7 @@ function analyzeRig(rigId) {
 }
 
 // Fetch Rig Markers and Add to Map
-axios.get("http://flipsintel.org:8000/monitor/get_rig_location/")
+axios.get("https://api.flipsintel.org/monitor/get_rig_location/")
     .then(response => {
         const rigs = response.data;
         addRigMarkers(rigs);

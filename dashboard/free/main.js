@@ -1,5 +1,5 @@
 // Base URL for all AJAX requests
-const BASE_URL = 'http://66.23.232.40:8000';
+const BASE_URL = 'https://api.flipsintel.org';
 
 $(document).ready(function () {
     // Prevent the dropdown from closing when clicking inside submenus

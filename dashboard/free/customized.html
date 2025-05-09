@@ -751,7 +751,7 @@ function saveModel(event) {
     const attributes = Array.from(document.getElementById('attributesSelect').selectedOptions).map(option => option.value);
     const mlModel = document.getElementById('mlModelSelect').value;
     const token = localStorage.getItem('token');
-    const backendBaseUrl = 'http://localhost:8000';
+    const backendBaseUrl = 'https://api.flipsintel.org';
 
     // Validate inputs
     if (!name || !sensorId || attributes.length === 0 || !mlModel) {
@@ -786,7 +786,7 @@ function saveModel(event) {
 
 function fetchRigs() {
     const token = localStorage.getItem('token');
-    const backendBaseUrl = 'http://localhost:8000';
+    const backendBaseUrl = 'https://api.flipsintel.org';
 
     console.log('Fetching rigs...');
     axios.get(`${backendBaseUrl}/monitor/rigs/`, {
@@ -812,7 +812,7 @@ function fetchRigs() {
 
 function fetchUserModels() {
     const token = localStorage.getItem('token');
-    const backendBaseUrl = 'http://localhost:8000';
+    const backendBaseUrl = 'https://api.flipsintel.org';
 
     console.log('Fetching user models...');
     axios.get(`${backendBaseUrl}/modelbuilder/user-models/`, {
@@ -883,7 +883,7 @@ function viewReport(modelId) {
     const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
     reportModal.show();
 
-    const backendBaseUrl = 'http://localhost:8000';
+    const backendBaseUrl = 'https://api.flipsintel.org';
     const token = localStorage.getItem('token');
 
     // Reset modal content

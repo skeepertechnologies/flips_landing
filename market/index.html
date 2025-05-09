@@ -279,7 +279,7 @@
         });
         const loadPlans = () => {
             axios
-                .get("http://197.254.53.253:8000/subscription/plans/")
+                .get("https://api.flipsintel.org/subscription/plans/")
                 .then((response) => {
                     const plansContainer = document.getElementById("plansContainer");
                     plansContainer.innerHTML = ""; // Clear any previous content
@@ -410,7 +410,7 @@
             .addEventListener("submit", function (e) {
                 e.preventDefault();
                 const email = document.getElementById("email").value;
-                const endpoint = "http://197.254.53.253:8000/newsletter/subscribe/";
+                const endpoint = "https://api.flipsintel.org/newsletter/subscribe/";
                 const data = {
                     email: email
                 };
