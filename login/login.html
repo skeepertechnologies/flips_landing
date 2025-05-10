@@ -174,26 +174,26 @@
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
     const BASE_URL = 'https://api.flipsintel.org';
-
+  
     const usernameInput = document.getElementById('usernameInput');
     const emailError = document.getElementById('emailError');
     const passwordInput = document.getElementById('passwordInput');
     const signInBtn = document.querySelector('.sign-btn');
-
+  
     // Step 1: Handle username "Next"
     document.getElementById('nextBtn').addEventListener('click', function () {
       const username = usernameInput.value.trim();
-
+  
       if (!username) {
         emailError.textContent = 'Please enter your username.';
         emailError.classList.remove('d-none');
         return;
       }
-
+  
       emailError.classList.add('d-none');
       document.getElementById('step-email').classList.add('d-none');
       document.getElementById('loading').classList.remove('d-none');
-
+  
       // Simulate checking username (replace with real API check if needed)
       setTimeout(() => {
         document.getElementById('loading').classList.add('d-none');
@@ -201,35 +201,45 @@
         document.getElementById('backEmail').textContent = username;
       }, 1000);
     });
-
+  
     usernameInput.addEventListener('input', function () {
       if (usernameInput.value.trim()) {
         emailError.classList.add('d-none');
       }
     });
-
+  
     document.getElementById('backBtn').addEventListener('click', function () {
       document.getElementById('step-password').classList.add('d-none');
       document.getElementById('step-email').classList.remove('d-none');
     });
-
+  
     // Step 2: Handle login submission
     signInBtn.addEventListener('click', function () {
       const username = usernameInput.value.trim();
       const password = passwordInput.value;
-
+  
       if (!password) {
         alert("Please enter your password.");
         return;
       }
-
+  
       const data = { username, password };
-
+      
+      // Log the data being posted
+      console.log('Login attempt with data:', {
+        username: data.username,
+        password: '[REDACTED]' // Avoid logging sensitive information like passwords
+      });
+  
       signInBtn.disabled = true;
       signInBtn.innerHTML = 'Signing In...';
-
+  
       axios.post(`${BASE_URL}/login/`, data)
         .then(function (response) {
+          // Log successful response
+          console.log('Login successful:', {
+            token: response.data.token
+          });
           localStorage.setItem("token", response.data.token);
           showToast('success');
           setTimeout(() => {
@@ -237,7 +247,13 @@
           }, 2000);
         })
         .catch(function (error) {
+          // Log error details
           if (error.response) {
+            console.error('Login failed:', {
+              status: error.response.status,
+              statusText: error.response.statusText,
+              data: error.response.data
+            });
             switch (error.response.status) {
               case 400:
               case 401:
@@ -251,6 +267,7 @@
                 break;
             }
           } else {
+            console.error('Login failed: Network or server error', error.message);
             showToast('serverError');
           }
         })
@@ -259,7 +276,7 @@
           signInBtn.innerHTML = 'Sign In';
         });
     });
-
+  
     function showToast(type) {
       const id = {
         success: "successToast",
@@ -267,7 +284,7 @@
         userNotFound: "userNotFoundToast",
         serverError: "serverErrorToast"
       }[type];
-
+  
       $('.toast').toast('hide');
       $(`#${id}`).toast('show');
     }
