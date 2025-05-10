@@ -150,41 +150,41 @@
     const BASE_URL = 'https://api.flipsintel.org';
     const emailInput = document.getElementById('emailInput');
     const emailError = document.getElementById('emailError');
-
+  
     document.getElementById('nextBtn').addEventListener('click', function () {
       const email = emailInput.value.trim();
-
+  
       if (!email) {
         emailError.classList.remove('d-none');
         return;
       }
-
+  
       emailError.classList.add('d-none');
       document.getElementById('backEmail').textContent = email;
       document.getElementById('step-email').classList.add('d-none');
       document.getElementById('loading').classList.remove('d-none');
-
+  
       setTimeout(() => {
         document.getElementById('loading').classList.add('d-none');
         document.getElementById('step-password').classList.remove('d-none');
       }, 2000);
     });
-
+  
     emailInput.addEventListener('input', function () {
       if (emailInput.value.trim()) {
         emailError.classList.add('d-none');
       }
     });
-
+  
     document.getElementById('backBtn').addEventListener('click', function () {
       document.getElementById('step-password').classList.add('d-none');
       document.getElementById('step-email').classList.remove('d-none');
     });
-
+  
     function showErrorToast(errors) {
       const errorToastBody = $('#errorToastBody');
       errorToastBody.empty();
-
+  
       if (typeof errors === 'object' && !Array.isArray(errors)) {
         for (const [field, messages] of Object.entries(errors)) {
           if (Array.isArray(messages)) {
@@ -198,21 +198,21 @@
       } else {
         errorToastBody.append(`<div>${errors || 'An unknown error occurred.'}</div>`);
       }
-
+  
       $('#errorToast').toast('show');
     }
-
+  
     document.querySelector('.sign-btn').addEventListener('click', function () {
       const username = document.getElementById('usernameInput').value.trim();
       const email = emailInput.value.trim();
       const password = document.getElementById('passwordInput').value.trim();
       const phoneNumber = document.getElementById('phoneInput').value.trim();
-
+  
       if (!username || !password || !phoneNumber) {
         showErrorToast('Enter a valid Username or password or phone');
         return;
       }
-
+  
       const data = {
         username,
         email,
@@ -222,22 +222,41 @@
           category: ""  // Optional, or remove if not needed
         }
       };
-
+  
+      // Log the data being posted (redacting sensitive information)
+      console.log('Sign-up attempt with data:', {
+        username: data.username,
+        email: data.email,
+        password: '[REDACTED]',
+        profile: {
+          phone_number: data.profile.phone_number,
+          category: data.profile.category
+        }
+      });
+  
       $.ajax({
         url: `${BASE_URL}/register/`,
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(data),
-        success: function () {
+        success: function (response) {
+          // Log successful response
+          console.log('Sign-up successful:', response);
           $('#successToast').toast('show');
           setTimeout(() => {
             window.location.href = 'login.html';
           }, 2000);
         },
         error: function (xhr) {
+          // Log error details
           if (xhr.responseJSON) {
+            console.error('Sign-up failed:', xhr.responseJSON);
             showErrorToast(xhr.responseJSON);
           } else {
+            console.error('Sign-up failed: Server error', {
+              status: xhr.status,
+              statusText: xhr.statusText
+            });
             showErrorToast('Server error. Please try again later.');
           }
         }
