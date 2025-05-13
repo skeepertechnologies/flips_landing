@@ -348,6 +348,7 @@
         const checkSubscriptionStatus = async () => {
             const token = localStorage.getItem("token");
             const statusElement = document.getElementById("subscriptionStatus");
+            const plansContainer = document.getElementById("plansContainer");
             try {
                 const response = await axios.get(`${BASE_URL}/payments/verify-subscription/`, {
                     headers: { Authorization: `Token ${token}` }
@@ -356,20 +357,23 @@
                 statusElement.classList.remove("alert-info", "alert-danger", "alert-warning");
                 if (response.data.isSubscribed) {
                     statusElement.classList.add("alert-success");
-                    statusElement.innerHTML = "You are actively subscribed. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                    statusElement.innerHTML = "You are actively subscribed. Enjoy full access to FLIPS services! <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
                     document.getElementById("getDashboardUrlButton").classList.remove("d-none");
                     document.getElementById("verifyPaymentButtonContainer").classList.add("d-none");
+                    plansContainer.classList.add("d-none"); // Hide plans for subscribed users
                 } else {
                     statusElement.classList.add("alert-warning");
-                    statusElement.innerHTML = "You are not subscribed. Please verify your payment. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                    statusElement.innerHTML = "You are not subscribed. Please verify your payment or subscribe to a plan. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
                     document.getElementById("verifyPaymentButtonContainer").classList.remove("d-none");
                     document.getElementById("getDashboardUrlButton").classList.add("d-none");
+                    plansContainer.classList.remove("d-none"); // Show plans for unsubscribed users
+                    setTimeout(showVerifyPaymentModal, 1000); // Auto-show verification modal after 1s
                 }
             } catch (error) {
                 console.error('Error checking subscription status:', error.response ? error.response.data : error.message);
                 statusElement.classList.remove("alert-info", "alert-success", "alert-warning");
                 statusElement.classList.add("alert-danger");
-                statusElement.innerHTML = "Failed to check subscription status. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                statusElement.innerHTML = "Failed to check subscription status. Please try again. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
             }
         };
 
@@ -463,9 +467,8 @@
                 return;
             }
             await storeUserData(token);
-            await checkSubscriptionStatus();
+            await checkSubscriptionStatus(); // This will trigger the modal if needed
             await loadPlans();
-            document.getElementById("newsletter-form").addEventListener("submit", handleNewsletterSubmit);
             document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
                 e.preventDefault();
                 const uniqueReference = document.getElementById("uniqueReference").value;
