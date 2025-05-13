@@ -88,7 +88,6 @@
       font-size: 0.8rem;
       color: red;
     }
-    /* Centered Alerts */
     .alert-container {
       position: fixed;
       top: 50%;
@@ -110,7 +109,6 @@
   </style>
 </head>
 <body>
-  <!-- Blurred Background Video -->
   <video autoplay muted loop playsinline
     class="position-fixed w-100 h-100 object-fit-cover z-n1"
     style="filter: blur(4px); transform: scale(1.05);">
@@ -118,7 +116,6 @@
     Your browser does not support the video tag.
   </video>
 
-  <!-- Sign in form -->
   <div class="card shadow-lg p-4">
     <div class="card-body">
       <div class="d-flex align-items-center justify-content-center mb-4">
@@ -148,7 +145,6 @@
       </div>
 
       <div id="step-password" class="d-none">
-        <!-- Back arrow -->
         <div class="backBtn" id="backBtn">
             <i class="bi bi-arrow-left-circle"></i> <span id="backUsername"></span>
         </div>
@@ -171,24 +167,19 @@
     </div>
   </div>
 
-  <!-- Alert Container for Centered Notifications -->
   <div class="alert-container" id="alertContainer">
-    <!-- Success Alert -->
     <div class="alert alert-success alert-dismissible fade d-none" id="successAlert" role="alert">
       <strong>Login Successful!</strong> Welcome back!
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-    <!-- Wrong Credentials Alert -->
     <div class="alert alert-warning alert-dismissible fade d-none" id="wrongCredentialsAlert" role="alert">
       <strong>Invalid Credentials!</strong> Please check your username and password.
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-    <!-- User Not Found Alert -->
     <div class="alert alert-danger alert-dismissible fade d-none" id="userNotFoundAlert" role="alert">
       <strong>User Not Found!</strong> We couldn't find your account.
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-    <!-- Server Error Alert -->
     <div class="alert alert-dark alert-dismissible fade d-none" id="serverErrorAlert" role="alert">
       <strong>Server Error!</strong> Something went wrong. Please try again later.
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -201,7 +192,6 @@
   <script>
     const BASE_URL = 'https://api.flipsintel.org';
 
-    // Debounce function
     function debounce(func, wait) {
       let timeout;
       return function (...args) {
@@ -210,7 +200,6 @@
       };
     }
 
-    // Validation functions
     function validateUsername(username) {
       return username.length >= 3;
     }
@@ -221,7 +210,6 @@
       return errors;
     }
 
-    // Real-time validation with debouncing
     const usernameInput = document.getElementById('usernameInput');
     usernameInput.addEventListener('input', debounce(function () {
       const username = this.value.trim();
@@ -245,7 +233,6 @@
       }
     }, 300));
 
-    // Show alert
     function showAlert(alertId) {
       const alerts = ['successAlert', 'wrongCredentialsAlert', 'userNotFoundAlert', 'serverErrorAlert'];
       alerts.forEach(id => {
@@ -257,14 +244,12 @@
       const targetAlert = document.getElementById(alertId);
       targetAlert.classList.remove('d-none');
       targetAlert.classList.add('show');
-      // Auto-dismiss after 5 seconds
       setTimeout(() => {
         targetAlert.classList.remove('show');
         setTimeout(() => targetAlert.classList.add('d-none'), 150);
       }, 5000);
     }
 
-    // Step 1: Handle username "Next"
     document.getElementById('nextBtn').addEventListener('click', function () {
       const username = usernameInput.value.trim();
 
@@ -289,7 +274,7 @@
           document.getElementById('loading').classList.add('d-none');
           document.getElementById('step-password').classList.remove('d-none');
         }, 1000);
-      }, 500); // Simulate slight delay for loader visibility
+      }, 500);
     });
 
     usernameInput.addEventListener('input', function () {
@@ -303,12 +288,10 @@
       document.getElementById('step-username').classList.remove('d-none');
     });
 
-    // Step 2: Handle login submission
     document.querySelector('.sign-btn').addEventListener('click', function () {
       const username = usernameInput.value.trim();
       const password = passwordInput.value;
 
-      // Validate inputs
       if (!username || !validateUsername(username)) {
         showAlert('userNotFoundAlert');
         return;
@@ -319,8 +302,6 @@
       }
 
       const data = { username, password };
-
-      // Log the data being posted (redacting sensitive information)
       console.log('Login attempt with data:', {
         username: data.username,
         password: '[REDACTED]'
@@ -332,31 +313,18 @@
       axios.post(`${BASE_URL}/login/`, data)
         .then(function (response) {
           console.log('Login successful:', {
-            token: response.data.token
+            token: response.data.token,
+            needs_privacy_policy: response.data.needs_privacy_policy
           });
           localStorage.setItem("token", response.data.token);
-          
-          // Check privacy policy acceptance
-          axios.get(`${BASE_URL}/userprofile/`, {
-            headers: { 'Authorization': `Bearer ${response.data.token}` }
-          })
-            .then(profileResponse => {
-              if (!profileResponse.data.privacy_policy_accepted) {
-                showAlert('successAlert');
-                setTimeout(() => {
-                  window.location.href = "privacy.html";
-                }, 2000);
-              } else {
-                showAlert('successAlert');
-                setTimeout(() => {
-                  window.location.href = "../dashboard/index.html";
-                }, 2000);
-              }
-            })
-            .catch(error => {
-              console.error('Failed to fetch profile:', error.response ? error.response.data : error.message);
-              showAlert('serverErrorAlert');
-            });
+          showAlert('successAlert');
+          setTimeout(() => {
+            if (response.data.needs_privacy_policy) {
+              window.location.href = "privacy.html";
+            } else {
+              window.location.href = "../dashboard/index.html";
+            }
+          }, 2000);
         })
         .catch(function (error) {
           if (error.response) {
