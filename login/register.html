@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css">
   <link rel="stylesheet" href="assets/css/style.css">
   <style>
-  /* Custom styles */
+  /* Custom styles (unchanged) */
   body {
     background: linear-gradient(135deg, #f0f2f8, #e6e9f0);
     font-family: Candara;
@@ -96,7 +96,7 @@
     width: 100%;
   }
   /* Centered Alerts */
-  .alert-container {
+ ⟶ .alert-container {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -190,7 +190,7 @@
   <div class="alert-container" id="alertContainer">
     <!-- Success Alert -->
     <div class="alert alert-success alert-dismissible fade d-none" id="successAlert" role="alert">
-      <strong>Sign Up Successful!</strong> Your account has been created! Please check your email for verification.
+      <strong>Sign Up Successful!</strong> Please accept our privacy policy to continue.
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <!-- Error Alert -->
@@ -340,11 +340,13 @@
       }
       targetAlert.classList.remove('d-none');
       targetAlert.classList.add('show');
-      // Auto-dismiss after 5 seconds
-      setTimeout(() => {
-        targetAlert.classList.remove('show');
-        setTimeout(() => targetAlert.classList.add('d-none'), 150);
-      }, 5000);
+      // Auto-dismiss after 5 seconds, unless it's success (handled separately)
+      if (alertId !== 'successAlert') {
+        setTimeout(() => {
+          targetAlert.classList.remove('show');
+          setTimeout(() => targetAlert.classList.add('d-none'), 150);
+        }, 5000);
+      }
     }
 
     // Form navigation with loader
@@ -446,9 +448,13 @@
         data: JSON.stringify(data),
         success: function (response) {
           console.log('Sign-up successful:', response);
+          // Store token for authentication in privacy policy page
+          localStorage.setItem('token', response.token);
+          // Store redirect URL for after privacy policy acceptance
+          localStorage.setItem('redirectAfterPrivacy', 'login.html');
           showAlert('successAlert');
           setTimeout(() => {
-            window.location.href = 'login.html';
+            window.location.href = 'privacy_policy.html';
           }, 2000);
         },
         error: function (xhr) {
