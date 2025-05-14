@@ -178,84 +178,95 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
-        const BASE_URL = 'https://api.flipsintel.org';
+       const BASE_URL = 'https://api.flipsintel.org';
 
-        // Get CSRF token from cookies
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        // Show alert
-        function showAlert(alertId, message) {
-            const alerts = ['successAlert', 'errorAlert', 'authAlert'];
-            alerts.forEach(id => {
-                const alert = document.getElementById(id);
-                alert.classList.add('d-none');
-                alert.classList.remove('show');
-            });
-
-            const targetAlert = document.getElementById(alertId);
-            if (message) {
-                targetAlert.querySelector('strong').nextSibling.textContent = ` ${message}`;
-            }
-            targetAlert.classList.remove('d-none');
-            targetAlert.classList.add('show');
-            if (alertId === 'successAlert') {
-                setTimeout(() => {
-                    window.location.href = '../dashboard/index.html';
-                }, 2000);
-            } else if (alertId === 'authAlert') {
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
-            } else {
-                setTimeout(() => {
-                    targetAlert.classList.remove('show');
-                    setTimeout(() => targetAlert.classList.add('d-none'), 150);
-                }, 5000);
+// Get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
         }
+    }
+    return cookieValue;
+}
 
-        // Handle Accept button click
-        document.getElementById('acceptPolicyBtn').addEventListener('click', async function () {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                showAlert('authAlert', 'Please log in to accept the privacy policy.');
-                return;
-            }
+// Show alert
+function showAlert(alertId, message) {
+    const alerts = ['successAlert', 'errorAlert', 'authAlert'];
+    alerts.forEach(id => {
+        const alert = document.getElementById(id);
+        alert.classList.add('d-none');
+        alert.classList.remove('show');
+    });
 
-            this.disabled = true;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Accepting...';
+    const targetAlert = document.getElementById(alertId);
+    if (message) {
+        targetAlert.querySelector('strong').nextSibling.textContent = ` ${message}`;
+    }
+    targetAlert.classList.remove('d-none');
+    targetAlert.classList.add('show');
+    if (alertId === 'successAlert') {
+        setTimeout(() => {
+            window.location.href = '../dashboard/index.html';
+        }, 2000);
+    } else if (alertId === 'authAlert') {
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
+    } else {
+        setTimeout(() => {
+            targetAlert.classList.remove('show');
+            setTimeout(() => targetAlert.classList.add('d-none'), 150);
+        }, 5000);
+    }
+}
 
-            try {
-                const response = await axios.post(`${BASE_URL}/userprofile/accept-privacy-policy/`, {}, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'X-CSRFToken': getCookie('csrftoken')
-                    }
-                });
-                console.log('Privacy policy accepted:', response.data);
-                showAlert('successAlert');
-            } catch (error) {
-                console.error('Failed to accept privacy policy:', error.response ? error.response.data : error.message);
-                const errorMessage = error.response?.data?.error || 'Failed to accept privacy policy. Please try again.';
-                showAlert('errorAlert', errorMessage);
-            } finally {
-                this.disabled = false;
-                this.innerHTML = 'Accept Privacy Policy';
-            }
-        });
+// Check token on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('token');
+    console.log('Token on page load:', token);
+    if (!token) {
+        showAlert('authAlert', 'Please log in to accept the privacy policy.');
+    }
+});
+
+// Handle Accept button click
+document.getElementById('acceptPolicyBtn').addEventListener('click', async function () {
+    const token = localStorage.getItem('token');
+    console.log('Retrieved token:', token);
+    if (!token) {
+        showAlert('authAlert', 'Please log in to accept the privacy policy.');
+        return;
+    }
+
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Accepting...';
+
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'X-CSRFToken': getCookie('csrftoken')
+    };
+    console.log('Request headers:', headers);
+
+    try {
+        const response = await axios.post(`${BASE_URL}/userprofile/accept-privacy-policy/`, {}, { headers });
+        console.log('Privacy policy accepted:', response.data);
+        showAlert('successAlert');
+    } catch (error) {
+        console.error('Failed to accept privacy policy:', error.response ? error.response.data : error.message);
+        const errorMessage = error.response?.data?.error || 'Failed to accept privacy policy. Please try again.';
+        showAlert('errorAlert', errorMessage);
+    } finally {
+        this.disabled = false;
+        this.innerHTML = 'Accept Privacy Policy';
+    }
+});
     </script>
 </body>
 </html>
