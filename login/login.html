@@ -236,17 +236,23 @@
             const alerts = ['successAlert', 'wrongCredentialsAlert', 'userNotFoundAlert', 'serverErrorAlert'];
             alerts.forEach(id => {
                 const alert = document.getElementById(id);
-                alert.classList.add('d-none');
-                alert.classList.remove('show');
+                if (alert) { // Only manipulate if element exists
+                    alert.classList.add('d-none');
+                    alert.classList.remove('show');
+                }
             });
 
             const targetAlert = document.getElementById(alertId);
-            targetAlert.classList.remove('d-none');
-            targetAlert.classList.add('show');
-            setTimeout(() => {
-                targetAlert.classList.remove('show');
-                setTimeout(() => targetAlert.classList.add('d-none'), 150);
-            }, 5000);
+            if (targetAlert) { // Only manipulate if element exists
+                targetAlert.classList.remove('d-none');
+                targetAlert.classList.add('show');
+                setTimeout(() => {
+                    targetAlert.classList.remove('show');
+                    setTimeout(() => targetAlert.classList.add('d-none'), 150);
+                }, 5000);
+            } else {
+                console.error(`Alert element with ID ${alertId} not found`);
+            }
         }
 
         document.getElementById('nextBtn').addEventListener('click', function () {
@@ -333,10 +339,22 @@
                             statusText: error.response.statusText,
                             data: error.response.data
                         });
+                        const errorMsg = error.response.data.error || 'An error occurred';
                         switch (error.response.status) {
                             case 400:
+                                showAlert('wrongCredentialsAlert');
+                                document.getElementById('passwordFeedback').textContent = errorMsg;
+                                document.getElementById('passwordFeedback').classList.remove('d-none');
+                                break;
                             case 401:
                                 showAlert('wrongCredentialsAlert');
+                                document.getElementById('passwordFeedback').textContent = 'Invalid email or password';
+                                document.getElementById('passwordFeedback').classList.remove('d-none');
+                                break;
+                            case 403:
+                                showAlert('wrongCredentialsAlert');
+                                document.getElementById('passwordFeedback').textContent = errorMsg;
+                                document.getElementById('passwordFeedback').classList.remove('d-none');
                                 break;
                             case 404:
                                 showAlert('userNotFoundAlert');
