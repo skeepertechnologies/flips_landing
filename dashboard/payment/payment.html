@@ -467,19 +467,23 @@
                 const response = await axios.get(`${BASE_URL}/api/user-info/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
-                localStorage.setItem("username", response.data.username);
-                localStorage.setItem("token", token);
+                console.log('User Data Response:', response.data);
+                sessionStorage.setItem("username", response.data.username);
+                sessionStorage.setItem("email", response.data.email);
                 document.getElementById("userEmail").textContent = response.data.email || 'User';
             } catch (error) {
                 console.error('Error loading user data:', error.response ? error.response.data : error.message);
                 document.getElementById("userEmail").textContent = "Failed to load user data";
+                sessionStorage.clear();
+                window.location.href = "../login/login.html";
             }
         };
 
         // Load Plans
         const loadPlans = async () => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             if (!token) {
+                console.log('No token available for plans request, redirecting to login');
                 window.location.href = "../login/login.html";
                 return;
             }
@@ -487,6 +491,7 @@
                 const response = await axios.get(`${BASE_URL}/subscription/plans/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
+                console.log('Plans Response:', response.data);
                 const plansList = document.getElementById("plansList");
                 plansList.innerHTML = "";
                 response.data.forEach(plan => {
@@ -516,12 +521,13 @@
 
         // Check Subscription Status
         const checkSubscriptionStatus = async () => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             const statusElement = document.getElementById("subscriptionStatus");
             try {
                 const response = await axios.get(`${BASE_URL}/payments/verify-subscription/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
+                console.log('Subscription Status Response:', response.data);
                 statusElement.classList.remove("alert-info", "alert-danger", "alert-warning");
                 if (response.data.isSubscribed) {
                     statusElement.classList.add("alert-success");
@@ -546,28 +552,41 @@
         // Handle Payment
         const handlePayment = async (e) => {
             e.preventDefault();
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             const paymentMethod = document.getElementById("paymentMethod").value;
             try {
                 if (paymentMethod === "card") {
-                    const { paymentIntent, error } = await stripe.createPaymentIntent({
-                        amount: 1000, // Replace with plan price in cents (fetched dynamically)
-                        currency: 'usd', // Adjust based on currency (KES not supported by Stripe)
+                    // Request PaymentIntent from backend
+                    const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+                        plan: selectedPlanId,
+                        payment_type: 'card'
+                    }, {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    console.log('Payment Initiation Response:', response.data);
+                    const { client_secret } = response.data;
+                    const { paymentIntent, error } = await stripe.confirmCardPayment(client_secret, {
+                        payment_method: {
+                            card: cardElement
+                        }
                     });
                     if (error) {
                         showErrorModal(error.message);
                         return;
                     }
-                    const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
-                        plan: selectedPlanId,
-                        payment_type: 'card',
-                        payment_intent_id: paymentIntent.id
-                    }, {
-                        headers: { Authorization: `Token ${token}` }
-                    });
-                    showErrorModal("Payment processed successfully!");
-                    checkSubscriptionStatus();
-                    bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                    if (paymentIntent.status === 'succeeded') {
+                        // Verify payment on backend
+                        await axios.post(`${BASE_URL}/payments/verify-payment/`, {
+                            unique_reference: paymentIntent.id
+                        }, {
+                            headers: { Authorization: `Token ${token}` }
+                        });
+                        showErrorModal("Payment processed successfully!");
+                        checkSubscriptionStatus();
+                        bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                    } else {
+                        showErrorModal("Payment failed. Please try again.");
+                    }
                 } else if (paymentMethod === "mpesa") {
                     const phoneNumber = document.getElementById("phoneNumber").value;
                     if (!phoneNumber) {
@@ -578,13 +597,13 @@
                 }
             } catch (error) {
                 console.error('Error processing payment:', error.response ? error.response.data : error.message);
-                showErrorModal("Failed to process payment. Please try again.");
+                showErrorModal(error.response?.data?.error || "Failed to process payment. Please try again.");
             }
         };
 
         // Verify Payment
         const verifyPayment = async (uniqueReference) => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             if (!uniqueReference) {
                 showErrorModal("Payment reference is required to verify.");
                 return;
@@ -593,21 +612,23 @@
                 const response = await axios.post(`${BASE_URL}/payments/verify-payment/`, { unique_reference: uniqueReference }, {
                     headers: { Authorization: `Token ${token}` }
                 });
+                console.log('Payment Verification Response:', response.data);
                 checkSubscriptionStatus();
                 showErrorModal(response.data.success || "Payment verified successfully!");
             } catch (error) {
                 console.error('Error verifying payment:', error.response ? error.response.data : error.message);
-                showErrorModal("Failed to verify payment. Please check your reference number and try again.");
+                showErrorModal(error.response?.data?.error || "Failed to verify payment. Please check your reference number and try again.");
             }
         };
 
         // Get Dashboard URL
         const getDashboardUrl = async () => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             try {
                 const response = await axios.get(`${BASE_URL}/subscription/get-dashboard-url/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
+                console.log('Dashboard URL Response:', response.data);
                 window.location.href = response.data.url || '../index.html';
             } catch (error) {
                 console.error('Error fetching dashboard URL:', error.response ? error.response.data : error.message);
@@ -617,28 +638,63 @@
 
         // Handle Logout
         const handleLogout = async () => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             try {
                 await axios.post(`${BASE_URL}/logout/`, {}, {
                     headers: { Authorization: `Token ${token}` }
                 });
-                localStorage.clear();
+                console.log('Logout successful');
+                sessionStorage.clear();
                 window.location.href = "../index.html";
             } catch (error) {
                 console.error('Logout failed:', error.response ? error.response.data : error.message);
-                localStorage.clear();
+                sessionStorage.clear();
                 window.location.href = "../index.html";
             }
         };
 
         // Initialize Page
         document.addEventListener("DOMContentLoaded", async () => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
+            const isVerified = sessionStorage.getItem("is_verified") === 'true';
+            const email = sessionStorage.getItem("email");
+            console.log('Session data on page load:', { token, isVerified, email });
+
             if (!token) {
+                console.log('No token found, redirecting to login');
                 window.location.href = "../login/login.html";
                 return;
             }
-            await storeUserData(token);
+
+            if (!isVerified) {
+                console.log('Email not verified, redirecting to verify-email');
+                window.location.href = "../login/verify-email.html";
+                return;
+            }
+
+            try {
+                // Verify user data
+                const userInfoResponse = await axios.get(`${BASE_URL}/api/user-info/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('User info:', userInfoResponse.data);
+                // Validate sessionStorage email
+                if (userInfoResponse.data.email !== email) {
+                    console.warn('Email mismatch between sessionStorage and API');
+                    sessionStorage.clear();
+                    window.location.href = "../login/login.html";
+                    return;
+                }
+                // Update UI and sessionStorage
+                document.getElementById("userEmail").textContent = userInfoResponse.data.email || 'User';
+                sessionStorage.setItem("username", userInfoResponse.data.username);
+            } catch (error) {
+                console.error('Error validating user data:', error.response ? error.response.data : error.message);
+                sessionStorage.clear();
+                window.location.href = "../login/login.html";
+                return;
+            }
+
             await checkSubscriptionStatus();
             await loadPlans();
             document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
