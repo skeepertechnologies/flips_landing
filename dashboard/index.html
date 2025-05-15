@@ -144,52 +144,49 @@
     <!-- Footer -->
     <footer id="footer" class="footer">
         <div class="container footer-top">
-          <div class="row gy-4">
-            <div class="col-lg-4 col-md-6 footer-about">
-              <a href="index.html" class="logo d-flex align-items-center">
-                <span class="sitename">FLIPS</span>
-              </a>
-              <div class="footer-contact pt-3">
-                <p>Nairobi, Kenya</p>
-                <p class="mt-3"><strong>Phone:</strong> <span>+254 700 168 812</span></p>
-                <p><strong>Email:</strong> <span>flipsintelligence@gmail.com</span></p>
-              </div>
-              <div class="social-links d-flex mt-4">
-                <a href=""><i class="bi bi-twitter-x"></i></a>
-                <a href=""><i class="bi bi-facebook"></i></a>
-                <a href="https://www.instagram.com/flips.intel?igsh=MWlqZDc5YTVsMXRwZA=="><i class="bi bi-instagram"></i></a>
-                <a href=""><i class="bi bi-linkedin"></i></a>
-              </div>
+            <div class="row gy-4">
+                <div class="col-lg-4 col-md-6 footer-about">
+                    <a href="index.html" class="logo d-flex align-items-center">
+                        <span class="sitename">FLIPS</span>
+                    </a>
+                    <div class="footer-contact pt-3">
+                        <p>Nairobi, Kenya</p>
+                        <p class="mt-3"><strong>Phone:</strong> <span>+254 700 168 812</span></p>
+                        <p><strong>Email:</strong> <span>flipsintelligence@gmail.com</span></p>
+                    </div>
+                    <div class="social-links d-flex mt-4">
+                        <a href=""><i class="bi bi-twitter-x"></i></a>
+                        <a href=""><i class="bi bi-facebook"></i></a>
+                        <a href="https://www.instagram.com/flips.intel?igsh=MWlqZDc5YTVsMXRwZA=="><i class="bi bi-instagram"></i></a>
+                        <a href=""><i class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-3 footer-links">
+                    <h4>Useful Links</h4>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">About us</a></li>
+                        <li><a href="#">Services</a></li>
+                        <li><a href="#">Terms of service</a></li>
+                        <li><a href="#">Privacy policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-3 footer-links">
+                    <h4>Our Services</h4>
+                    <ul>
+                        <li><a href="#">Water management</a></li>
+                        <li><a href="#">Flood prediction</a></li>
+                        <li><a href="#">River water level reading</a></li>
+                        <li><a href="#">ML prediction</a></li>
+                    </ul>
+                </div>
             </div>
-
-            <div class="col-lg-2 col-md-3 footer-links">
-              <h4>Useful Links</h4>
-              <ul>
-                <li><a href="#">Home</a></li>
-                <li><a href="#">About us</a></li>
-                <li><a href="#">Services</a></li>
-                <li><a href="#">Terms of service</a></li>
-                <li><a href="#">Privacy policy</a></li>
-              </ul>
-            </div>
-
-            <div class="col-lg-2 col-md-3 footer-links">
-              <h4>Our Services</h4>
-              <ul>
-                <li><a href="#">Water management</a></li>
-                <li><a href="#">Flood prediction</a></li>
-                <li><a href="#">River water level reading</a></li>
-                <li><a href="#">ML prediction</a></li>
-              </ul>
-            </div>
-          </div>
         </div>
-
         <div class="container copyright text-center mt-4">
-          <p>© <span>Copyright</span> <strong class="px-1 sitename">FLIPS</strong> <span>All Rights Reserved</span></p>
-          <div class="credits">
-            Designed by <a href="https://bootstrapmade.com/">Lord</a>
-          </div>
+            <p>© <span>Copyright</span> <strong class="px-1 sitename">FLIPS</strong> <span>All Rights Reserved</span></p>
+            <div class="credits">
+                Designed by <a href="https://bootstrapmade.com/">Lord</a>
+            </div>
         </div>
     </footer>
 
@@ -297,12 +294,14 @@
                     headers: { Authorization: `Token ${token}` }
                 });
                 console.log('User Data Response:', response.data);
-                localStorage.setItem("username", response.data.username);
-                localStorage.setItem("token", token);
+                sessionStorage.setItem("username", response.data.username);
+                sessionStorage.setItem("email", response.data.email);
                 document.getElementById("userEmail").textContent = response.data.email || 'User';
             } catch (error) {
                 console.error('Error loading user data:', error.response ? error.response.data : error.message);
                 document.getElementById("userEmail").textContent = "Failed to load user data";
+                sessionStorage.clear();
+                window.location.href = "../login/login.html";
             }
         };
 
@@ -314,7 +313,7 @@
 
         // Get Dashboard URL
         const getDashboardUrl = async () => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             try {
                 const response = await axios.get(`${BASE_URL}/subscription/get-dashboard-url/`, {
                     headers: { Authorization: `Token ${token}` }
@@ -329,24 +328,24 @@
 
         // Logout
         const handleLogout = async () => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             try {
                 const response = await axios.post(`${BASE_URL}/logout/`, {}, {
                     headers: { Authorization: `Token ${token}` }
                 });
                 console.log('Logout Response:', response.data);
-                localStorage.clear();
+                sessionStorage.clear();
                 window.location.href = "../index.html";
             } catch (error) {
                 console.error('Logout failed:', error.response ? error.response.data : error.message);
-                localStorage.clear();
+                sessionStorage.clear();
                 window.location.href = "../index.html";
             }
         };
 
         // Check Subscription Status
         const checkSubscriptionStatus = async () => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             const statusElement = document.getElementById("subscriptionStatus");
             const plansContainer = document.getElementById("plansContainer");
             try {
@@ -379,7 +378,7 @@
 
         // Load Subscription Plans
         const loadPlans = async () => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             if (!token) {
                 console.log('No token available for plans request, redirecting to login');
                 window.location.href = "../login/login.html";
@@ -421,7 +420,7 @@
 
         // Verify Payment
         const verifyPayment = async (uniqueReference) => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
             if (!uniqueReference) {
                 console.log('No payment reference provided');
                 showErrorModal("Payment reference is required to verify.");
@@ -440,34 +439,49 @@
             }
         };
 
-        // Newsletter Subscription
-        const handleNewsletterSubmit = async (e) => {
-            e.preventDefault();
-            const email = document.getElementById("email").value;
-            try {
-                const response = await axios.post(`${BASE_URL}/newsletter/subscribe/`, { email });
-                console.log('Newsletter Subscription Response:', response.data);
-                document.getElementById("message").textContent = "Thank you for subscribing!";
-                document.getElementById("message").classList.add("text-success");
-                document.getElementById("message").classList.remove("text-danger");
-            } catch (error) {
-                console.error('Error subscribing to newsletter:', error.response ? error.response.data : error.message);
-                document.getElementById("message").textContent = "Failed to subscribe. Please try again.";
-                document.getElementById("message").classList.add("text-danger");
-                document.getElementById("message").classList.remove("text-success");
-            }
-        };
-
         // Initialize Page
         document.addEventListener("DOMContentLoaded", async () => {
-            const token = localStorage.getItem("token");
+            const token = sessionStorage.getItem("token");
+            const isVerified = sessionStorage.getItem("is_verified") === 'true';
+            const email = sessionStorage.getItem("email");
+            console.log('Session data on page load:', { token, isVerified, email });
+
             if (!token) {
                 console.log('No token found, redirecting to login');
                 window.location.href = "../login/login.html";
                 return;
             }
-            await storeUserData(token);
-            await checkSubscriptionStatus(); // This will trigger the modal if needed
+
+            if (!isVerified) {
+                console.log('Email not verified, redirecting to verify-email');
+                window.location.href = "../login/verify-email.html";
+                return;
+            }
+
+            try {
+                // Verify user data
+                const userInfoResponse = await axios.get(`${BASE_URL}/api/user-info/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('User info:', userInfoResponse.data);
+                // Validate sessionStorage email
+                if (userInfoResponse.data.email !== email) {
+                    console.warn('Email mismatch between sessionStorage and API');
+                    sessionStorage.clear();
+                    window.location.href = "../login/login.html";
+                    return;
+                }
+                // Update UI with user email
+                document.getElementById("userEmail").textContent = userInfoResponse.data.email || 'User';
+                sessionStorage.setItem("username", userInfoResponse.data.username);
+            } catch (error) {
+                console.error('Error validating user data:', error.response ? error.response.data : error.message);
+                sessionStorage.clear();
+                window.location.href = "../login/login.html";
+                return;
+            }
+
+            await checkSubscriptionStatus();
             await loadPlans();
             document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
                 e.preventDefault();
