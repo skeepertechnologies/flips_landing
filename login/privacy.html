@@ -152,7 +152,7 @@
                 <h3>Terms of Service</h3>
                 <p>For our full Terms of Service, please visit <a href="terms.html">our Terms of Service page</a>.</p>
             </div>
-            <button class="btn btn-primary w-100 mt-4" id="acceptPolicyBtn">Accept Privacy Policy</button>
+            <button class="btn btn-primary w-100 mt-4" id="acceptPolicyBtn" aria-label="Accept Privacy Policy">Accept Privacy Policy</button>
             <a href="login.html" class="btn btn-outline-primary w-100 mt-3">Back to Login</a>
         </div>
     </div>
@@ -229,17 +229,31 @@
             }
 
             try {
-                const response = await axios.get(`${BASE_URL}/userprofile/`, {
+                // Check user profile for privacy policy acceptance
+                const profileResponse = await axios.get(`${BASE_URL}/userprofile/profile/`, {
                     headers: { 'Authorization': `Token ${token}` }
                 });
-                console.log('User profile:', response.data);
-                if (response.data.has_accepted_privacy_policy) {
+                console.log('User profile:', profileResponse.data);
+                if (profileResponse.data.has_accepted_privacy_policy) {
                     console.log('Privacy policy already accepted, redirecting to dashboard');
                     const redirectUrl = sessionStorage.getItem('redirectAfterPrivacy') || '../dashboard/index.html';
                     window.location.href = redirectUrl;
                 }
+
+                // Fetch user info to verify user details
+                const userInfoResponse = await axios.get(`${BASE_URL}/api/user-info/`, {
+                    headers: { 'Authorization': `Token ${token}` }
+                });
+                console.log('User info:', userInfoResponse.data);
+                // Verify sessionStorage email matches API email
+                if (userInfoResponse.data.email !== email) {
+                    console.warn('Email mismatch between sessionStorage and API');
+                    showAlert('authAlert', 'Session data mismatch. Please log in again.');
+                    sessionStorage.clear();
+                    return;
+                }
             } catch (error) {
-                console.error('Profile fetch failed:', error.response?.data || error.message);
+                console.error('API fetch failed:', error.response?.data || error.message);
                 showAlert('authAlert', 'Invalid session. Please log in again.');
                 sessionStorage.clear();
             }
