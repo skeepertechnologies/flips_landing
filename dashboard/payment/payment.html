@@ -513,13 +513,12 @@
                 document.getElementById('paybillAmount').value = selectedPlanPrice;
                 const email = sessionStorage.getItem("email");
                 document.getElementById('accountNumber').value = email || '';
+                document.getElementById('planSelection').classList.add('d-none');
+                document.getElementById('paymentSelection').classList.remove('d-none');
             } catch (error) {
                 console.error('Error fetching plan details:', error.response ? error.response.data : error.message);
-                showErrorModal("Failed to load plan details. Please try again.");
-                return;
+                showErrorModal("Failed to load plan details. Please select a different plan or try again.");
             }
-            document.getElementById('planSelection').classList.add('d-none');
-            document.getElementById('paymentSelection').classList.remove('d-none');
         };
 
         // Fetch User Data
