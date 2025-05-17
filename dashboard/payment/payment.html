@@ -523,12 +523,19 @@
                 const paymentMethodResponse = await axios.get(`${BASE_URL}/payments/payment-methods/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
-                const paybillMethod = paymentMethodResponse.data.find(method => method.name.toLowerCase() === 'm-pesa');
+                console.log('Payment Methods Response:', paymentMethodResponse.data); // Debug log
+                let paybillMethod = paymentMethodResponse.data.find(method => 
+                    method.name.toLowerCase().includes('m-pesa') || method.name.toLowerCase().includes('mpesa')
+                );
+                if (!paybillMethod) {
+                    // Fallback: Use the first method with a non-empty paybill_number
+                    paybillMethod = paymentMethodResponse.data.find(method => method.paybill_number);
+                }
                 if (paybillMethod && paybillMethod.paybill_number) {
                     paybillNumber = paybillMethod.paybill_number;
                     document.getElementById('paybillNumber').value = paybillNumber;
                 } else {
-                    throw new Error('Paybill number not configured.');
+                    throw new Error('No valid Paybill number found in payment methods.');
                 }
 
                 const email = sessionStorage.getItem("email");
@@ -537,7 +544,7 @@
                 document.getElementById('paymentSelection').classList.remove('d-none');
             } catch (error) {
                 console.error('Error fetching plan or payment method details:', error.response ? error.response.data : error.message);
-                showErrorModal("Failed to load plan or payment method details. Please select a different plan or try again.");
+                showErrorModal("Failed to load plan or payment method details. Please check your connection, select a different plan, or try again.");
             }
         };
 
