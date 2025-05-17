@@ -463,25 +463,77 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
-        const BASE_URL = 'https://api.flipsintel.org';
-        const INTERVAL_TIME = 30 * 60 * 1000; // 30 minutes
-        let idleTimeout;
-        let selectedPlanId = null;
-        let selectedPlanPrice = null;
-        const stripe = Stripe('pk_test_your_stripe_publishable_key'); // Replace with your Stripe publishable key
-        const elements = stripe.elements();
-        const cardElement = elements.create('card');
-        cardElement.mount('#cardElement');
+    const BASE_URL = 'https://api.flipsintel.org';
+    const INTERVAL_TIME = 30 * 60 * 1000; // 30 minutes for idle logout
+    const PAYMENT_TIMEOUT = 30 * 60 * 1000; // 30 minutes for payment completion
+    let idleTimeout;
+    let paymentTimeout;
+    let selectedPlanId = null;
+    let selectedPlanPrice = null;
+    const stripe = Stripe('pk_test_51PJX4sRweXlfThpiZ2SyDoIgZgvook188lEegSYESvvrWqxIxh7ZvTogSh09wWRwyLgSDJpnDtaIikSGrIIQgPJ1003F47MPUe'); // Use your Stripe publishable key
+    const elements = stripe.elements();
+    const cardElement = elements.create('card');
+    cardElement.mount('#cardElement');
 
-        // Idle Timeout
-        const resetIdleTimeout = () => {
-            clearTimeout(idleTimeout);
-            idleTimeout = setTimeout(showLogoutModal, INTERVAL_TIME);
-        };
-        document.addEventListener("mousemove", resetIdleTimeout);
-        document.addEventListener("keypress", resetIdleTimeout);
-        document.addEventListener("DOMContentLoaded", resetIdleTimeout);
+    // Idle Timeout
+    const resetIdleTimeout = () => {
+        clearTimeout(idleTimeout);
+        idleTimeout = setTimeout(showLogoutModal, INTERVAL_TIME);
+    };
+    document.addEventListener("mousemove", resetIdleTimeout);
+    document.addEventListener("keypress", resetIdleTimeout);
+    document.addEventListener("DOMContentLoaded", resetIdleTimeout);
 
+<<<<<<< HEAD
+    // Payment Timeout
+    const startPaymentTimeout = () => {
+        clearTimeout(paymentTimeout);
+        paymentTimeout = setTimeout(() => {
+            showErrorModal("Payment session timed out. Please try again.");
+            bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+        }, PAYMENT_TIMEOUT);
+    };
+
+    // Modals and Offcanvas
+    const showLogoutModal = () => {
+        const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
+        modal.show();
+    };
+    const showVerifyPaymentModal = () => {
+        const modal = new bootstrap.Modal(document.getElementById('verifyPaymentModal'));
+        modal.show();
+    };
+    const showErrorModal = (message) => {
+        document.querySelector('#errorModal .modal-body').textContent = message || 'An error occurred. Please try again.';
+        const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+        modal.show();
+    };
+    const showPlansPanel = () => {
+        const offcanvas = new bootstrap.Offcanvas(document.getElementById('plansOffcanvas'));
+        document.getElementById('planSelection').classList.remove('d-none');
+        document.getElementById('paymentSelection').classList.add('d-none');
+        offcanvas.show();
+    };
+    const showPaymentPanel = async (planId) => {
+        selectedPlanId = planId;
+        try {
+            const token = sessionStorage.getItem("token");
+            const response = await axios.get(`${BASE_URL}/subscription/plans/${planId}/`, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            selectedPlanPrice = response.data.price;
+            document.getElementById('paybillAmount').value = selectedPlanPrice;
+            const email = sessionStorage.getItem("email");
+            document.getElementById('accountNumber').value = email || '';
+            document.getElementById('planSelection').classList.add('d-none');
+            document.getElementById('paymentSelection').classList.remove('d-none');
+            startPaymentTimeout(); // Start payment timeout
+        } catch (error) {
+            console.error('Error fetching plan details:', error.response ? error.response.data : error.message);
+            showErrorModal("Failed to load plan details. Please try again.");
+        }
+    };
+=======
         // Modals and Offcanvas
         const showLogoutModal = () => {
             const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
@@ -520,303 +572,312 @@
                 showErrorModal("Failed to load plan details. Please select a different plan or try again.");
             }
         };
+>>>>>>> ec17b5e02f6673485556f826421c1dd22cff044c
 
-        // Fetch User Data
-        const storeUserData = async (token) => {
-            try {
-                const response = await axios.get(`${BASE_URL}/api/user-info/`, {
-                    headers: { Authorization: `Token ${token}` }
-                });
-                console.log('User Data Response:', response.data);
-                sessionStorage.setItem("username", response.data.username);
-                sessionStorage.setItem("email", response.data.email);
-                document.getElementById("userEmail").textContent = response.data.email || 'User';
-            } catch (error) {
-                console.error('Error loading user data:', error.response ? error.response.data : error.message);
-                document.getElementById("userEmail").textContent = "Failed to load user data";
-                sessionStorage.clear();
-                window.location.href = "../login/login.html";
-            }
-        };
+    // Fetch User Data
+    const storeUserData = async (token) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/api/user-info/`, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            console.log('User Data Response:', response.data);
+            sessionStorage.setItem("username", response.data.username);
+            sessionStorage.setItem("email", response.data.email);
+            document.getElementById("userEmail").textContent = response.data.email || 'User';
+        } catch (error) {
+            console.error('Error loading user data:', error.response ? error.response.data : error.message);
+            document.getElementById("userEmail").textContent = "Failed to load user data";
+            sessionStorage.clear();
+            window.location.href = "../login/login.html";
+        }
+    };
 
-        // Load Plans
-        const loadPlans = async () => {
-            const token = sessionStorage.getItem("token");
-            if (!token) {
-                console.log('No token available for plans request, redirecting to login');
-                window.location.href = "../login/login.html";
-                return;
-            }
-            try {
-                const response = await axios.get(`${BASE_URL}/subscription/plans/`, {
-                    headers: { Authorization: `Token ${token}` }
-                });
-                console.log('Plans Response:', response.data);
-                const plansList = document.getElementById("plansList");
-                plansList.innerHTML = "";
-                response.data.forEach(plan => {
-                    const promotionBadge = plan.is_promotion_active ? '<span class="badge bg-primary mb-2">Promotion Active</span>' : '';
-                    plansList.insertAdjacentHTML("beforeend", `
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h5 class="card-title">${plan.name}</h5>
-                                ${promotionBadge}
-                                <p><strong>KES ${plan.price}/month</strong></p>
-                                <p>${plan.description}</p>
-                                <ul>
-                                    <li><i class="bi bi-check-circle"></i> Real-time water monitoring</li>
-                                    <li><i class="bi bi-check-circle"></i> Flood prediction models</li>
-                                    ${plan.name === 'Premium' ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
-                                </ul>
-                                <button class="btn btn-primary w-100" onclick="showPaymentPanel('${plan.id}')">Choose Plan</button>
-                            </div>
+    // Load Plans
+    const loadPlans = async () => {
+        const token = sessionStorage.getItem("token");
+        if (!token) {
+            console.log('No token available for plans request, redirecting to login');
+            window.location.href = "../login/login.html";
+            return;
+        }
+        try {
+            const response = await axios.get(`${BASE_URL}/subscription/plans/`, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            console.log('Plans Response:', response.data);
+            const plansList = document.getElementById("plansList");
+            plansList.innerHTML = "";
+            response.data.forEach(plan => {
+                plansList.insertAdjacentHTML("beforeend", `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">${plan.name}</h5>
+                            <p><strong>KES ${plan.price}/month</strong></p>
+                            <p>${plan.description}</p>
+                            <ul>
+                                <li><i class="bi bi-check-circle"></i> Real-time water monitoring</li>
+                                <li><i class="bi bi-check-circle"></i> Flood prediction models</li>
+                                ${plan.name.toLowerCase() === 'government' ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
+                            </ul>
+                            <button class="btn btn-primary w-100" onclick="showPaymentPanel('${plan.id}')">Choose Plan</button>
                         </div>
-                    `);
-                });
-            } catch (error) {
-                console.error('Error loading plans:', error.response ? error.response.data : error.message);
-                showErrorModal("Failed to load plans. Please try again.");
+                    </div>
+                `);
+            });
+        } catch (error) {
+            console.error('Error loading plans:', error.response ? error.response.data : error.message);
+            showErrorModal("Failed to load plans. Please try again.");
+        }
+    };
+
+    // Check Subscription Status
+    const checkSubscriptionStatus = async () => {
+        const token = sessionStorage.getItem("token");
+        const statusElement = document.getElementById("subscriptionStatus");
+        try {
+            const response = await axios.get(`${BASE_URL}/subscription/status/`, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            console.log('Subscription Status Response:', response.data);
+            statusElement.classList.remove("alert-info", "alert-danger", "alert-warning");
+            if (response.data.isSubscribed) {
+                statusElement.classList.add("alert-success");
+                statusElement.innerHTML = `You are actively subscribed to the ${response.data.planName} plan until ${new Date(response.data.endDate).toLocaleDateString()}. Enjoy full access to FLIPS services! <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>`;
+                document.getElementById("getDashboardUrlButton").classList.remove("d-none");
+                document.getElementById("verifyPaymentButtonContainer").classList.add("d-none");
+            } else {
+                statusElement.classList.add("alert-warning");
+                statusElement.innerHTML = "You are not subscribed. Please choose a plan or verify your payment. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                document.getElementById("verifyPaymentButtonContainer").classList.remove("d-none");
+                document.getElementById("getDashboardUrlButton").classList.add("d-none");
             }
-        };
+        } catch (error) {
+            console.error('Error checking subscription status:', error.response ? error.response.data : error.message);
+            statusElement.classList.remove("alert-info", "alert-success", "alert-warning");
+            statusElement.classList.add("alert-danger");
+            statusElement.innerHTML = "Failed to check subscription status. Please try again. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+        }
+    };
 
-        // Check Subscription Status
-        const checkSubscriptionStatus = async () => {
-            const token = sessionStorage.getItem("token");
-            const statusElement = document.getElementById("subscriptionStatus");
-            try {
-                const response = await axios.get(`${BASE_URL}/payments/verify-subscription/`, {
-                    headers: { Authorization: `Token ${token}` }
-                });
-                console.log('Subscription Status Response:', response.data);
-                statusElement.classList.remove("alert-info", "alert-danger", "alert-warning");
-                if (response.data.isSubscribed) {
-                    statusElement.classList.add("alert-success");
-                    statusElement.innerHTML = "You are actively subscribed. Enjoy full access to FLIPS services! <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
-                    document.getElementById("getDashboardUrlButton").classList.remove("d-none");
-                    document.getElementById("verifyPaymentButtonContainer").classList.add("d-none");
-                } else {
-                    statusElement.classList.add("alert-warning");
-                    statusElement.innerHTML = "You are not subscribed. Please verify your payment or subscribe to a plan. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
-                    document.getElementById("verifyPaymentButtonContainer").classList.remove("d-none");
-                    document.getElementById("getDashboardUrlButton").classList.add("d-none");
-                    setTimeout(showVerifyPaymentModal, 1000);
-                }
-            } catch (error) {
-                console.error('Error checking subscription status:', error.response ? error.response.data : error.message);
-                statusElement.classList.remove("alert-info", "alert-success", "alert-warning");
-                statusElement.classList.add("alert-danger");
-                statusElement.innerHTML = "Failed to check subscription status. Please try again. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
-            }
-        };
+    // Validate Transaction ID
+    const validateTransactionId = (transactionId) => {
+        const regex = /^[A-Z0-9]{10}$/;
+        return regex.test(transactionId);
+    };
 
-        // Validate Transaction ID
-        const validateTransactionId = (transactionId) => {
-            const regex = /^[A-Z0-9]{10}$/;
-            return regex.test(transactionId);
-        };
-
-        // Handle Payment
-        const handlePayment = async (e) => {
-            e.preventDefault();
-            const token = sessionStorage.getItem("token");
-            const paymentMethod = document.getElementById("paymentMethod").value;
-            try {
-                if (paymentMethod === "card") {
-                    const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
-                        plan: selectedPlanId,
-                        payment_type: 'card'
-                    }, {
-                        headers: { Authorization: `Token ${token}` }
-                    });
-                    console.log('Payment Initiation Response:', response.data);
-                    const { client_secret } = response.data;
-                    const { paymentIntent, error } = await stripe.confirmCardPayment(client_secret, {
-                        payment_method: {
-                            card: cardElement
-                        }
-                    });
-                    if (error) {
-                        showErrorModal(error.message);
-                        return;
-                    }
-                    if (paymentIntent.status === 'succeeded') {
-                        await axios.post(`${BASE_URL}/payments/verify-payment/`, {
-                            unique_reference: paymentIntent.id
-                        }, {
-                            headers: { Authorization: `Token ${token}` }
-                        });
-                        showErrorModal("Payment processed successfully!");
-                        checkSubscriptionStatus();
-                        bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
-                    } else {
-                        showErrorModal("Payment failed. Please try again.");
-                    }
-                } else if (paymentMethod === "paybill") {
-                    const paybillNumber = document.getElementById("paybillNumber").value;
-                    const accountNumber = document.getElementById("accountNumber").value;
-                    const amount = document.getElementById("paybillAmount").value;
-                    const transactionId = document.getElementById("transactionId").value;
-
-                    if (!accountNumber) {
-                        showErrorModal("Account number is required for Paybill payment.");
-                        return;
-                    }
-                    if (!amount) {
-                        showErrorModal("Amount is required for Paybill payment.");
-                        return;
-                    }
-                    if (!transactionId) {
-                        showErrorModal("M-Pesa Transaction ID is required.");
-                        return;
-                    }
-                    if (!validateTransactionId(transactionId)) {
-                        document.getElementById("transactionIdError").textContent = "Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).";
-                        return;
-                    }
-
-                    const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
-                        plan: selectedPlanId,
-                        payment_type: 'paybill',
-                        paybill_number: paybillNumber,
-                        account_number: accountNumber,
-                        amount: parseFloat(amount),
-                        transaction_id: transactionId
-                    }, {
-                        headers: { Authorization: `Token ${token}` }
-                    });
-                    console.log('Paybill Payment Response:', response.data);
-                    showErrorModal("Paybill payment submitted successfully! Awaiting verification.");
-                    checkSubscriptionStatus();
-                    bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
-                }
-            } catch (error) {
-                console.error('Error processing payment:', error.response ? error.response.data : error.message);
-                showErrorModal(error.response?.data?.error || "Failed to process payment. Please try again.");
-            }
-        };
-
-        // Verify Payment
-        const verifyPayment = async (uniqueReference) => {
-            const token = sessionStorage.getItem("token");
-            if (!uniqueReference) {
-                showErrorModal("Transaction ID is required to verify.");
+    // Handle Payment
+    const handlePayment = async (e) => {
+        e.preventDefault();
+        const token = sessionStorage.getItem("token");
+        const paymentMethod = document.getElementById("paymentMethod").value;
+        try {
+            if (!selectedPlanId) {
+                showErrorModal("Please select a plan before proceeding with payment.");
                 return;
             }
-            if (!validateTransactionId(uniqueReference)) {
-                showErrorModal("Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).");
-                return;
-            }
-            try {
-                const response = await axios.post(`${BASE_URL}/payments/verify-payment/`, {
-                    unique_reference: uniqueReference
+            await axios.post(`${BASE_URL}/subscription/subscribe/`, {
+                planId: selectedPlanId
+            }, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            if (paymentMethod === "card") {
+                const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+                    plan: selectedPlanId,
+                    payment_type: 'card'
                 }, {
                     headers: { Authorization: `Token ${token}` }
                 });
-                console.log('Payment Verification Response:', response.data);
-                checkSubscriptionStatus();
-                showErrorModal(response.data.success || "Payment verified successfully!");
-            } catch (error) {
-                console.error('Error verifying payment:', error.response ? error.response.data : error.message);
-                showErrorModal(error.response?.data?.error || "Failed to verify payment. Please check your Transaction ID and try again.");
-            }
-        };
-
-        // Get Dashboard URL
-        const getDashboardUrl = async () => {
-            const token = sessionStorage.getItem("token");
-            try {
-                const response = await axios.get(`${BASE_URL}/subscription/get-dashboard-url/`, {
-                    headers: { Authorization: `Token ${token}` }
+                console.log('Payment Initiation Response:', response.data);
+                const { client_secret } = response.data;
+                const { paymentIntent, error } = await stripe.confirmCardPayment(client_secret, {
+                    payment_method: {
+                        card: cardElement
+                    }
                 });
-                console.log('Dashboard URL Response:', response.data);
-                window.location.href = response.data.url || '../index.html';
-            } catch (error) {
-                console.error('Error fetching dashboard URL:', error.response ? error.response.data : error.message);
-                showErrorModal("Failed to get dashboard URL. Please try again.");
-            }
-        };
-
-        // Handle Logout
-        const handleLogout = async () => {
-            const token = sessionStorage.getItem("token");
-            try {
-                await axios.post(`${BASE_URL}/logout/`, {}, {
-                    headers: { Authorization: `Token ${token}` }
-                });
-                console.log('Logout successful');
-                sessionStorage.clear();
-                window.location.href = "../index.html";
-            } catch (error) {
-                console.error('Logout failed:', error.response ? error.response.data : error.message);
-                sessionStorage.clear();
-                window.location.href = "../index.html";
-            }
-        };
-
-        // Initialize Page
-        document.addEventListener("DOMContentLoaded", async () => {
-            const token = sessionStorage.getItem("token");
-            const isVerified = sessionStorage.getItem("is_verified") === 'true';
-            const email = sessionStorage.getItem("email");
-            console.log('Session data on page load:', { token, isVerified, email });
-
-            if (!token) {
-                console.log('No token found, redirecting to login');
-                window.location.href = "../login/login.html";
-                return;
-            }
-
-            if (!isVerified) {
-                console.log('Email not verified, redirecting to verify-email');
-                window.location.href = "../login/verify-email.html";
-                return;
-            }
-
-            try {
-                const userInfoResponse = await axios.get(`${BASE_URL}/api/user-info/`, {
-                    headers: { Authorization: `Token ${token}` }
-                });
-                console.log('User info:', userInfoResponse.data);
-                if (userInfoResponse.data.email !== email) {
-                    console.warn('Email mismatch between sessionStorage and API');
-                    sessionStorage.clear();
-                    window.location.href = "../login/login.html";
+                if (error) {
+                    showErrorModal(error.message);
                     return;
                 }
-                document.getElementById("userEmail").textContent = userInfoResponse.data.email || 'User';
-                sessionStorage.setItem("username", userInfoResponse.data.username);
-            } catch (error) {
-                console.error('Error validating user data:', error.response ? error.response.data : error.message);
+                if (paymentIntent.status === 'succeeded') {
+                    await axios.post(`${BASE_URL}/payments/verify-payment/`, {
+                        unique_reference: paymentIntent.id
+                    }, {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    showErrorModal("Card payment processed successfully!");
+                    checkSubscriptionStatus();
+                    bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                    clearTimeout(paymentTimeout);
+                } else {
+                    showErrorModal("Card payment failed. Please try again.");
+                }
+            } else if (paymentMethod === "paybill") {
+                const paybillNumber = document.getElementById("paybillNumber").value;
+                const accountNumber = document.getElementById("accountNumber").value;
+                const amount = document.getElementById("paybillAmount").value;
+                const transactionId = document.getElementById("transactionId").value;
+
+                if (!accountNumber) {
+                    showErrorModal("Account number (email) is required for Paybill payment.");
+                    return;
+                }
+                if (!amount || parseFloat(amount) !== parseFloat(selectedPlanPrice)) {
+                    showErrorModal("Invalid amount. Please ensure the amount matches the plan price.");
+                    return;
+                }
+                if (!transactionId) {
+                    showErrorModal("M-Pesa Transaction ID is required.");
+                    return;
+                }
+                if (!validateTransactionId(transactionId)) {
+                    document.getElementById("transactionIdError").textContent = "Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).";
+                    return;
+                }
+
+                const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+                    plan: selectedPlanId,
+                    payment_type: 'paybill',
+                    paybill_number: paybillNumber,
+                    account_number: accountNumber,
+                    amount: parseFloat(amount),
+                    transaction_id: transactionId
+                }, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('Paybill Payment Response:', response.data);
+                showErrorModal("Paybill payment submitted successfully! Awaiting verification.");
+                checkSubscriptionStatus();
+                bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                clearTimeout(paymentTimeout);
+            }
+        } catch (error) {
+            console.error('Error processing payment:', error.response ? error.response.data : error.message);
+            showErrorModal(error.response?.data?.error || "Failed to process payment. Please try again.");
+        }
+    };
+
+    // Verify Payment
+    const verifyPayment = async (uniqueReference) => {
+        const token = sessionStorage.getItem("token");
+        if (!uniqueReference) {
+            showErrorModal("Transaction ID is required to verify.");
+            return;
+        }
+        if (!validateTransactionId(uniqueReference)) {
+            showErrorModal("Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).");
+            return;
+        }
+        try {
+            const response = await axios.post(`${BASE_URL}/payments/verify-payment/`, {
+                unique_reference: uniqueReference
+            }, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            console.log('Payment Verification Response:', response.data);
+            checkSubscriptionStatus();
+            showErrorModal(response.data.success || "Payment verified successfully!");
+        } catch (error) {
+            console.error('Error verifying payment:', error.response ? error.response.data : error.message);
+            showErrorModal(error.response?.data?.error || "Failed to verify payment. Please check your Transaction ID and try again.");
+        }
+    };
+
+    // Get Dashboard URL
+    const getDashboardUrl = async () => {
+        const token = sessionStorage.getItem("token");
+        try {
+            const response = await axios.get(`${BASE_URL}/subscription/get-dashboard-url/`, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            console.log('Dashboard URL Response:', response.data);
+            window.location.href = response.data.url || '../index.html';
+        } catch (error) {
+            console.error('Error fetching dashboard URL:', error.response ? error.response.data : error.message);
+            showErrorModal("Failed to get dashboard URL. Please try again.");
+        }
+    };
+
+    // Handle Logout
+    const handleLogout = async () => {
+        const token = sessionStorage.getItem("token");
+        try {
+            await axios.post(`${BASE_URL}/logout/`, {}, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            console.log('Logout successful');
+            sessionStorage.clear();
+            window.location.href = "../index.html";
+        } catch (error) {
+            console.error('Logout failed:', error.response ? error.response.data : error.message);
+            sessionStorage.clear();
+            window.location.href = "../index.html";
+        }
+    };
+
+    // Initialize Page
+    document.addEventListener("DOMContentLoaded", async () => {
+        const token = sessionStorage.getItem("token");
+        const isVerified = sessionStorage.getItem("is_verified") === 'true';
+        const email = sessionStorage.getItem("email");
+        console.log('Session data on page load:', { token, isVerified, email });
+
+        if (!token) {
+            console.log('No token found, redirecting to login');
+            window.location.href = "../login/login.html";
+            return;
+        }
+
+        if (!isVerified) {
+            console.log('Email not verified, redirecting to verify-email');
+            window.location.href = "../login/verify-email.html";
+            return;
+        }
+
+        try {
+            const userInfoResponse = await axios.get(`${BASE_URL}/api/user-info/`, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            console.log('User info:', userInfoResponse.data);
+            if (userInfoResponse.data.email !== email) {
+                console.warn('Email mismatch between sessionStorage and API');
                 sessionStorage.clear();
                 window.location.href = "../login/login.html";
                 return;
             }
+            document.getElementById("userEmail").textContent = userInfoResponse.data.email || 'User';
+            sessionStorage.setItem("username", userInfoResponse.data.username);
+        } catch (error) {
+            console.error('Error validating user data:', error.response ? error.response.data : error.message);
+            sessionStorage.clear();
+            window.location.href = "../login/login.html";
+            return;
+        }
 
-            await checkSubscriptionStatus();
-            await loadPlans();
-            document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
-                e.preventDefault();
-                const uniqueReference = document.getElementById("uniqueReference").value;
-                verifyPayment(uniqueReference);
-                bootstrap.Modal.getInstance(document.getElementById('verifyPaymentModal')).hide();
-            });
-            document.getElementById("paymentForm").addEventListener("submit", handlePayment);
-            document.getElementById("paymentMethod").addEventListener("change", (e) => {
-                const cardFields = document.getElementById("cardPaymentFields");
-                const paybillFields = document.getElementById("paybillPaymentFields");
-                if (e.target.value === "card") {
-                    cardFields.classList.remove("d-none");
-                    paybillFields.classList.add("d-none");
-                } else if (e.target.value === "paybill") {
-                    cardFields.classList.add("d-none");
-                    paybillFields.classList.remove("d-none");
-                } else {
-                    cardFields.classList.add("d-none");
-                    paybillFields.classList.add("d-none");
-                }
-                document.getElementById("transactionIdError").textContent = "";
-            });
+        await checkSubscriptionStatus();
+        await loadPlans();
+        document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const uniqueReference = document.getElementById("uniqueReference").value;
+            verifyPayment(uniqueReference);
+            bootstrap.Modal.getInstance(document.getElementById('verifyPaymentModal')).hide();
         });
+        document.getElementById("paymentForm").addEventListener("submit", handlePayment);
+        document.getElementById("paymentMethod").addEventListener("change", (e) => {
+            const cardFields = document.getElementById("cardPaymentFields");
+            const paybillFields = document.getElementById("paybillPaymentFields");
+            if (e.target.value === "card") {
+                cardFields.classList.remove("d-none");
+                paybillFields.classList.add("d-none");
+            } else if (e.target.value === "paybill") {
+                cardFields.classList.add("d-none");
+                paybillFields.classList.remove("d-none");
+            } else {
+                cardFields.classList.add("d-none");
+                paybillFields.classList.add("d-none");
+            }
+            document.getElementById("transactionIdError").textContent = "";
+        });
+    });
     </script>
 </body>
 </html>
