@@ -323,7 +323,7 @@
                             <ul>
                                 <li>Go to Safaricom Menu > M-Pesa > Lipa na M-Pesa > Paybill.</li>
                                 <li>Enter the Paybill Number below.</li>
-                                <li>Enter the Account Number below (or your email).</li>
+                                <li>Enter the Account Number below (or your phone number).</li>
                                 <li>Enter the Amount and confirm the payment.</li>
                                 <li>Enter the M-Pesa Transaction ID received via SMS below.</li>
                             </ul>
@@ -333,8 +333,8 @@
                             <input type="text" class="form-control" id="paybillNumber" readonly>
                         </div>
                         <div class="mb-3">
-                            <label for="accountNumber" class="form-label">Account Number</label>
-                            <input type="text" class="form-control" id="accountNumber" placeholder="Your email or account ID">
+                            <label for="accountNumber" class="form-label">Account Number (Phone Number)</label>
+                            <input type="text" class="form-control" id="accountNumber" placeholder="Your phone number">
                         </div>
                         <div class="mb-3">
                             <label for="paybillAmount" class="form-label">Amount (KES)</label>
@@ -524,15 +524,29 @@
                     headers: { Authorization: `Token ${token}` }
                 });
                 console.log('Plan Response:', planResponse.data); // Debug log
-                if (!planResponse.data || !planResponse.data.id) {
-                    throw new Error('Invalid plan data received');
+
+                // Handle unexpected array response
+                let planData = planResponse.data;
+                if (Array.isArray(planResponse.data)) {
+                    console.warn('API returned an array instead of a single plan object. Attempting to find plan with id:', planId);
+                    planData = planResponse.data.find(plan => plan.id === parseInt(planId));
+                    if (!planData) {
+                        throw new Error(`Plan with id ${planId} not found in API response array`);
+                    }
                 }
-                selectedPlanPrice = planResponse.data.price || 0;
-                const selectedPlanName = planResponse.data.name || 'Unknown Plan';
+
+                // Validate plan data
+                if (!planData || !planData.id || !planData.name) {
+                    throw new Error('Invalid plan data received: missing id or name');
+                }
+
+                // Parse price (string like "40000.00" to number)
+                selectedPlanPrice = parseFloat(planData.price) || 0;
+                const selectedPlanName = planData.name;
 
                 // Update UI with plan details
                 document.getElementById('selectedPlanName').textContent = selectedPlanName;
-                document.getElementById('selectedPlanAmount').textContent = selectedPlanPrice;
+                document.getElementById('selectedPlanAmount').textContent = selectedPlanPrice.toFixed(2);
                 document.getElementById('paybillAmount').value = selectedPlanPrice;
 
                 // Fetch Paybill number from backend
@@ -554,8 +568,13 @@
                     throw new Error('No valid Paybill number found in payment methods.');
                 }
 
-                const email = sessionStorage.getItem("email");
-                document.getElementById('accountNumber').value = email || '';
+                // Use phone number instead of email
+                const phoneNumber = sessionStorage.getItem("phone_number") || '';
+                document.getElementById('accountNumber').value = phoneNumber || '';
+                if (!phoneNumber) {
+                    console.warn('No phone number found in sessionStorage');
+                }
+
                 document.getElementById('planSelection').classList.add('d-none');
                 document.getElementById('paymentSelection').classList.remove('d-none');
             } catch (error) {
@@ -573,6 +592,7 @@
                 console.log('User Data Response:', response.data);
                 sessionStorage.setItem("username", response.data.username);
                 sessionStorage.setItem("email", response.data.email);
+                sessionStorage.setItem("phone_number", response.data.phone_number || '');
                 document.getElementById("userEmail").textContent = response.data.email || 'User';
             } catch (error) {
                 console.error('Error loading user data:', error.response ? error.response.data : error.message);
@@ -612,7 +632,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">${plan.name}</h5>
                                 ${promotionBadge}
-                                <p><strong>KES ${plan.price}/month</strong></p>
+                                <p><strong>KES ${parseFloat(plan.price).toFixed(2)}/month</strong></p>
                                 <p>${plan.description || 'No description available'}</p>
                                 <ul>
                                     <li><i class="bi bi-check-circle"></i> Real-time water monitoring</li>
@@ -678,7 +698,7 @@
                     const transactionId = document.getElementById("transactionId").value;
 
                     if (!accountNumber) {
-                        showErrorModal("Account number is required for Paybill payment.");
+                        showErrorModal("Account number (phone number) is required for Paybill payment.");
                         return;
                     }
                     if (!amount) {
@@ -833,6 +853,7 @@
                 }
                 document.getElementById("userEmail").textContent = userInfoResponse.data.email || 'User';
                 sessionStorage.setItem("username", userInfoResponse.data.username);
+                sessionStorage.setItem("phone_number", userInfoResponse.data.phone_number || '');
             } catch (error) {
                 console.error('Error validating user data:', error.response ? error.response.data : error.message);
                 sessionStorage.clear();
@@ -842,6 +863,15 @@
 
             await checkSubscriptionStatus();
             await loadPlans();
+
+            // Handle URL query parameter for planId
+            const urlParams = new URLSearchParams(window.location.search);
+            const planIdFromUrl = urlParams.get('planId');
+            if (planIdFromUrl) {
+                console.log('Plan ID from URL:', planIdFromUrl);
+                showPaymentPanel(parseInt(planIdFromUrl));
+            }
+
             document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
                 e.preventDefault();
                 const uniqueReference = document.getElementById("uniqueReference").value;
