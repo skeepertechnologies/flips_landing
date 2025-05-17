@@ -764,7 +764,7 @@
         document.addEventListener("DOMContentLoaded", async () => {
             const token = sessionStorage.getItem("token");
             const isVerified = sessionStorage.getItem("is_verified") === 'true';
-            const email = sessionStorage.get f("email");
+            const email = sessionStorage.getItem("email");
             console.log('Session data on page load:', { token, isVerified, email });
 
             if (!token) {
