@@ -7,7 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.12.1/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <!-- Stripe for Card Payments (Commented out for future use) -->
     <script src="https://js.stripe.com/v3/"></script>
     <link href="../assets/css/style.css" rel="stylesheet">
     <style>
@@ -311,8 +310,6 @@
                             <option value="card">Credit/Debit Card (MasterCard)</option>
                         </select>
                     </div>
-                    <!-- Card Payment Fields (Commented out) -->
-                    
                     <div id="cardPaymentFields" class="d-none">
                         <div class="mb-3">
                             <label for="cardElement" class="form-label">Card Information</label>
@@ -320,8 +317,6 @@
                             <div id="cardErrors" class="text-danger small"></div>
                         </div>
                     </div>
-                   
-                    <!-- M-Pesa Paybill Fields -->
                     <div id="paybillPaymentFields">
                         <div class="paybill-instructions">
                             <h6 class="mb-3">How to Pay via M-Pesa Paybill</h6>
@@ -475,13 +470,11 @@
         let selectedPlanPrice = null;
         let paybillNumber = null;
 
-        // Commented out Stripe initialization
-        
+        // Stripe initialization
         const stripe = Stripe('pk_test_your_stripe_publishable_key');
         const elements = stripe.elements();
         const cardElement = elements.create('card');
         cardElement.mount('#cardElement');
-        
 
         // Idle Timeout
         const resetIdleTimeout = () => {
@@ -513,19 +506,33 @@
             offcanvas.show();
         };
         const showPaymentPanel = async (planId) => {
+            if (!planId) {
+                console.error('No planId provided to showPaymentPanel');
+                showErrorModal('Invalid plan selected. Please try again.');
+                return;
+            }
             selectedPlanId = planId;
+            console.log('Selected Plan ID:', planId); // Debug log
             try {
                 const token = sessionStorage.getItem("token");
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+
                 // Fetch plan details
                 const planResponse = await axios.get(`${BASE_URL}/subscription/plans/${planId}/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
-                selectedPlanPrice = planResponse.data.price;
-                const selectedPlanName = planResponse.data.name;
+                console.log('Plan Response:', planResponse.data); // Debug log
+                if (!planResponse.data || !planResponse.data.id) {
+                    throw new Error('Invalid plan data received');
+                }
+                selectedPlanPrice = planResponse.data.price || 0;
+                const selectedPlanName = planResponse.data.name || 'Unknown Plan';
 
                 // Update UI with plan details
-                document.getElementById('selectedPlanName').textContent = selectedPlanName || 'Unknown Plan';
-                document.getElementById('selectedPlanAmount').textContent = selectedPlanPrice || 'N/A';
+                document.getElementById('selectedPlanName').textContent = selectedPlanName;
+                document.getElementById('selectedPlanAmount').textContent = selectedPlanPrice;
                 document.getElementById('paybillAmount').value = selectedPlanPrice;
 
                 // Fetch Paybill number from backend
@@ -553,7 +560,7 @@
                 document.getElementById('paymentSelection').classList.remove('d-none');
             } catch (error) {
                 console.error('Error fetching plan or payment method details:', error.response ? error.response.data : error.message);
-                showErrorModal("Failed to load plan or payment method details. Please check your connection, select a different plan, or try again.");
+                showErrorModal(`Failed to load plan details: ${error.response?.data?.error || error.message}. Please select a different plan or try again.`);
             }
         };
 
@@ -587,10 +594,18 @@
                 const response = await axios.get(`${BASE_URL}/subscription/plans/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
-                console.log('Plans Response:', response.data);
+                console.log('Plans Response:', response.data); // Debug log
                 const plansList = document.getElementById("plansList");
                 plansList.innerHTML = "";
+                if (!Array.isArray(response.data) || response.data.length === 0) {
+                    plansList.innerHTML = '<p>No plans available at this time.</p>';
+                    return;
+                }
                 response.data.forEach(plan => {
+                    if (!plan.id || !plan.name || plan.price == null) {
+                        console.warn('Invalid plan data:', plan);
+                        return;
+                    }
                     const promotionBadge = plan.is_promotion_active ? '<span class="badge bg-primary mb-2">Promotion Active</span>' : '';
                     plansList.insertAdjacentHTML("beforeend", `
                         <div class="card mb-3">
@@ -598,20 +613,20 @@
                                 <h5 class="card-title">${plan.name}</h5>
                                 ${promotionBadge}
                                 <p><strong>KES ${plan.price}/month</strong></p>
-                                <p>${plan.description}</p>
+                                <p>${plan.description || 'No description available'}</p>
                                 <ul>
                                     <li><i class="bi bi-check-circle"></i> Real-time water monitoring</li>
                                     <li><i class="bi bi-check-circle"></i> Flood prediction models</li>
-                                    ${plan.name === 'Premium' ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
+                                    ${plan.name.toLowerCase().includes('premium') ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
                                 </ul>
-                                <button class="btn btn-primary w-100" onclick="showPaymentPanel('${plan.id}')">Choose Plan</button>
+                                <button class="btn btn-primary w-100" onclick="showPaymentPanel(${plan.id})">Choose Plan</button>
                             </div>
                         </div>
                     `);
                 });
             } catch (error) {
                 console.error('Error loading plans:', error.response ? error.response.data : error.message);
-                showErrorModal("Failed to load plans. Please try again.");
+                showErrorModal("Failed to load plans. Please check your connection and try again.");
             }
         };
 
@@ -691,6 +706,32 @@
                     });
                     console.log('Paybill Payment Response:', response.data);
                     showErrorModal("Paybill payment submitted successfully! Awaiting verification.");
+                    checkSubscriptionStatus();
+                    bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                } else if (paymentMethod === "card") {
+                    // Handle card payment with Stripe
+                    const { paymentIntent, error } = await stripe.confirmCardPayment(
+                        sessionStorage.getItem("clientSecret"),
+                        {
+                            payment_method: {
+                                card: cardElement,
+                            },
+                        }
+                    );
+                    if (error) {
+                        document.getElementById("cardErrors").textContent = error.message;
+                        return;
+                    }
+                    const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+                        plan: selectedPlanId,
+                        payment_type: 'card',
+                        amount: parseFloat(selectedPlanPrice),
+                        payment_intent_id: paymentIntent.id
+                    }, {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    console.log('Card Payment Response:', response.data);
+                    showErrorModal("Card payment submitted successfully! Awaiting verification.");
                     checkSubscriptionStatus();
                     bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
                 } else {
@@ -808,8 +849,6 @@
                 bootstrap.Modal.getInstance(document.getElementById('verifyPaymentModal')).hide();
             });
             document.getElementById("paymentForm").addEventListener("submit", handlePayment);
-            // Remove payment method change listener since only Paybill is available
-            
             document.getElementById("paymentMethod").addEventListener("change", (e) => {
                 const cardFields = document.getElementById("cardPaymentFields");
                 const paybillFields = document.getElementById("paybillPaymentFields");
@@ -825,7 +864,6 @@
                 }
                 document.getElementById("transactionIdError").textContent = "";
             });
-            
         });
     </script>
 </body>
