@@ -1,5 +1,4 @@
-// rigsdata.js
-const BASE_URL = 'https://api.flipsintel.org';
+
 
 document.addEventListener('DOMContentLoaded', () => {
     checkTokenAndFetchData();
