@@ -17,33 +17,98 @@ function showDrawnPerfromanceValues() {
 }
 
 function fetchPerformanceData() {
-    const token = localStorage.getItem('token');
-    axios.get('http://127.0.0.1:8000/monitor/predicted-data/', {
+    const token = sessionStorage.getItem('token'); // Changed from localStorage to sessionStorage
+    if (!token) {
+        alert('You need to be logged in to view performance data.');
+        window.location.href = '../login/login.html'; // Adjust path as needed
+        return;
+    }
+
+    // Fetch subscription details to determine allowed services
+    axios.get('https://api.flipsintel.org/subscription/details/', {
         headers: {
-            'Authorization': 'Token ' + token,
+            'Authorization': `Token ${token}`,
         },
     })
-        .then((response) => {
-            const data = response.data;
-            console.log('API Response Data:', data);
-
-            if (!data || !data.predicted_data || !data.model_details || !data.model_details.accuracies) {
-                console.error('Invalid data structure:', data);
-                return;
-            }
-
-            renderPerformance(data);
-        })
-        .catch((error) => {
-            console.error('Error fetching predictive model data:', error);
-        });
+    .then(response => {
+        const subscriptionData = response.data;
+        console.log('Subscription Details:', subscriptionData);
+        fetchModelData(token, subscriptionData);
+    })
+    .catch(error => {
+        console.error('Error fetching subscription details:', error);
+        if (error.response && error.response.status === 401) {
+            alert('Session expired. Please log in again.');
+            sessionStorage.clear();
+            window.location.href = '../login/login.html';
+        } else {
+            alert('Failed to load subscription details. Please try again.');
+        }
+    });
 }
 
-function renderPerformance(data) {
+function fetchModelData(token, subscriptionData) {
+    // Determine allowed services from subscription
+    const allowedServices = subscriptionData.services || [];
+    const subscriptionTier = subscriptionData.tier || 'Free';
+    const usageLimits = subscriptionData.usage_limits || { historical_data_days: 7, report_count: 1 };
+
+    // Only fetch water level predictions if allowed by subscription
+    if (!allowedServices.includes('water_level')) {
+        alert(`Your ${subscriptionTier} plan does not include access to predictive water level data. Please upgrade.`);
+        document.querySelector('.content').innerHTML = `
+            <div class="container-fluid p-4 m-0">
+                <h2>Model Performance</h2>
+                <div class="alert alert-info">
+                    <strong>Your ${subscriptionTier} plan does not include predictive data.</strong><br>
+                    <a href="../payment.html" class="btn btn-primary">Upgrade Now</a>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // Add query parameter for historical data limit
+    const params = new URLSearchParams();
+    if (usageLimits.historical_data_days) {
+        params.append('days', usageLimits.historical_data_days);
+    }
+
+    axios.get(`https://api.flipsintel.org/monitor/predicted-data/?${params.toString()}`, {
+        headers: {
+            'Authorization': `Token ${token}`,
+        },
+    })
+    .then((response) => {
+        const data = response.data;
+        console.log('API Response Data:', data);
+
+        if (!data || !data.predicted_data || !data.model_details || !data.model_details.accuracies) {
+            console.error('Invalid data structure:', data);
+            alert('Invalid data received from server.');
+            return;
+        }
+
+        renderPerformance(data, subscriptionData);
+    })
+    .catch((error) => {
+        console.error('Error fetching predictive model data:', error);
+        if (error.response && error.response.status === 401) {
+            alert('Session expired. Please log in again.');
+            sessionStorage.clear();
+            window.location.href = '../login/login.html';
+        } else {
+            alert('Failed to load predictive model data. Please try again.');
+        }
+    });
+}
+
+function renderPerformance(data, subscriptionData) {
     const predictedData = data.predicted_data;
     const accuracies = data.model_details.accuracies;
     const accuracyPercentages = data.model_details.accuracy_percentages;
-    const previousPredictions = data.previous_predictions;
+    const previousPredictions = data.previous_predictions || [];
+    const subscriptionTier = subscriptionData.tier || 'Free';
 
     // Structure series data for predicted values with accuracy labels
     const seriesData = Object.keys(predictedData).map(model => ({
@@ -52,12 +117,13 @@ function renderPerformance(data) {
             name: entry.name,
             y: entry.y
         })),
-        color: getModelColor(model), // Assign each model a unique color
+        color: getModelColor(model),
         marker: { enabled: true }
     }));
 
-    // Add previous predictions for historical analysis
-    const previousSeriesData = previousPredictions.map(entry => ({
+    // Add previous predictions for historical analysis, limited by subscription
+    const maxHistorical = subscriptionTier === 'Free' ? 1 : subscriptionTier === 'Premium' ? 5 : 10; // Example limits
+    const previousSeriesData = previousPredictions.slice(0, maxHistorical).map(entry => ({
         name: `Historical Prediction - ${new Date(entry.timestamp).toLocaleString()}`,
         data: Array(predictedData.knn.length).fill(entry.predicted_level),
         dashStyle: 'ShortDot',
@@ -76,7 +142,7 @@ function renderPerformance(data) {
             text: 'Model Predictions with Accuracies and Historical Data'
         },
         subtitle: {
-            text: 'Prediction reliability based on model accuracy'
+            text: `Prediction reliability based on model accuracy (${subscriptionTier} Plan)`
         },
         xAxis: {
             title: {
@@ -88,10 +154,10 @@ function renderPerformance(data) {
             title: {
                 text: 'Water Levels'
             },
-            plotLines: [{
+            plotLines: data.threshold ? [{
                 color: '#FF0000',
                 width: 2,
-                value: data.threshold, // Assuming a critical threshold if needed
+                value: data.threshold,
                 label: {
                     text: 'Threshold Level',
                     align: 'center',
@@ -99,7 +165,7 @@ function renderPerformance(data) {
                         color: '#FF0000'
                     }
                 }
-            }]
+            }] : []
         },
         tooltip: {
             shared: true,

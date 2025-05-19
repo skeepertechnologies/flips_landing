@@ -1,5 +1,5 @@
 const fetchUserActivity = (token) => {
-    axios.get('http://127.0.0.1:8000/activity/activities/', {
+    axios.get('http://flipsintel.org:8000/activity/activities/', {
         headers: {
             Authorization: 'Token ' + token,
         },

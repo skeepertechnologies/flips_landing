@@ -21,17 +21,25 @@ function hideLoader() {
 
 // Function to initialize the dominant chart with live data
 function initializeChart(chartType) {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token'); // Changed from localStorage to sessionStorage
+    if (!token) {
+        console.error(`No authentication token found for ${chartType}. Redirecting to login.`);
+        // Optionally show an alert to the user
+        alert('Your session has expired. Please sign in again.');
+        window.location.href = '../login.html'; // Adjust the path to your login page
+        return;
+    }
+
     const loadingMessages = {
-        waterLevelChart: "Loading Water Levels...",
-        humidityChart: "Loading Humidity Data...",
-        temperatureChart: "Loading Temperature Data...",
+        waterLevelChart: 'Loading Water Levels...',
+        humidityChart: 'Loading Humidity Data...',
+        temperatureChart: 'Loading Temperature Data...',
     };
 
     showLoader(loadingMessages[chartType]);
 
     axios
-        .get('http://127.0.0.1:8000/monitor/graph-data/', {
+        .get('https://api.flipsintel.org/monitor/graph-data/', {
             headers: {
                 Authorization: `Token ${token}`,
             },
@@ -42,6 +50,12 @@ function initializeChart(chartType) {
         })
         .catch((error) => {
             console.error(`Error fetching ${chartType} data:`, error);
+            if (error.response && error.response.status === 401) {
+                console.error('Unauthorized: Invalid or expired token. Redirecting to login.');
+                alert('Your session is invalid. Please sign in again.');
+                sessionStorage.clear(); // Clear sessionStorage to prevent further unauthorized requests
+                window.location.href = '../login.html'; // Adjust the path to your login page
+            }
             hideLoader();
         });
 }
@@ -100,12 +114,7 @@ function renderChart(chartType, data) {
             enabled: true,
             buttons: {
                 contextButton: {
-                    menuItems: [
-                        'downloadPNG',
-                        'downloadJPEG',
-                        'downloadPDF',
-                        'downloadSVG',
-                    ],
+                    menuItems: ['downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG'],
                 },
             },
         },

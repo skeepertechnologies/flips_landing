@@ -1,4 +1,3 @@
-// rigsdata.js
 const BASE_URL = 'https://api.flipsintel.org';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,11 +24,45 @@ function checkTokenAndFetchData() {
         window.location.href = '../login/login.html';
         return;
     }
-    fetchRigsData(token);
+    fetchSubscriptionDetails(token)
+        .then(subscriptionData => {
+            fetchRigsData(token, subscriptionData);
+        })
+        .catch(error => {
+            console.error('Error fetching subscription details:', error);
+            alert('Failed to load subscription details. Please try again.');
+            if (error.response && error.response.status === 401) {
+                sessionStorage.clear();
+                window.location.href = '../login/login.html';
+            }
+        });
 }
 
-function fetchRigsData(token) {
-    axios.get(`${BASE_URL}/rigsdata/waterlevels/`, {
+function fetchRigsData(token, subscriptionData) {
+    // Determine allowed services and limits from subscription
+    const allowedServices = subscriptionData.services || [];
+    const usageLimits = subscriptionData.usage_limits || { historical_data_days: 0, report_count: 0 };
+    const subscriptionTier = subscriptionData.tier || 'Free';
+
+    // Define which data fields are allowed based on services
+    const serviceToFields = {
+        water_level: ['water_level'],
+        humidity: ['humidity_data'],
+        temperature: ['temperature_data'],
+    };
+
+    // Filter fields to display based on allowed services
+    const allowedFields = Object.keys(serviceToFields)
+        .filter(service => allowedServices.includes(service))
+        .flatMap(service => serviceToFields[service]);
+
+    // Add query parameters to limit data based on subscription (e.g., historical data days)
+    const params = new URLSearchParams();
+    if (usageLimits.historical_data_days) {
+        params.append('days', usageLimits.historical_data_days);
+    }
+
+    axios.get(`${BASE_URL}/rigsdata/waterlevels/?${params.toString()}`, {
         headers: {
             'Authorization': `Token ${token}`,
         },
@@ -37,17 +70,46 @@ function fetchRigsData(token) {
     .then(response => {
         const data = response.data;
         console.log('Rigs Data:', data);
-        renderTableInOverlay(data);
 
-        // Handle CTA for free and corporate users
-        if (data.cta) {
+        // Filter rig data based on allowed fields
+        const filteredRows = data.rows.map(row => {
+            const filteredRow = { ...row };
+            Object.keys(filteredRow).forEach(key => {
+                if (!['rig_sensor_id', 'rig_location', 'rig_latitude', 'rig_longitude', 'timestamp_'].includes(key) &&
+                    !allowedFields.includes(key)) {
+                    filteredRow[key] = 'N/A'; // Mask unauthorized fields
+                }
+            });
+            return filteredRow;
+        });
+
+        // Limit the number of rigs based on subscription tier (example logic)
+        let maxRigs = 1; // Default for Free tier
+        if (subscriptionTier === 'Premium') maxRigs = 5;
+        else if (subscriptionTier === 'Corporate') maxRigs = Infinity; // No limit
+        const limitedRows = filteredRows.slice(0, maxRigs);
+
+        // Render the filtered and limited data
+        renderTableInOverlay({
+            ...data,
+            rows: limitedRows,
+            cta: data.cta || (limitedRows.length === 0 ? {
+                message: `Your ${subscriptionTier} plan does not include access to rig data. Upgrade to view more.`,
+                upgrade_url: '../payment.html'
+            } : null)
+        });
+
+        // Handle CTA for subscription-based restrictions
+        if (data.cta || limitedRows.length === 0) {
             const ctaContainer = document.getElementById('cta-container');
             if (ctaContainer) {
                 ctaContainer.style.display = 'block';
+                const ctaMessage = data.cta?.message || `Your ${subscriptionTier} plan limits rig data access. Upgrade to view more.`;
+                const ctaUrl = data.cta?.upgrade_url || '../payment.html';
                 ctaContainer.innerHTML = `
                     <div class="alert alert-info">
-                        <strong>${data.cta.message}</strong><br>
-                        <a href="${data.cta.upgrade_url}" class="btn btn-primary">Upgrade Now</a>
+                        <strong>${ctaMessage}</strong><br>
+                        <a href="${ctaUrl}" class="btn btn-primary">Upgrade Now</a>
                     </div>
                 `;
             }
@@ -66,7 +128,7 @@ function fetchRigsData(token) {
             sessionStorage.clear();
             window.location.href = '../login/login.html';
         } else {
-            alert('Failed to load rigs data.');
+            alert('Failed to load rigs data. Please check your subscription plan.');
         }
     });
 }
@@ -103,6 +165,7 @@ function fetchSubscriptionDetails(token) {
         renderSubscriptionDetailsInModal(data);
         const modal = new bootstrap.Modal(document.getElementById('subscriptionModal'));
         modal.show();
+        return data; // Return data for use in fetchRigsData
     })
     .catch(error => {
         console.error('Error fetching subscription details:', error);
@@ -115,6 +178,7 @@ function fetchSubscriptionDetails(token) {
         } else {
             alert(`Failed to load subscription details. Status: ${status}, Message: ${message}`);
         }
+        throw error; // Rethrow to propagate error
     });
 }
 
@@ -196,7 +260,6 @@ function handleUpgrade(upgradeId) {
         return;
     }
 
-    // Initiate subscription upgrade
     axios.post(`${BASE_URL}/subscription/subscribe/`, {
         planId: upgradeId,
     }, {
@@ -238,19 +301,28 @@ function renderTableInOverlay(data) {
         'Timestamp': 'timestamp_',
     };
 
-    Object.keys(keyMapping).forEach(col => {
-        const th = document.createElement('th');
-        th.textContent = col;
-        headerRow.appendChild(th);
+    // Filter headers based on available data fields (to avoid showing N/A-only columns)
+    const availableFields = new Set();
+    data.rows.forEach(row => {
+        Object.keys(row).forEach(key => availableFields.add(key));
+    });
+
+    Object.entries(keyMapping).forEach(([col, key]) => {
+        if (availableFields.has(key) || ['rig_sensor_id', 'rig_location', 'rig_latitude', 'rig_longitude', 'timestamp_'].includes(key)) {
+            const th = document.createElement('th');
+            th.textContent = col;
+            headerRow.appendChild(th);
+        }
     });
 
     const body = table.createTBody();
     data.rows.forEach(row => {
         const bodyRow = body.insertRow();
-        Object.keys(keyMapping).forEach(col => {
-            const cell = bodyRow.insertCell();
-            const key = keyMapping[col];
-            cell.textContent = row[key] !== undefined ? row[key] : 'N/A';
+        Object.entries(keyMapping).forEach(([col, key]) => {
+            if (availableFields.has(key) || ['rig_sensor_id', 'rig_location', 'rig_latitude', 'rig_longitude', 'timestamp_'].includes(key)) {
+                const cell = bodyRow.insertCell();
+                cell.textContent = row[key] !== undefined ? row[key] : 'N/A';
+            }
         });
     });
 
