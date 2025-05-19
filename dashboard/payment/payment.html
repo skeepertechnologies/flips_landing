@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.12.1/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Stripe for Card Payments -->
     <script src="https://js.stripe.com/v3/"></script>
     <link href="../assets/css/style.css" rel="stylesheet">
     <style>
@@ -15,8 +16,70 @@
             flex-direction: column;
             min-height: 100vh;
             font-family: Candara, sans-serif;
-            background: linear-gradient(135deg, #f0f2f8, #e6e9f0);
+            background: #0C0326;
+            overflow: hidden;
+            position: relative;
         }
+
+        /* Static flickering stars */
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            background-image: radial-gradient(white 1px, transparent 1px);
+            background-size: 2px 2px;
+            animation: flicker 2s infinite alternate;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.2; }
+            100% { opacity: 0.3; }
+        }
+
+        /* Shooting stars */
+        .shooting-stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .shooting-stars::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: -10%;
+            width: 150px;
+            height: 2px;
+            background: linear-gradient(90deg, white, transparent);
+            opacity: 0.6;
+            transform: rotate(45deg);
+            animation: shoot 7s ease-in-out infinite;
+        }
+
+        @keyframes shoot {
+            0% {
+                transform: translateX(0) translateY(0) rotate(45deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            50% {
+                transform: translateX(100vw) translateY(100vh) rotate(45deg);
+                opacity: 0;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
         main {
             flex: 1;
         }
@@ -90,17 +153,6 @@
             font-weight: 500;
             color: #333;
         }
-        .btn-primary {
-            background-color: #1d0979;
-            border-color: #1d0979;
-            border-radius: 0.25rem;
-            padding: 0.75rem;
-            font-weight: 500;
-        }
-        .btn-primary:hover {
-            background-color: #15055a;
-            border-color: #15055a;
-        }
         .modal-content {
             border-radius: 1rem;
         }
@@ -118,10 +170,6 @@
         }
         .social-links a:hover {
             color: #e0e0e0;
-        }
-        .back-to-top {
-            background-color: #1d0979;
-            border: none;
         }
         .paybill-instructions {
             background-color: #f8f9fa;
@@ -151,45 +199,80 @@
     </style>
 </head>
 <body>
+    <div class="stars"></div>
+    <div class="shooting-stars"></div>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg bg-light fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="../index.html">
-                <img src="../assets/img/logo.png" alt="FLIPS Logo" class="me-2">
+    <nav id="mainNavbar" class="navbar navbar-expand-lg bg-white py-2 position-fixed top-0 start-50 translate-middle-x"
+        style="width: 70%; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; transition: box-shadow 0.3s; z-index: 1030;">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand d-flex align-items-center" href="../index.html">
+                <img src="../assets/img/logo.png" alt="Logo" height="30" class="me-2">
             </a>
+
+            <!-- Toggler -->
             <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#navbarOffcanvas" aria-controls="navbarOffcanvas">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="offcanvas offcanvas-end" tabindex="-1" id="navbarOffcanvas" aria-labelledby="navbarOffcanvasLabel">
                 <div class="offcanvas-header">
                     <h5 class="offcanvas-title" id="navbarOffcanvasLabel">FLIPS</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
-                <div class="offcanvas-body">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="https://via.placeholder.com/30" class="rounded-circle me-2" alt="User Icon">
-                                <span id="userEmail">Loading...</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item fw-bold" href="#" onclick="showLogoutModal()">Logout</a></li>
-                            </ul>
-                        </li>
+                <div class="offcanvas-body d-lg-flex justify-content-between w-100 align-items-center">
+                    <!-- Nav links -->
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link" href="#"></a></li>
+                        <li class="nav-item"><a class="nav-link" href="#"></a></li>
+                        <li class="nav-item"><a class="nav-link" href="#"></a></li>
+                        <li class="nav-item"><a class="nav-link" href="#"></a></li>
+                        <li class="nav-item"><a class="nav-link" href="#"></a></li>
                     </ul>
+
+                    <!-- Right-side icons/buttons -->
+                    <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+                    <i class="bi bi-sun fs-5"></i>
+                    <!-- User Dropdown -->
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="userEmail">Loading...</span>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 p-2" aria-labelledby="userDropdown" style="min-width: 250px;">
+                            <!-- Menu Items -->
+                            <li><a class="dropdown-item d-flex align-items-center gap-2 py-2 mb-2" href="#"><i class="bi bi-person"></i> My Profile</a></li>
+                            <li><a class="dropdown-item d-flex align-items-center gap-2 py-2 mb-2" href="#"><i class="bi bi-gear"></i> Settings</a></li>
+                            <li>
+                            <a class="dropdown-item d-flex justify-content-between align-items-center py-2 mb-2" href="#">
+                                <span><i class="bi bi-credit-card me-2"></i> Billing</span>
+                            </a>
+                            </li>
+
+                            <!-- Logout -->
+                            <li class="pt-2 border-top">
+                            <a class="btn w-100 d-flex fw-bold text-white align-items-center justify-content-center gap-2 mt-2" style="background-color: #7b4d11;" href="#" onclick="showLogoutModal()">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
+
     <!-- Main Content -->
     <main id="main" class="pt-5 mt-5">
         <!-- Hero Section -->
-        <section class="hero-section">
+        <section class="hero-section d-flex align-items-center justify-content-center text-center" style="min-height: 100vh;">
             <div class="container">
-                <h1>Unlock the Power of FLIPS</h1>
-                <p>Choose a subscription plan tailored to your needs and gain access to advanced water management and flood prediction tools.</p>
-                <button class="btn btn-primary mt-4" onclick="showPlansPanel()">Explore Plans</button>
+                <h1 class="display-4 fw-bold mb-3">
+                    Throusands of businesses and <br> innovators trust us and <br> call FLIPS home.
+                </h1>
+                <p class="lead mb-4">Choose a subscription plan tailored to your needs and gain access to advanced water management and flood prediction tools.</p>
+                <button class="btn btn-lg fw-bold text-white w-25 p-3 mt-4" onclick="showPlansPanel()" style="background-color: #7b4d11; z-index: 1000;">Explore Plans</button>
             </div>
         </section>
 
@@ -204,81 +287,6 @@
                     <button id="getDashboardUrlButton" class="btn btn-primary mt-3 d-none" onclick="getDashboardUrl()">Go to Dashboard</button>
                     <div id="verifyPaymentButtonContainer" class="mt-3 d-none">
                         <button id="verifyPaymentButton" class="btn btn-success" onclick="showVerifyPaymentModal()">Verify Payment</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Features Section -->
-        <section class="py-5">
-            <div class="container">
-                <h2 class="text-center mb-5 fw-bold" style="color: #1d0979;">Why Choose FLIPS?</h2>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="feature-card text-center p-4">
-                            <i class="bi bi-water text-primary" style="font-size: 2rem;"></i>
-                            <h5 class="mt-3">Advanced Water Management</h5>
-                            <p>Monitor and manage water resources with real-time data and analytics.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="feature-card text-center p-4">
-                            <i class="bi bi-shield-check text-primary" style="font-size: 2rem;"></i>
-                            <h5 class="mt-3">Flood Prediction</h5>
-                            <p>Predict and prepare for floods with our AI-driven models.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="feature-card text-center p-4">
-                            <i class="bi bi-graph-up text-primary" style="font-size: 2rem;"></i>
-                            <h5 class="mt-3">ML Insights</h5>
-                            <p>Leverage machine learning for accurate water level predictions.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FAQ Section -->
-        <section class="py-5 bg-light">
-            <div class="container">
-                <h2 class="text-center mb-5 fw-bold" style="color: #1d0979;">Frequently Asked Questions</h2>
-                <div class="accordion" id="faqAccordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="faq1">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
-                                What is included in each plan?
-                            </button>
-                        </h2>
-                        <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                Each plan offers access to FLIPS’ core features, with higher tiers including advanced analytics, priority support, and exclusive tools.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="faq2">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
-                                Can I change my plan later?
-                            </button>
-                        </h2>
-                        <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                Yes, you can upgrade or downgrade your plan at any time from your account settings.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="faq3">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
-                                How do I verify my payment?
-                            </button>
-                        </h2>
-                        <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                For M-Pesa Paybill payments, enter your transaction ID in the verification modal.
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -298,22 +306,16 @@
             </div>
             <div id="paymentSelection" class="payment-details d-none">
                 <h5>Payment Details</h5>
-                <div id="selectedPlanInfo" class="mb-3">
-                    <p><strong>Selected Plan:</strong> <span id="selectedPlanName"></span></p>
-                    <p><strong>Amount:</strong> KES <span id="selectedPlanAmount"></span></p>
-                    <div id="stkPushButtonContainer" class="mt-2 d-none">
-                        <button id="initiateStkPushButton" class="btn btn-success" onclick="initiateStkPush()">Initiate STK Push</button>
-                    </div>
-                </div>
                 <form id="paymentForm">
                     <div class="mb-3">
                         <label for="paymentMethod" class="form-label">Payment Method</label>
                         <select class="form-select" id="paymentMethod" required>
-                            <option value="paybill">M-Pesa Paybill</option>
-                            <option value="stk_push">M-Pesa STK Push</option>
+                            <option value="">Select a payment method</option>
                             <option value="card">Credit/Debit Card (MasterCard)</option>
+                            <option value="paybill">M-Pesa Paybill</option>
                         </select>
                     </div>
+                    <!-- Card Payment Fields -->
                     <div id="cardPaymentFields" class="d-none">
                         <div class="mb-3">
                             <label for="cardElement" class="form-label">Card Information</label>
@@ -321,24 +323,25 @@
                             <div id="cardErrors" class="text-danger small"></div>
                         </div>
                     </div>
+                    <!-- M-Pesa Paybill Fields -->
                     <div id="paybillPaymentFields" class="d-none">
                         <div class="paybill-instructions">
                             <h6 class="mb-3">How to Pay via M-Pesa Paybill</h6>
                             <ul>
                                 <li>Go to Safaricom Menu > M-Pesa > Lipa na M-Pesa > Paybill.</li>
                                 <li>Enter the Paybill Number below.</li>
-                                <li>Enter the Account Number below (or your phone number).</li>
+                                <li>Enter the Account Number below (or your email).</li>
                                 <li>Enter the Amount and confirm the payment.</li>
                                 <li>Enter the M-Pesa Transaction ID received via SMS below.</li>
                             </ul>
                         </div>
                         <div class="mb-3">
                             <label for="paybillNumber" class="form-label">Paybill Number</label>
-                            <input type="text" class="form-control" id="paybillNumber" readonly>
+                            <input type="text" class="form-control" id="paybillNumber" value="123456" readonly>
                         </div>
                         <div class="mb-3">
-                            <label for="accountNumber" class="form-label">Account Number (Phone Number)</label>
-                            <input type="text" class="form-control" id="accountNumber" placeholder="Your phone number">
+                            <label for="accountNumber" class="form-label">Account Number</label>
+                            <input type="text" class="form-control" id="accountNumber" placeholder="Your email or account ID">
                         </div>
                         <div class="mb-3">
                             <label for="paybillAmount" class="form-label">Amount (KES)</label>
@@ -350,26 +353,7 @@
                             <div id="transactionIdError" class="text-danger small mt-1"></div>
                         </div>
                     </div>
-                    <div id="stkPushPaymentFields" class="d-none">
-                        <div class="stk-push-instructions">
-                            <h6 class="mb-3">How to Pay via M-Pesa STK Push</h6>
-                            <ul>
-                                <li>Enter your phone number below.</li>
-                                <li>Click 'Initiate STK Push' to receive a payment prompt on your phone.</li>
-                                <li>Enter your M-Pesa PIN to authorize the payment.</li>
-                                <li>Wait for confirmation and verify the payment using the Transaction ID.</li>
-                            </ul>
-                        </div>
-                        <div class="mb-3">
-                            <label for="stkAccountNumber" class="form-label">Phone Number</label>
-                            <input type="text" class="form-control" id="stkAccountNumber" placeholder="e.g., +254712345678">
-                        </div>
-                        <div class="mb-3">
-                            <label for="stkAmount" class="form-label">Amount (KES)</label>
-                            <input type="number" class="form-control" id="stkAmount" readonly>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100" id="paymentFormSubmit">Proceed to Payment</button>
+                    <button type="submit" class="btn btn-primary w-100">Proceed to Payment</button>
                 </form>
             </div>
         </div>
@@ -433,578 +417,413 @@
 
     <!-- Footer -->
     <footer id="footer" class="footer">
-        <div class="container footer-top">
-            <div class="row gy-4">
-                <div class="col-lg-4 col-md-6 footer-about">
-                    <a href="../index.html" class="logo d-flex align-items-center">
-                        <span class="sitename">FLIPS</span>
-                    </a>
-                    <div class="footer-contact pt-3">
-                        <p>Nairobi, Kenya</p>
-                        <p class="mt-3"><strong>Phone:</strong> <span>+254 700 168 812</span></p>
-                        <p><strong>Email:</strong> <span>flipsintelligence@gmail.com</span></p>
-                    </div>
-                    <div class="social-links d-flex mt-4">
-                        <a href=""><i class="bi bi-twitter-x"></i></a>
-                        <a href=""><i class="bi bi-facebook"></i></a>
-                        <a href="https://www.instagram.com/flips.intel?igsh=MWlqZDc5YTVsMXRwZA=="><i class="bi bi-instagram"></i></a>
-                        <a href=""><i class="bi bi-linkedin"></i></a>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-3 footer-links">
-                    <h4>Useful Links</h4>
-                    <ul>
-                        <li><a href="../index.html">Home</a></li>
-                        <li><a href="#">About us</a></li>
-                        <li><a href="#">Services</a></li>
-                        <li><a href="#">Terms of service</a></li>
-                        <li><a href="../login/privacy_policy.html">Privacy policy</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-2 col-md-3 footer-links">
-                    <h4>Our Services</h4>
-                    <ul>
-                        <li><a href="#">Water management</a></li>
-                        <li><a href="#">Flood prediction</a></li>
-                        <li><a href="#">River water level reading</a></li>
-                        <li><a href="#">ML prediction</a></li>
-                    </ul>
-                </div>
-            </div>
+    <div class="container footer-top">
+      <div class="row gy-4">
+        <div class="col-lg-4 col-md-6 footer-about">
+          <a href="index.html" class="logo d-flex align-items-center">
+            <span class="sitename">FLIPS</span>
+          </a>
+          <div class="footer-contact pt-3">
+            <p>Nairobi, Kenya</p>
+            <p class="mt-3"><strong>Phone:</strong> <span>+254 700 168 812</span></p>
+            <p><strong>Email:</strong> <span>flipsintelligence@gmail.com</span></p>
+          </div>
+          <div class="social-links d-flex mt-4">
+            <a href=""><i class="bi bi-twitter-x"></i></a>
+            <a href=""><i class="bi bi-facebook"></i></a>
+            <a href="https://www.instagram.com/flips.intel?igsh=MWlqZDc5YTVsMXRwZA=="><i class="bi bi-instagram"></i></a>
+            <a href=""><i class="bi bi-linkedin"></i></a>
+          </div>
         </div>
-        <div class="container copyright text-center mt-4">
-            <p>© <span>Copyright</span> <strong class="px-1 sitename">FLIPS</strong> <span>All Rights Reserved</span></p>
-            <div class="credits">
-                Designed by <a href="https://bootstrapmade.com/">Lord</a>
-            </div>
+
+        <div class="col-lg-2 col-md-3 footer-links">
+          <h4>Useful Links</h4>
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">About us</a></li>
+            <li><a href="#">Services</a></li>
+            <li><a href="#">Terms of service</a></li>
+            <li><a href="#">Privacy policy</a></li>
+          </ul>
         </div>
-    </footer>
+
+        <div class="col-lg-2 col-md-3 footer-links">
+          <h4>Our Services</h4>
+          <ul>
+            <li><a href="#">Water management</a></li>
+            <li><a href="#">Flood prediction</a></li>
+            <li><a href="#">River water level reading</a></li>
+            <li><a href="#">ML prediction</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container copyright text-center mt-4">
+      <p>© <span>Copyright</span> <strong class="px-1 sitename">FLIPS</strong> <span>All Rights Reserved</span></p>
+    </div>
+  </footer>
 
     <!-- Back to Top -->
     <a href="#" class="btn back-to-top position-fixed bottom-0 end-0 m-3"><i class="bi bi-arrow-up-short"></i></a>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-   <script>
-    const BASE_URL = 'https://api.flipsintel.org';
-    const INTERVAL_TIME = 30 * 60 * 1000; // 30 minutes
-    let idleTimeout;
-    let selectedPlanId = null;
-    let selectedPlanPrice = null;
-    let paybillNumber = null;
+    <script>
+        const BASE_URL = 'https://api.flipsintel.org';
+        const INTERVAL_TIME = 30 * 60 * 1000; // 30 minutes
+        let idleTimeout;
+        let selectedPlanId = null;
+        let selectedPlanPrice = null;
+        const stripe = Stripe('pk_test_your_stripe_publishable_key'); // Replace with your Stripe publishable key
+        const elements = stripe.elements();
+        const cardElement = elements.create('card');
+        cardElement.mount('#cardElement');
 
-    // Stripe initialization
-    const stripe = Stripe('pk_test_your_stripe_publishable_key');
-    const elements = stripe.elements();
-    const cardElement = elements.create('card');
-    cardElement.mount('#cardElement');
+        // Idle Timeout
+        const resetIdleTimeout = () => {
+            clearTimeout(idleTimeout);
+            idleTimeout = setTimeout(showLogoutModal, INTERVAL_TIME);
+        };
+        document.addEventListener("mousemove", resetIdleTimeout);
+        document.addEventListener("keypress", resetIdleTimeout);
+        document.addEventListener("DOMContentLoaded", resetIdleTimeout);
 
-    // Idle Timeout
-    const resetIdleTimeout = () => {
-        clearTimeout(idleTimeout);
-        idleTimeout = setTimeout(showLogoutModal, INTERVAL_TIME);
-    };
-    document.addEventListener("mousemove", resetIdleTimeout);
-    document.addEventListener("keypress", resetIdleTimeout);
-    document.addEventListener("DOMContentLoaded", resetIdleTimeout);
+        // Modals and Offcanvas
+        const showLogoutModal = () => {
+            const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
+            modal.show();
+        };
+        const showVerifyPaymentModal = () => {
+            const modal = new bootstrap.Modal(document.getElementById('verifyPaymentModal'));
+            modal.show();
+        };
+        const showErrorModal = (message) => {
+            document.querySelector('#errorModal .modal-body').textContent = message || 'An error occurred. Please try again.';
+            const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+            modal.show();
+        };
+        const showPlansPanel = () => {
+            const offcanvas = new bootstrap.Offcanvas(document.getElementById('plansOffcanvas'));
+            document.getElementById('planSelection').classList.remove('d-none');
+            document.getElementById('paymentSelection').classList.add('d-none');
+            offcanvas.show();
+        };
+        const showPaymentPanel = async (planId) => {
+            selectedPlanId = planId;
+            try {
+                const token = sessionStorage.getItem("token");
+                const response = await axios.get(`${BASE_URL}/subscription/plans/${planId}/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                selectedPlanPrice = response.data.price;
+                document.getElementById('paybillAmount').value = selectedPlanPrice;
+                const email = sessionStorage.getItem("email");
+                document.getElementById('accountNumber').value = email || '';
+                document.getElementById('planSelection').classList.add('d-none');
+                document.getElementById('paymentSelection').classList.remove('d-none');
+            } catch (error) {
+                console.error('Error fetching plan details:', error.response ? error.response.data : error.message);
+                showErrorModal("Failed to load plan details. Please select a different plan or try again.");
+            }
+        };
 
-    // Modals and Offcanvas
-    const showLogoutModal = () => {
-        const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
-        modal.show();
-    };
-    const showVerifyPaymentModal = () => {
-        const modal = new bootstrap.Modal(document.getElementById('verifyPaymentModal'));
-        modal.show();
-    };
-    const showErrorModal = (message) => {
-        document.querySelector('#errorModal .modal-body').textContent = message || 'An error occurred. Please try again.';
-        const modal = new bootstrap.Modal(document.getElementById('errorModal'));
-        modal.show();
-    };
-    const showPlansPanel = () => {
-        const offcanvas = new bootstrap.Offcanvas(document.getElementById('plansOffcanvas'));
-        document.getElementById('planSelection').classList.remove('d-none');
-        document.getElementById('paymentSelection').classList.add('d-none');
-        offcanvas.show();
-    };
-    const showPaymentPanel = async (planId) => {
-        if (!planId) {
-            console.error('No planId provided to showPaymentPanel');
-            showErrorModal('Invalid plan selected. Please try again.');
-            return;
-        }
-        selectedPlanId = planId;
-        console.log('Selected Plan ID:', planId);
-        try {
+        // Fetch User Data
+        const storeUserData = async (token) => {
+            try {
+                const response = await axios.get(`${BASE_URL}/api/user-info/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('User Data Response:', response.data);
+                sessionStorage.setItem("username", response.data.username);
+                sessionStorage.setItem("email", response.data.email);
+                document.getElementById("userEmail").textContent = response.data.email || 'User';
+            } catch (error) {
+                console.error('Error loading user data:', error.response ? error.response.data : error.message);
+                document.getElementById("userEmail").textContent = "Failed to load user data";
+                sessionStorage.clear();
+                window.location.href = "../login/login.html";
+            }
+        };
+
+        // Load Plans
+        const loadPlans = async () => {
             const token = sessionStorage.getItem("token");
             if (!token) {
-                throw new Error('No authentication token found');
-            }
-
-            // Fetch plan details
-            const planResponse = await axios.get(`${BASE_URL}/subscription/plans/${planId}/`, {
-                headers: { Authorization: `Token ${token}` }
-            });
-            console.log('Plan Response:', planResponse.data);
-
-            let planData = planResponse.data;
-            if (Array.isArray(planResponse.data)) {
-                console.warn('API returned an array instead of a single plan object. Attempting to find plan with id:', planId);
-                planData = planResponse.data.find(plan => plan.id === parseInt(planId));
-                if (!planData) {
-                    throw new Error(`Plan with id ${planId} not found in API response array`);
-                }
-            }
-
-            if (!planData || !planData.id || !planData.name) {
-                throw new Error('Invalid plan data received: missing id or name');
-            }
-
-            selectedPlanPrice = parseFloat(planData.price) || 0;
-            const selectedPlanName = planData.name;
-
-            // Update UI with plan details
-            document.getElementById('selectedPlanName').textContent = selectedPlanName;
-            document.getElementById('selectedPlanAmount').textContent = selectedPlanPrice.toFixed(2);
-            document.getElementById('paybillAmount').value = selectedPlanPrice;
-            document.getElementById('stkAmount').value = selectedPlanPrice;
-
-            // Fetch Paybill number from backend
-            const paymentMethodResponse = await axios.get(`${BASE_URL}/payments/payment-methods/`, {
-                headers: { Authorization: `Token ${token}` }
-            });
-            console.log('Payment Methods Response:', paymentMethodResponse.data);
-            let paybillMethod = paymentMethodResponse.data.find(method =>
-                method.name.toLowerCase().includes('m-pesa') || method.name.toLowerCase().includes('mpesa')
-            );
-            if (!paybillMethod) {
-                paybillMethod = paymentMethodResponse.data.find(method => method.paybill_number);
-            }
-            if (paybillMethod && paybillMethod.paybill_number) {
-                paybillNumber = paybillMethod.paybill_number;
-                document.getElementById('paybillNumber').value = paybillNumber;
-            } else {
-                throw new Error('No valid Paybill number found in payment methods.');
-            }
-
-            const phoneNumber = sessionStorage.getItem("phone_number") || '';
-            document.getElementById('accountNumber').value = phoneNumber || '';
-            document.getElementById('stkAccountNumber').value = phoneNumber || '';
-            if (!phoneNumber) {
-                console.warn('No phone number found in sessionStorage');
-            }
-
-            document.getElementById('planSelection').classList.add('d-none');
-            document.getElementById('paymentSelection').classList.remove('d-none');
-        } catch (error) {
-            console.error('Error fetching plan or payment method details:', error.response ? error.response.data : error.message);
-            showErrorModal(`Failed to load plan details: ${error.response?.data?.error || error.message}. Please select a different plan or try again.`);
-        }
-    };
-
-    // Fetch User Data
-    const storeUserData = async (token) => {
-        try {
-            const response = await axios.get(`${BASE_URL}/api/user-info/`, {
-                headers: { Authorization: `Token ${token}` }
-            });
-            console.log('User Data Response:', response.data);
-            sessionStorage.setItem("username", response.data.username);
-            sessionStorage.setItem("email", response.data.email);
-            sessionStorage.setItem("phone_number", response.data.phone_number || '');
-            document.getElementById("userEmail").textContent = response.data.email || 'User';
-        } catch (error) {
-            console.error('Error loading user data:', error.response ? error.response.data : error.message);
-            document.getElementById("userEmail").textContent = "Failed to load user data";
-            sessionStorage.clear();
-            window.location.href = "../login/login.html";
-        }
-    };
-
-    // Load Plans
-    const loadPlans = async () => {
-        const token = sessionStorage.getItem("token");
-        if (!token) {
-            console.log('No token available for plans request, redirecting to login');
-            window.location.href = "../login/login.html";
-            return;
-        }
-        try {
-            const response = await axios.get(`${BASE_URL}/subscription/plans/`, {
-                headers: { Authorization: `Token ${token}` }
-            });
-            console.log('Plans Response:', response.data);
-            const plansList = document.getElementById("plansList");
-            plansList.innerHTML = "";
-            if (!Array.isArray(response.data) || response.data.length === 0) {
-                plansList.innerHTML = '<p>No plans available at this time.</p>';
+                console.log('No token available for plans request, redirecting to login');
+                window.location.href = "../login/login.html";
                 return;
             }
-            response.data.forEach(plan => {
-                if (!plan.id || !plan.name || plan.price == null) {
-                    console.warn('Invalid plan data:', plan);
-                    return;
-                }
-                const promotionBadge = plan.is_promotion_active ? '<span class="badge bg-primary mb-2">Promotion Active</span>' : '';
-                plansList.insertAdjacentHTML("beforeend", `
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">${plan.name}</h5>
-                            ${promotionBadge}
-                            <p><strong>KES ${parseFloat(plan.price).toFixed(2)}/month</strong></p>
-                            <p>${plan.description || 'No description available'}</p>
-                            <ul>
-                                <li><i class="bi bi-check-circle"></i> Real-time water monitoring</li>
-                                <li><i class="bi bi-check-circle"></i> Flood prediction models</li>
-                                ${plan.name.toLowerCase().includes('premium') ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
-                            </ul>
-                            <button class="btn btn-primary w-100" onclick="showPaymentPanel(${plan.id})">Choose Plan</button>
+            try {
+                const response = await axios.get(`${BASE_URL}/subscription/plans/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('Plans Response:', response.data);
+                const plansList = document.getElementById("plansList");
+                plansList.innerHTML = "";
+                response.data.forEach(plan => {
+                    const promotionBadge = plan.is_promotion_active ? '<span class="badge bg-primary mb-2">Promotion Active</span>' : '';
+                    plansList.insertAdjacentHTML("beforeend", `
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">${plan.name}</h5>
+                                ${promotionBadge}
+                                <p><strong>KES ${plan.price}/month</strong></p>
+                                <p>${plan.description}</p>
+                                <ul>
+                                    <li><i class="bi bi-check-circle"></i> Real-time water monitoring</li>
+                                    <li><i class="bi bi-check-circle"></i> Flood prediction models</li>
+                                    ${plan.name === 'Premium' ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
+                                </ul>
+                                <button class="btn btn-primary w-100" onclick="showPaymentPanel('${plan.id}')">Choose Plan</button>
+                            </div>
                         </div>
-                    </div>
-                `);
-            });
-        } catch (error) {
-            console.error('Error loading plans:', error.response ? error.response.data : error.message);
-            showErrorModal("Failed to load plans. Please check your connection and try again.");
-        }
-    };
-
-    // Check Subscription Status
-    const checkSubscriptionStatus = async () => {
-        const token = sessionStorage.getItem("token");
-        const statusElement = document.getElementById("subscriptionStatus");
-        try {
-            const response = await axios.get(`${BASE_URL}/payments/verify-subscription/`, {
-                headers: { Authorization: `Token ${token}` }
-            });
-            console.log('Subscription Status Response:', response.data);
-            statusElement.classList.remove("alert-info", "alert-danger", "alert-warning");
-            if (response.data.isSubscribed) {
-                statusElement.classList.add("alert-success");
-                statusElement.innerHTML = "You are actively subscribed. Enjoy full access to FLIPS services! <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
-                document.getElementById("getDashboardUrlButton").classList.remove("d-none");
-                document.getElementById("verifyPaymentButtonContainer").classList.add("d-none");
-            } else {
-                statusElement.classList.add("alert-warning");
-                statusElement.innerHTML = "You are not subscribed. Please verify your payment or subscribe to a plan. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
-                document.getElementById("verifyPaymentButtonContainer").classList.remove("d-none");
-                document.getElementById("getDashboardUrlButton").classList.add("d-none");
-                setTimeout(showVerifyPaymentModal, 1000);
+                    `);
+                });
+            } catch (error) {
+                console.error('Error loading plans:', error.response ? error.response.data : error.message);
+                showErrorModal("Failed to load plans. Please try again.");
             }
-        } catch (error) {
-            console.error('Error checking subscription status:', error.response ? error.response.data : error.message);
-            statusElement.classList.remove("alert-info", "alert-success", "alert-warning");
-            statusElement.classList.add("alert-danger");
-            statusElement.innerHTML = "Failed to check subscription status. Please try again. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
-        }
-    };
+        };
 
-    // Validate Transaction ID
-    const validateTransactionId = (transactionId) => {
-        const regex = /^[A-Z0-9]{10}$/;
-        return regex.test(transactionId);
-    };
-
-    // Validate Phone Number
-    const validatePhoneNumber = (phoneNumber) => {
-        if (!phoneNumber || typeof phoneNumber !== 'string') {
-            console.warn('Invalid phone number input:', phoneNumber);
-            return false;
-        }
-        // Remove spaces, dashes, and other non-essential characters except +
-        const cleanedNumber = phoneNumber.replace(/[\s-]/g, '');
-        // Matches +2547 followed by 8 digits, or 07/7 followed by 8 digits
-        const regex = /^(?:\+2547[0-9]{8}|07[0-9]{8}|7[0-9]{8})$/;
-        const isValid = regex.test(cleanedNumber);
-        console.log('Phone number validation:', { input: phoneNumber, cleaned: cleanedNumber, isValid });
-        return isValid;
-    };
-
-    // Normalize Phone Number
-    const normalizePhoneNumber = (phoneNumber) => {
-        if (!phoneNumber || typeof phoneNumber !== 'string') {
-            console.warn('Invalid phone number for normalization:', phoneNumber);
-            return '';
-        }
-        const cleanedNumber = phoneNumber.replace(/[\s-]/g, '');
-        if (/^\+2547[0-9]{8}$/.test(cleanedNumber)) {
-            return cleanedNumber; // Already in +254 format
-        } else if (/^07[0-9]{8}$/.test(cleanedNumber)) {
-            return '+254' + cleanedNumber.slice(1); // Convert 07XXXXXXXX to +2547XXXXXXXX
-        } else if (/^7[0-9]{8}$/.test(cleanedNumber)) {
-            return '+254' + cleanedNumber; // Convert 7XXXXXXXX to +2547XXXXXXXX
-        }
-        console.warn('Phone number not normalized, returning cleaned:', cleanedNumber);
-        return cleanedNumber; // Return as is if format is invalid
-    };
-
-    // Initiate STK Push Payment
-    const initiateStkPush = async () => {
-        const token = sessionStorage.getItem("token");
-        const accountNumber = document.getElementById("stkAccountNumber").value;
-        const amount = document.getElementById("stkAmount").value;
-
-        if (!accountNumber) {
-            showErrorModal("Phone number is required for STK Push payment.");
-            return;
-        }
-        if (!validatePhoneNumber(accountNumber)) {
-            showErrorModal("Invalid phone number format. Use +2547XXXXXXXX, 07XXXXXXXX, or 7XXXXXXXX.");
-            return;
-        }
-        if (!amount || isNaN(parseFloat(amount))) {
-            showErrorModal("Valid amount is required for STK Push payment.");
-            return;
-        }
-
-        const normalizedPhoneNumber = normalizePhoneNumber(accountNumber);
-        console.log('Initiating STK Push with:', { accountNumber, normalizedPhoneNumber, amount });
-
-        try {
-            const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
-                plan: selectedPlanId,
-                payment_type: 'stk_push',
-                account_number: normalizedPhoneNumber,
-                amount: parseFloat(amount)
-            }, {
-                headers: { Authorization: `Token ${token}` }
-            });
-            console.log('STK Push Payment Response:', response.data);
-            showErrorModal(response.data.message || "STK Push initiated successfully! Please check your phone to complete the payment.");
-            checkSubscriptionStatus();
-            bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
-        } catch (error) {
-            console.error('Error initiating STK Push:', error.response ? error.response.data : error.message);
-            showErrorModal(error.response?.data?.error || "Failed to initiate STK Push. Please try again.");
-        }
-    };
-
-    // Handle Payment
-    const handlePayment = async (e) => {
-        e.preventDefault();
-        const token = sessionStorage.getItem("token");
-        const paymentMethod = document.getElementById("paymentMethod").value;
-
-        try {
-            if (paymentMethod === "paybill") {
-                const accountNumber = document.getElementById("accountNumber").value;
-                const amount = document.getElementById("paybillAmount").value;
-                const transactionId = document.getElementById("transactionId").value;
-
-                if (!accountNumber) {
-                    showErrorModal("Account number (phone number) is required for Paybill payment.");
-                    return;
+        // Check Subscription Status
+        const checkSubscriptionStatus = async () => {
+            const token = sessionStorage.getItem("token");
+            const statusElement = document.getElementById("subscriptionStatus");
+            try {
+                const response = await axios.get(`${BASE_URL}/payments/verify-subscription/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('Subscription Status Response:', response.data);
+                statusElement.classList.remove("alert-info", "alert-danger", "alert-warning");
+                if (response.data.isSubscribed) {
+                    statusElement.classList.add("alert-success");
+                    statusElement.innerHTML = "You are actively subscribed. Enjoy full access to FLIPS services! <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                    document.getElementById("getDashboardUrlButton").classList.remove("d-none");
+                    document.getElementById("verifyPaymentButtonContainer").classList.add("d-none");
+                } else {
+                    statusElement.classList.add("alert-warning");
+                    statusElement.innerHTML = "You are not subscribed. Please verify your payment or subscribe to a plan. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                    document.getElementById("verifyPaymentButtonContainer").classList.remove("d-none");
+                    document.getElementById("getDashboardUrlButton").classList.add("d-none");
+                    setTimeout(showVerifyPaymentModal, 1000);
                 }
-                if (!validatePhoneNumber(accountNumber)) {
-                    showErrorModal("Invalid phone number format for Paybill. Use +2547XXXXXXXX, 07XXXXXXXX, or 7XXXXXXXX.");
-                    return;
-                }
-                if (!amount || isNaN(parseFloat(amount))) {
-                    showErrorModal("Valid amount is required for Paybill payment.");
-                    return;
-                }
-                if (!transactionId) {
-                    showErrorModal("M-Pesa Transaction ID is required.");
-                    return;
-                }
-                if (!validateTransactionId(transactionId)) {
-                    document.getElementById("transactionIdError").textContent = "Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).";
-                    return;
-                }
+            } catch (error) {
+                console.error('Error checking subscription status:', error.response ? error.response.data : error.message);
+                statusElement.classList.remove("alert-info", "alert-success", "alert-warning");
+                statusElement.classList.add("alert-danger");
+                statusElement.innerHTML = "Failed to check subscription status. Please try again. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+            }
+        };
 
-                const normalizedPhoneNumber = normalizePhoneNumber(accountNumber);
-                console.log('Initiating Paybill with:', { accountNumber, normalizedPhoneNumber, amount, transactionId });
+        // Validate Transaction ID
+        const validateTransactionId = (transactionId) => {
+            const regex = /^[A-Z0-9]{10}$/;
+            return regex.test(transactionId);
+        };
 
-                const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
-                    plan: selectedPlanId,
-                    payment_type: 'paybill',
-                    paybill_number: paybillNumber,
-                    account_number: normalizedPhoneNumber,
-                    amount: parseFloat(amount),
-                    transaction_id: transactionId
-                }, {
-                headers: { Authorization: `Token ${token}` }
-            });
-            console.log('Paybill Payment Response:', response.data);
-            showErrorModal("Paybill payment submitted successfully! Awaiting verification.");
-            checkSubscriptionStatus();
-            bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
-        } else if (paymentMethod === "card") {
-            const { paymentIntent, error } = await stripe.confirmCardPayment(
-                sessionStorage.getItem("clientSecret"),
-                {
-                    payment_method: {
-                        card: cardElement,
-                    },
+        // Handle Payment
+        const handlePayment = async (e) => {
+            e.preventDefault();
+            const token = sessionStorage.getItem("token");
+            const paymentMethod = document.getElementById("paymentMethod").value;
+            try {
+                if (paymentMethod === "card") {
+                    const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+                        plan: selectedPlanId,
+                        payment_type: 'card'
+                    }, {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    console.log('Payment Initiation Response:', response.data);
+                    const { client_secret } = response.data;
+                    const { paymentIntent, error } = await stripe.confirmCardPayment(client_secret, {
+                        payment_method: {
+                            card: cardElement
+                        }
+                    });
+                    if (error) {
+                        showErrorModal(error.message);
+                        return;
+                    }
+                    if (paymentIntent.status === 'succeeded') {
+                        await axios.post(`${BASE_URL}/payments/verify-payment/`, {
+                            unique_reference: paymentIntent.id
+                        }, {
+                            headers: { Authorization: `Token ${token}` }
+                        });
+                        showErrorModal("Payment processed successfully!");
+                        checkSubscriptionStatus();
+                        bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                    } else {
+                        showErrorModal("Payment failed. Please try again.");
+                    }
+                } else if (paymentMethod === "paybill") {
+                    const paybillNumber = document.getElementById("paybillNumber").value;
+                    const accountNumber = document.getElementById("accountNumber").value;
+                    const amount = document.getElementById("paybillAmount").value;
+                    const transactionId = document.getElementById("transactionId").value;
+
+                    if (!accountNumber) {
+                        showErrorModal("Account number is required for Paybill payment.");
+                        return;
+                    }
+                    if (!amount) {
+                        showErrorModal("Amount is required for Paybill payment.");
+                        return;
+                    }
+                    if (!transactionId) {
+                        showErrorModal("M-Pesa Transaction ID is required.");
+                        return;
+                    }
+                    if (!validateTransactionId(transactionId)) {
+                        document.getElementById("transactionIdError").textContent = "Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).";
+                        return;
+                    }
+
+                    const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+                        plan: selectedPlanId,
+                        payment_type: 'paybill',
+                        paybill_number: paybillNumber,
+                        account_number: accountNumber,
+                        amount: parseFloat(amount),
+                        transaction_id: transactionId
+                    }, {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    console.log('Paybill Payment Response:', response.data);
+                    showErrorModal("Paybill payment submitted successfully! Awaiting verification.");
+                    checkSubscriptionStatus();
+                    bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
                 }
-            );
-            if (error) {
-                document.getElementById("cardErrors").textContent = error.message;
+            } catch (error) {
+                console.error('Error processing payment:', error.response ? error.response.data : error.message);
+                showErrorModal(error.response?.data?.error || "Failed to process payment. Please try again.");
+            }
+        };
+
+        // Verify Payment
+        const verifyPayment = async (uniqueReference) => {
+            const token = sessionStorage.getItem("token");
+            if (!uniqueReference) {
+                showErrorModal("Transaction ID is required to verify.");
                 return;
             }
-            const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
-                plan: selectedPlanId,
-                payment_type: 'card',
-                amount: parseFloat(selectedPlanPrice),
-                payment_intent_id: paymentIntent.id
-            }, {
-                headers: { Authorization: `Token ${token}` }
+            if (!validateTransactionId(uniqueReference)) {
+                showErrorModal("Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).");
+                return;
+            }
+            try {
+                const response = await axios.post(`${BASE_URL}/payments/verify-payment/`, {
+                    unique_reference: uniqueReference
+                }, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('Payment Verification Response:', response.data);
+                checkSubscriptionStatus();
+                showErrorModal(response.data.success || "Payment verified successfully!");
+            } catch (error) {
+                console.error('Error verifying payment:', error.response ? error.response.data : error.message);
+                showErrorModal(error.response?.data?.error || "Failed to verify payment. Please check your Transaction ID and try again.");
+            }
+        };
+
+        // Get Dashboard URL
+        const getDashboardUrl = async () => {
+            const token = sessionStorage.getItem("token");
+            try {
+                const response = await axios.get(`${BASE_URL}/subscription/get-dashboard-url/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('Dashboard URL Response:', response.data);
+                window.location.href = response.data.url || '../index.html';
+            } catch (error) {
+                console.error('Error fetching dashboard URL:', error.response ? error.response.data : error.message);
+                showErrorModal("Failed to get dashboard URL. Please try again.");
+            }
+        };
+
+        // Handle Logout
+        const handleLogout = async () => {
+            const token = sessionStorage.getItem("token");
+            try {
+                await axios.post(`${BASE_URL}/logout/`, {}, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('Logout successful');
+                sessionStorage.clear();
+                window.location.href = "../index.html";
+            } catch (error) {
+                console.error('Logout failed:', error.response ? error.response.data : error.message);
+                sessionStorage.clear();
+                window.location.href = "../index.html";
+            }
+        };
+
+        // Initialize Page
+        document.addEventListener("DOMContentLoaded", async () => {
+            const token = sessionStorage.getItem("token");
+            const isVerified = sessionStorage.getItem("is_verified") === 'true';
+            const email = sessionStorage.getItem("email");
+            console.log('Session data on page load:', { token, isVerified, email });
+
+            if (!token) {
+                console.log('No token found, redirecting to login');
+                window.location.href = "../login/login.html";
+                return;
+            }
+
+            if (!isVerified) {
+                console.log('Email not verified, redirecting to verify-email');
+                window.location.href = "../login/verify-email.html";
+                return;
+            }
+
+            try {
+                const userInfoResponse = await axios.get(`${BASE_URL}/api/user-info/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('User info:', userInfoResponse.data);
+                if (userInfoResponse.data.email !== email) {
+                    console.warn('Email mismatch between sessionStorage and API');
+                    sessionStorage.clear();
+                    window.location.href = "../login/login.html";
+                    return;
+                }
+                document.getElementById("userEmail").textContent = userInfoResponse.data.email || 'User';
+                sessionStorage.setItem("username", userInfoResponse.data.username);
+            } catch (error) {
+                console.error('Error validating user data:', error.response ? error.response.data : error.message);
+                sessionStorage.clear();
+                window.location.href = "../login/login.html";
+                return;
+            }
+
+            await checkSubscriptionStatus();
+            await loadPlans();
+            document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
+                e.preventDefault();
+                const uniqueReference = document.getElementById("uniqueReference").value;
+                verifyPayment(uniqueReference);
+                bootstrap.Modal.getInstance(document.getElementById('verifyPaymentModal')).hide();
             });
-            console.log('Card Payment Response:', response.data);
-            showErrorModal("Card payment submitted successfully! Awaiting verification.");
-            checkSubscriptionStatus();
-            bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
-        } else if (paymentMethod === "stk_push") {
-            // STK Push payment is initiated via the dedicated button
-            showErrorModal("Please use the 'Initiate STK Push' button to proceed with STK Push payment.");
-        } else {
-            showErrorModal("Selected payment method is not supported.");
-        }
-    } catch (error) {
-        console.error('Error processing payment:', error.response ? error.response.data : error.message);
-        showErrorModal(error.response?.data?.error || "Failed to process payment. Please try again.");
-    }
-};
-
-// Verify Payment
-const verifyPayment = async (uniqueReference) => {
-    const token = sessionStorage.getItem("token");
-    if (!uniqueReference) {
-        showErrorModal("Transaction ID is required to verify.");
-        return;
-    }
-    if (!validateTransactionId(uniqueReference)) {
-        showErrorModal("Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).");
-        return;
-    }
-    try {
-        const response = await axios.post(`${BASE_URL}/payments/verify-payment/`, {
-            unique_reference: uniqueReference
-        }, {
-            headers: { Authorization: `Token ${token}` }
+            document.getElementById("paymentForm").addEventListener("submit", handlePayment);
+            document.getElementById("paymentMethod").addEventListener("change", (e) => {
+                const cardFields = document.getElementById("cardPaymentFields");
+                const paybillFields = document.getElementById("paybillPaymentFields");
+                if (e.target.value === "card") {
+                    cardFields.classList.remove("d-none");
+                    paybillFields.classList.add("d-none");
+                } else if (e.target.value === "paybill") {
+                    cardFields.classList.add("d-none");
+                    paybillFields.classList.remove("d-none");
+                } else {
+                    cardFields.classList.add("d-none");
+                    paybillFields.classList.add("d-none");
+                }
+                document.getElementById("transactionIdError").textContent = "";
+            });
         });
-        console.log('Payment Verification Response:', response.data);
-        checkSubscriptionStatus();
-        showErrorModal(response.data.success || "Payment verified successfully!");
-    } catch (error) {
-        console.error('Error verifying payment:', error.response ? error.response.data : error.message);
-        showErrorModal(error.response?.data?.error || "Failed to verify payment. Please check your Transaction ID and try again.");
-    }
-};
-
-// Get Dashboard URL
-const getDashboardUrl = async () => {
-    const token = sessionStorage.getItem("token");
-    try {
-        const response = await axios.get(`${BASE_URL}/subscription/get-dashboard-url/`, {
-            headers: { Authorization: `Token ${token}` }
-        });
-        console.log('Dashboard URL Response:', response.data);
-        window.location.href = response.data.url || '../index.html';
-    } catch (error) {
-        console.error('Error fetching dashboard URL:', error.response ? error.response.data : error.message);
-        showErrorModal("Failed to get dashboard URL. Please try again.");
-    }
-};
-
-// Handle Logout
-const handleLogout = async () => {
-    const token = sessionStorage.getItem("token");
-    try {
-        await axios.post(`${BASE_URL}/logout/`, {}, {
-            headers: { Authorization: `Token ${token}` }
-        });
-        console.log('Logout successful');
-        sessionStorage.clear();
-        window.location.href = "../index.html";
-    } catch (error) {
-        console.error('Logout failed:', error.response ? error.response.data : error.message);
-        sessionStorage.clear();
-        window.location.href = "../index.html";
-    }
-};
-
-// Initialize Page
-document.addEventListener("DOMContentLoaded", async () => {
-    const token = sessionStorage.getItem("token");
-    const isVerified = sessionStorage.getItem("is_verified") === 'true';
-    const email = sessionStorage.getItem("email");
-    console.log('Session data on page load:', { token, isVerified, email });
-
-    if (!token) {
-        console.log('No token found, redirecting to login');
-        window.location.href = "../login/login.html";
-        return;
-    }
-
-    if (!isVerified) {
-        console.log('Email not verified, redirecting to verify-email');
-        window.location.href = "../login/verify-email.html";
-        return;
-    }
-
-    try {
-        const userInfoResponse = await axios.get(`${BASE_URL}/api/user-info/`, {
-            headers: { Authorization: `Token ${token}` }
-        });
-        console.log('User info:', userInfoResponse.data);
-        if (userInfoResponse.data.email !== email) {
-            console.warn('Email mismatch between sessionStorage and API');
-            sessionStorage.clear();
-            window.location.href = "../login/login.html";
-            return;
-        }
-        document.getElementById("userEmail").textContent = userInfoResponse.data.email || 'User';
-        sessionStorage.setItem("username", userInfoResponse.data.username);
-        sessionStorage.setItem("phone_number", userInfoResponse.data.phone_number || '');
-    } catch (error) {
-        console.error('Error validating user data:', error.response ? error.response.data : error.message);
-        sessionStorage.clear();
-        window.location.href = "../login/login.html";
-        return;
-    }
-
-    await checkSubscriptionStatus();
-    await loadPlans();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const planIdFromUrl = urlParams.get('planId');
-    if (planIdFromUrl) {
-        console.log('Plan ID from URL:', planIdFromUrl);
-        showPaymentPanel(parseInt(planIdFromUrl));
-    }
-
-    document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const uniqueReference = document.getElementById("uniqueReference").value;
-        verifyPayment(uniqueReference);
-        bootstrap.Modal.getInstance(document.getElementById('verifyPaymentModal')).hide();
-    });
-    document.getElementById("paymentForm").addEventListener("submit", handlePayment);
-    document.getElementById("paymentMethod").addEventListener("change", (e) => {
-        const cardFields = document.getElementById("cardPaymentFields");
-        const paybillFields = document.getElementById("paybillPaymentFields");
-        const stkPushFields = document.getElementById("stkPushPaymentFields");
-        const stkPushButton = document.getElementById("stkPushButtonContainer");
-
-        cardFields.classList.add("d-none");
-        paybillFields.classList.add("d-none");
-        stkPushFields.classList.add("d-none");
-        stkPushButton.classList.add("d-none");
-
-        if (e.target.value === "card") {
-            cardFields.classList.remove("d-none");
-        } else if (e.target.value === "paybill") {
-            paybillFields.classList.remove("d-none");
-        } else if (e.target.value === "stk_push") {
-            stkPushFields.classList.remove("d-none");
-            stkPushButton.classList.remove("d-none");
-        }
-
-        document.getElementById("transactionIdError").textContent = "";
-    });
-});
-</script>
+    </script>
 </body>
 </html>
