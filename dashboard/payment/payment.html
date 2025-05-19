@@ -485,7 +485,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-   <script>
+<script>
     const BASE_URL = 'https://api.flipsintel.org';
     const INTERVAL_TIME = 30 * 60 * 1000; // 30 minutes
     let idleTimeout;
@@ -657,7 +657,7 @@
                             <ul>
                                 <li><i class="bi bi-check-circle"></i> Real-time water monitoring</li>
                                 <li><i class="bi bi-check-circle"></i> Flood prediction models</li>
-                                ${plan.name.toLowerCase().includes('premium') ? '< nouveaul circle"></i> Priority support</li>' : ''}
+                                ${plan.name.toLowerCase().includes('premium') ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
                             </ul>
                             <button class="btn btn-primary w-100" onclick="showPaymentPanel(${plan.id})">Choose Plan</button>
                         </div>
@@ -708,8 +708,24 @@
 
     // Validate Phone Number
     const validatePhoneNumber = (phoneNumber) => {
-        const regex = /^(\+254|0|7)[0-1][0-9]{7}$/;
-        return regex.test(phoneNumber);
+        // Remove any spaces or non-numeric characters except + for validation
+        const cleanedNumber = phoneNumber.replace(/[\s-]/g, '');
+        // Matches +2547 followed by 8 digits, or 07/7 followed by 8 digits
+        const regex = /^(?:\+2547[0-9]{8}|07[0-9]{8}|7[0-9]{8})$/;
+        return regex.test(cleanedNumber);
+    };
+
+    // Normalize Phone Number
+    const normalizePhoneNumber = (phoneNumber) => {
+        const cleanedNumber = phoneNumber.replace(/[\s-]/g, '');
+        if (/^\+2547[0-9]{8}$/.test(cleanedNumber)) {
+            return cleanedNumber; // Already in +254 format
+        } else if (/^07[0-9]{8}$/.test(cleanedNumber)) {
+            return '+254' + cleanedNumber.slice(1); // Convert 07XXXXXXXX to +2547XXXXXXXX
+        } else if (/^7[0-9]{8}$/.test(cleanedNumber)) {
+            return '+254' + cleanedNumber; // Convert 7XXXXXXXX to +2547XXXXXXXX
+        }
+        return cleanedNumber; // Return as is if format is invalid
     };
 
     // Initiate STK Push Payment
@@ -731,11 +747,13 @@
             return;
         }
 
+        const normalizedPhoneNumber = normalizePhoneNumber(accountNumber);
+
         try {
             const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
                 plan: selectedPlanId,
                 payment_type: 'stk_push',
-                account_number: accountNumber,
+                account_number: normalizedPhoneNumber,
                 amount: parseFloat(amount)
             }, {
                 headers: { Authorization: `Token ${token}` }
@@ -779,11 +797,13 @@
                     return;
                 }
 
+                const normalizedPhoneNumber = normalizePhoneNumber(accountNumber);
+
                 const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
                     plan: selectedPlanId,
                     payment_type: 'paybill',
                     paybill_number: paybillNumber,
-                    account_number: accountNumber,
+                    account_number: normalizedPhoneNumber,
                     amount: parseFloat(amount),
                     transaction_id: transactionId
                 }, {
@@ -831,143 +851,287 @@
     };
 
     // Verify Payment
-    const verifyPayment = async (uniqueReference) => {
-        const token = sessionStorage.getItem("token");
-        if (!uniqueReference) {
-            showErrorModal("Transaction ID is required to verify.");
-            return;
-        }
-        if (!validateTransactionId(uniqueReference)) {
-            showErrorModal("Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).");
-            return;
-        }
-        try {
-            const response = await axios.post(`${BASE_URL}/payments/verify-payment/`, {
-                unique_reference: uniqueReference
+    const validatePhoneNumber = (phoneNumber) => {
+    // Remove any spaces or non-numeric characters except + for validation
+    const cleanedNumber = phoneNumber.replace(/[\s-]/g, '');
+    // Matches +2547 followed by 8 digits, or 07/7 followed by 8 digits
+    const regex = /^(?:\+2547[0-9]{8}|07[0-9]{8}|7[0-9]{8})$/;
+    return regex.test(cleanedNumber);
+};
+
+// Normalize Phone Number
+const normalizePhoneNumber = (phoneNumber) => {
+    const cleanedNumber = phoneNumber.replace(/[\s-]/g, '');
+    if (/^\+2547[0-9]{8}$/.test(cleanedNumber)) {
+        return cleanedNumber; // Already in +254 format
+    } else if (/^07[0-9]{8}$/.test(cleanedNumber)) {
+        return '+254' + cleanedNumber.slice(1); // Convert 07XXXXXXXX to +2547XXXXXXXX
+    } else if (/^7[0-9]{8}$/.test(cleanedNumber)) {
+        return '+254' + cleanedNumber; // Convert 7XXXXXXXX to +2547XXXXXXXX
+    }
+    return cleanedNumber; // Return as is if format is invalid
+};
+
+// Initiate STK Push Payment
+const initiateStkPush = async () => {
+    const token = sessionStorage.getItem("token");
+    const accountNumber = document.getElementById("stkAccountNumber").value;
+    const amount = document.getElementById("stkAmount").value;
+
+    if (!accountNumber) {
+        showErrorModal("Phone number is required for STK Push payment.");
+        return;
+    }
+    if (!validatePhoneNumber(accountNumber)) {
+        showErrorModal("Invalid phone number format. Use +2547XXXXXXXX, 07XXXXXXXX, or 7XXXXXXXX.");
+        return;
+    }
+    if (!amount) {
+        showErrorModal("Amount is required for STK Push payment.");
+        return;
+    }
+
+    const normalizedPhoneNumber = normalizePhoneNumber(accountNumber);
+
+    try {
+        const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+            plan: selectedPlanId,
+            payment_type: 'stk_push',
+            account_number: normalizedPhoneNumber,
+            amount: parseFloat(amount)
+        }, {
+            headers: { Authorization: `Token ${token}` }
+        });
+        console.log('STK Push Payment Response:', response.data);
+        showErrorModal(response.data.message || "STK Push initiated successfully! Please check your phone to complete the payment.");
+        checkSubscriptionStatus();
+        bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+    } catch (error) {
+        console.error('Error initiating STK Push:', error.response ? error.response.data : error.message);
+        showErrorModal(error.response?.data?.error || "Failed to initiate STK Push. Please try again.");
+    }
+};
+
+// Handle Payment
+const handlePayment = async (e) => {
+    e.preventDefault();
+    const token = sessionStorage.getItem("token");
+    const paymentMethod = document.getElementById("paymentMethod").value;
+
+    try {
+        if (paymentMethod === "paybill") {
+            const accountNumber = document.getElementById("accountNumber").value;
+            const amount = document.getElementById("paybillAmount").value;
+            const transactionId = document.getElementById("transactionId").value;
+
+            if (!accountNumber) {
+                showErrorModal("Account number (phone number) is required for Paybill payment.");
+                return;
+            }
+            if (!amount) {
+                showErrorModal("Amount is required for Paybill payment.");
+                return;
+            }
+            if (!transactionId) {
+                showErrorModal("M-Pesa Transaction ID is required.");
+                return;
+            }
+            if (!validateTransactionId(transactionId)) {
+                document.getElementById("transactionIdError").textContent = "Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).";
+                return;
+            }
+
+            const normalizedPhoneNumber = normalizePhoneNumber(accountNumber);
+
+            const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+                plan: selectedPlanId,
+                payment_type: 'paybill',
+                paybill_number: paybillNumber,
+                account_number: normalizedPhoneNumber,
+                amount: parseFloat(amount),
+                transaction_id: transactionId
             }, {
                 headers: { Authorization: `Token ${token}` }
             });
-            console.log('Payment Verification Response:', response.data);
+            console.log('Paybill Payment Response:', response.data);
+            showErrorModal("Paybill payment submitted successfully! Awaiting verification.");
             checkSubscriptionStatus();
-            showErrorModal(response.data.success || "Payment verified successfully!");
-        } catch (error) {
-            console.error('Error verifying payment:', error.response ? error.response.data : error.message);
-            showErrorModal(error.response?.data?.error || "Failed to verify payment. Please check your Transaction ID and try again.");
-        }
-    };
-
-    // Get Dashboard URL
-    const getDashboardUrl = async () => {
-        const token = sessionStorage.getItem("token");
-        try {
-            const response = await axios.get(`${BASE_URL}/subscription/get-dashboard-url/`, {
-                headers: { Authorization: `Token ${token}` }
-            });
-            console.log('Dashboard URL Response:', response.data);
-            window.location.href = response.data.url || '../index.html';
-        } catch (error) {
-            console.error('Error fetching dashboard URL:', error.response ? error.response.data : error.message);
-            showErrorModal("Failed to get dashboard URL. Please try again.");
-        }
-    };
-
-    // Handle Logout
-    const handleLogout = async () => {
-        const token = sessionStorage.getItem("token");
-        try {
-            await axios.post(`${BASE/cropped/base_url}/logout/`, {}, {
-                headers: { Authorization: `Token ${token}` }
-            });
-            console.log('Logout successful');
-            sessionStorage.clear();
-            window.location.href = "../index.html";
-        } catch (error) {
-            console.error('Logout failed:', error.response ? error.response.data : error.message);
-            sessionStorage.clear();
-            window.location.href = "../index.html";
-        }
-    };
-
-    // Initialize Page
-    document.addEventListener("DOMContentLoaded", async () => {
-        const token = sessionStorage.getItem("token");
-        const isVerified = sessionStorage.getItem("is_verified") === 'true';
-        const email = sessionStorage.getItem("email");
-        console.log('Session data on page load:', { token, isVerified, email });
-
-        if (!token) {
-            console.log('No token found, redirecting to login');
-            window.location.href = "../login/login.html";
-            return;
-        }
-
-        if (!isVerified) {
-            console.log('Email not verified, redirecting to verify-email');
-            window.location.href = "../login/verify-email.html";
-            return;
-        }
-
-        try {
-            const userInfoResponse = await axios.get(`${BASE_URL}/api/user-info/`, {
-                headers: { Authorization: `Token ${token}` }
-            });
-            console.log('User info:', userInfoResponse.data);
-            if (userInfoResponse.data.email !== email) {
-                console.warn('Email mismatch between sessionStorage and API');
-                sessionStorage.clear();
-                window.location.href = "../login/login.html";
+            bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+        } else if (paymentMethod === "card") {
+            const { paymentIntent, error } = await stripe.confirmCardPayment(
+                sessionStorage.getItem("clientSecret"),
+                {
+                    payment_method: {
+                        card: cardElement,
+                    },
+                }
+            );
+            if (error) {
+                document.getElementById("cardErrors").textContent = error.message;
                 return;
             }
-            document.getElementById("userEmail").textContent = userInfoResponse.data.email || 'User';
-            sessionStorage.setItem("username", userInfoResponse.data.username);
-            sessionStorage.setItem("phone_number", userInfoResponse.data.phone_number || '');
-        } catch (error) {
-            console.error('Error validating user data:', error.response ? error.response.data : error.message);
+            const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+                plan: selectedPlanId,
+                payment_type: 'card',
+                amount: parseFloat(selectedPlanPrice),
+                payment_intent_id: paymentIntent.id
+            }, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            console.log('Card Payment Response:', response.data);
+            showErrorModal("Card payment submitted successfully! Awaiting verification.");
+            checkSubscriptionStatus();
+            bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+        } else if (paymentMethod === "stk_push") {
+            // STK Push payment is initiated via the dedicated button
+            showErrorModal("Please use the 'Initiate STK Push' button to proceed with STK Push payment.");
+        } else {
+            showErrorModal("Selected payment method is not supported.");
+        }
+    } catch (error) {
+        console.error('Error processing payment:', error.response ? error.response.data : error.message);
+        showErrorModal(error.response?.data?.error || "Failed to process payment. Please try again.");
+    }
+};
+
+// Verify Payment
+const verifyPayment = async (uniqueReference) => {
+    const token = sessionStorage.getItem("token");
+    if (!uniqueReference) {
+        showErrorModal("Transaction ID is required to verify.");
+        return;
+    }
+    if (!validateTransactionId(uniqueReference)) {
+        showErrorModal("Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).");
+        return;
+    }
+    try {
+        const response = await axios.post(`${BASE_URL}/payments/verify-payment/`, {
+            unique_reference: uniqueReference
+        }, {
+            headers: { Authorization: `Token ${token}` }
+        });
+        console.log('Payment Verification Response:', response.data);
+        checkSubscriptionStatus();
+        showErrorModal(response.data.success || "Payment verified successfully!");
+    } catch (error) {
+        console.error('Error verifying payment:', error.response ? error.response.data : error.message);
+        showErrorModal(error.response?.data?.error || "Failed to verify payment. Please check your Transaction ID and try again.");
+    }
+};
+
+// Get Dashboard URL
+const getDashboardUrl = async () => {
+    const token = sessionStorage.getItem("token");
+    try {
+        const response = await axios.get(`${BASE_URL}/subscription/get-dashboard-url/`, {
+            headers: { Authorization: `Token ${token}` }
+        });
+        console.log('Dashboard URL Response:', response.data);
+        window.location.href = response.data.url || '../index.html';
+    } catch (error) {
+        console.error('Error fetching dashboard URL:', error.response ? error.response.data : error.message);
+        showErrorModal("Failed to get dashboard URL. Please try again.");
+    }
+};
+
+// Handle Logout
+const handleLogout = async () => {
+    const token = sessionStorage.getItem("token");
+    try {
+        await axios.post(`${BASE_URL}/logout/`, {}, {
+            headers: { Authorization: `Token ${token}` }
+        });
+        console.log('Logout successful');
+        sessionStorage.clear();
+        window.location.href = "../index.html";
+    } catch (error) {
+        console.error('Logout failed:', error.response ? error.response.data : error.message);
+        sessionStorage.clear();
+        window.location.href = "../index.html";
+    }
+};
+
+// Initialize Page
+document.addEventListener("DOMContentLoaded", async () => {
+    const token = sessionStorage.getItem("token");
+    const isVerified = sessionStorage.getItem("is_verified") === 'true';
+    const email = sessionStorage.getItem("email");
+    console.log('Session data on page load:', { token, isVerified, email });
+
+    if (!token) {
+        console.log('No token found, redirecting to login');
+        window.location.href = "../login/login.html";
+        return;
+    }
+
+    if (!isVerified) {
+        console.log('Email not verified, redirecting to verify-email');
+        window.location.href = "../login/verify-email.html";
+        return;
+    }
+
+    try {
+        const userInfoResponse = await axios.get(`${BASE_URL}/api/user-info/`, {
+            headers: { Authorization: `Token ${token}` }
+        });
+        console.log('User info:', userInfoResponse.data);
+        if (userInfoResponse.data.email !== email) {
+            console.warn('Email mismatch between sessionStorage and API');
             sessionStorage.clear();
             window.location.href = "../login/login.html";
             return;
         }
+        document.getElementById("userEmail").textContent = userInfoResponse.data.email || 'User';
+        sessionStorage.setItem("username", userInfoResponse.data.username);
+        sessionStorage.setItem("phone_number", userInfoResponse.data.phone_number || '');
+    } catch (error) {
+        console.error('Error validating user data:', error.response ? error.response.data : error.message);
+        sessionStorage.clear();
+        window.location.href = "../login/login.html";
+        return;
+    }
 
-        await checkSubscriptionStatus();
-        await loadPlans();
+    await checkSubscriptionStatus();
+    await loadPlans();
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const planIdFromUrl = urlParams.get('planId');
-        if (planIdFromUrl) {
-            console.log('Plan ID from URL:', planIdFromUrl);
-            showPaymentPanel(parseInt(planIdFromUrl));
+    const urlParams = new URLSearchParams(window.location.search);
+    const planIdFromUrl = urlParams.get('planId');
+    if (planIdFromUrl) {
+        console.log('Plan ID from URL:', planIdFromUrl);
+        showPaymentPanel(parseInt(planIdFromUrl));
+    }
+
+    document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const uniqueReference = document.getElementById("uniqueReference").value;
+        verifyPayment(uniqueReference);
+        bootstrap.Modal.getInstance(document.getElementById('verifyPaymentModal')).hide();
+    });
+    document.getElementById("paymentForm").addEventListener("submit", handlePayment);
+    document.getElementById("paymentMethod").addEventListener("change", (e) => {
+        const cardFields = document.getElementById("cardPaymentFields");
+        const paybillFields = document.getElementById("paybillPaymentFields");
+        const stkPushFields = document.getElementById("stkPushPaymentFields");
+        const stkPushButton = document.getElementById("stkPushButtonContainer");
+
+        cardFields.classList.add("d-none");
+        paybillFields.classList.add("d-none");
+        stkPushFields.classList.add("d-none");
+        stkPushButton.classList.add("d-none");
+
+        if (e.target.value === "card") {
+            cardFields.classList.remove("d-none");
+        } else if (e.target.value === "paybill") {
+            paybillFields.classList.remove("d-none");
+        } else if (e.target.value === "stk_push") {
+            stkPushFields.classList.remove("d-none");
+            stkPushButton.classList.remove("d-none");
         }
 
-        document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
-            e.preventDefault();
-            const uniqueReference = document.getElementById("uniqueReference").value;
-            verifyPayment(uniqueReference);
-            bootstrap.Modal.getInstance(document.getElementById('verifyPaymentModal')).hide();
-        });
-        document.getElementById("paymentForm").addEventListener("submit", handlePayment);
-        document.getElementById("paymentMethod").addEventListener("change", (e) => {
-            const cardFields = document.getElementById("cardPaymentFields");
-            const paybillFields = document.getElementById("paybillPaymentFields");
-            const stkPushFields = document.getElementById("stkPushPaymentFields");
-            const stkPushButton = document.getElementById("stkPushButtonContainer");
-
-            cardFields.classList.add("d-none");
-            paybillFields.classList.add("d-none");
-            stkPushFields.classList.add("d-none");
-            stkPushButton.classList.add("d-none");
-
-            if (e.target.value === "card") {
-                cardFields.classList.remove("d-none");
-            } else if (e.target.value === "paybill") {
-                paybillFields.classList.remove("d-none");
-            } else if (e.target.value === "stk_push") {
-                stkPushFields.classList.remove("d-none");
-                stkPushButton.classList.remove("d-none");
-            }
-
-            document.getElementById("transactionIdError").textContent = "";
-        });
+        document.getElementById("transactionIdError").textContent = "";
     });
+});
 </script>
 </body>
 </html>
