@@ -196,6 +196,27 @@
                 padding: 1.5rem;
             }
         }
+        .custom-offcanvas {
+          position: fixed;
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) !important;
+          width: 90%;
+          max-width: 600px;
+          height: auto;
+          max-height: 90vh;
+          overflow-y: auto;
+          background-color: #fff;
+          border-radius: 16px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+          z-index: 1055;
+          padding: 1.5rem;
+          display: none; /* Prevent flash before JS triggers */
+        }
+
+        .custom-offcanvas.show {
+          display: block;
+        }
     </style>
 </head>
 <body>
@@ -207,7 +228,7 @@
         <div class="container">
             <!-- Logo -->
             <a class="navbar-brand d-flex align-items-center" href="../index.html">
-                <img src="../assets/img/logo.png" alt="Logo" height="30" class="me-2">
+                <img src=".../assets/img/logo.png" alt="Logo" height="30" class="me-2">
             </a>
 
             <!-- Toggler -->
@@ -262,14 +283,13 @@
         </div>
     </nav>
 
-
     <!-- Main Content -->
     <main id="main" class="pt-5 mt-5">
         <!-- Hero Section -->
         <section class="hero-section d-flex align-items-center justify-content-center text-center" style="min-height: 100vh;">
             <div class="container">
                 <h1 class="display-4 fw-bold mb-3">
-                    Throusands of businesses and <br> innovators trust us and <br> call FLIPS home.
+                    Thousands of businesses and <br> innovators trust us and <br> call FLIPS home.
                 </h1>
                 <p class="lead mb-4">Choose a subscription plan tailored to your needs and gain access to advanced water management and flood prediction tools.</p>
                 <button class="btn btn-lg fw-bold text-white w-25 p-3 mt-4" onclick="showPlansPanel()" style="background-color: #7b4d11; z-index: 1000;">Explore Plans</button>
@@ -293,19 +313,19 @@
         </section>
     </main>
 
-    <!-- Side Navigation (Offcanvas) -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="plansOffcanvas" aria-labelledby="plansOffcanvasLabel">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="plansOffcanvasLabel">Choose Your Plan</h5>
+    <!-- Centered Offcanvas Styled as a Modal -->
+    <div class="offcanvas custom-offcanvas" tabindex="-1" id="plansOffcanvas" aria-labelledby="plansOffcanvasLabel">
+        <div class="offcanvas-header border-bottom pb-2">
+            <h5 class="offcanvas-title fw-semibold" id="plansOffcanvasLabel">Choose Your Plan</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body">
-            <div id="planSelection" class="plan-details">
-                <h5>Available Plans</h5>
+        <div class="offcanvas-body pt-3">
+            <div id="planSelection" class="plan-details mb-4">
+                <h5 class="mb-3 text-primary">Available Plans</h5>
                 <div id="plansList"></div>
             </div>
             <div id="paymentSelection" class="payment-details d-none">
-                <h5>Payment Details</h5>
+                <h5 class="mb-3 text-primary">Payment Details</h5>
                 <form id="paymentForm">
                     <div class="mb-3">
                         <label for="paymentMethod" class="form-label">Payment Method</label>
@@ -320,14 +340,14 @@
                         <div class="mb-3">
                             <label for="cardElement" class="form-label">Card Information</label>
                             <div id="cardElement" class="form-control"></div>
-                            <div id="cardErrors" class="text-danger small"></div>
+                            <div id="cardErrors" class="text-danger small mt-1"></div>
                         </div>
                     </div>
                     <!-- M-Pesa Paybill Fields -->
                     <div id="paybillPaymentFields" class="d-none">
-                        <div class="paybill-instructions">
-                            <h6 class="mb-3">How to Pay via M-Pesa Paybill</h6>
-                            <ul>
+                        <div class="paybill-instructions mb-3">
+                            <h6 class="mb-2">How to Pay via M-Pesa Paybill</h6>
+                            <ul class="small">
                                 <li>Go to Safaricom Menu > M-Pesa > Lipa na M-Pesa > Paybill.</li>
                                 <li>Enter the Paybill Number below.</li>
                                 <li>Enter the Account Number below (or your email).</li>
@@ -353,7 +373,7 @@
                             <div id="transactionIdError" class="text-danger small mt-1"></div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Proceed to Payment</button>
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Proceed to Payment</button>
                 </form>
             </div>
         </div>
