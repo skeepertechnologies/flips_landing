@@ -25,6 +25,56 @@
 
   <!-- Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
+
+  <!-- Custom CSS for Carousel -->
+  <style>
+    .carousel-section {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      padding: 60px 0;
+    }
+    .swiper-slide {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .carousel-content {
+      max-width: 50%;
+      padding-right: 30px;
+    }
+    .carousel-content h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 20px;
+    }
+    .carousel-content p {
+      font-size: 1.1rem;
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .carousel-content .btn {
+      background-color: #7b4d11;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-weight: 600;
+    }
+    .carousel-content .btn:hover {
+      background-color: #5a370d;
+    }
+    .carousel-image {
+      max-width: 40%;
+    }
+    .carousel-image img {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .swiper-pagination-bullet-active {
+      background-color: #7b4d11 !important;
+    }
+  </style>
 </head>
 <body class="about-water-page">
   <header id="header" class="header d-flex align-items-center fixed-top">
@@ -45,7 +95,9 @@
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
-      <a class="btn-getstarted fw-bold" href="login/login.html">Get Started</a>
+      <div id="user-status">
+        <a class="btn-getstarted fw-bold" href="login/login.html">Get Started</a>
+      </div>
     </div>
   </header>
 
@@ -81,6 +133,50 @@
       </div>
     </section><!-- /Hero Section -->
 
+    <!-- Carousel Section -->
+    <section id="carousel" class="carousel-section">
+      <div class="container">
+        <div class="swiper mySwiper">
+          <div class="swiper-wrapper">
+            <!-- Slide 1 -->
+            <div class="swiper-slide">
+              <div class="carousel-content">
+                <h2>Monitor River Levels</h2>
+                <p>Get real-time updates on river water levels to stay ahead of potential flooding risks.</p>
+                <a href="#water-management" class="btn">Learn More</a>
+              </div>
+              <div class="carousel-image">
+                <img src="assets/img/river-levels.jpg" alt="River Levels Monitoring">
+              </div>
+            </div>
+            <!-- Slide 2 -->
+            <div class="swiper-slide">
+              <div class="carousel-content">
+                <h2>Assess Water Quality</h2>
+                <p>Ensure sustainable water resources with detailed water quality monitoring.</p>
+                <a href="#water-management" class="btn">Learn More</a>
+              </div>
+              <div class="carousel-image">
+                <img src="assets/img/water-quality.jpg" alt="Water Quality Monitoring">
+              </div>
+            </div>
+            <!-- Slide 3 -->
+            <div class="swiper-slide">
+              <div class="carousel-content">
+                <h2>Predict Flood Risks</h2>
+                <p>Use advanced analytics to assess and mitigate flood risks effectively.</p>
+                <a href="#water-management" class="btn">Learn More</a>
+              </div>
+              <div class="carousel-image">
+                <img src="assets/img/flood-risk.jpg" alt="Flood Risk Assessment">
+              </div>
+            </div>
+          </div>
+          <div class="swiper-pagination"></div>
+        </div>
+      </div>
+    </section><!-- /Carousel Section -->
+
     <!-- Water Management Section -->
     <section id="water-management" class="section">
       <div class="container" data-aos="fade-up" data-aos-delay="100">
@@ -113,14 +209,6 @@
         </div>
       </div>
       <div id="map" style="height: 400px;"></div>
-<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-<script>
-  var map = L.map('map').setView([-1.286389, 36.817223], 10); // Nairobi coordinates
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map);
-</script>
     </section><!-- /Water Management Section -->
 
     <!-- Call to Action -->
@@ -138,7 +226,6 @@
   </main>
 
   <footer id="footer" class="footer">
-    <!-- Same footer content as index.html -->
     <div class="container footer-top">
       <div class="row gy-4">
         <div class="col-lg-4 col-md-6 footer-about">
@@ -191,7 +278,66 @@
   <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
   <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
 
+  <!-- Leaflet JS for Map -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+
   <!-- Main JS File -->
   <script src="assets/js/main.js"></script>
+
+  <!-- Custom JS -->
+  <script>
+    // Initialize Swiper Carousel
+    var swiper = new Swiper('.mySwiper', {
+      slidesPerView: 1,
+      spaceBetween: 30,
+      loop: true,
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      autoplay: {
+        delay: 5000,
+        disableOnInteraction: false,
+      },
+    });
+
+    // Initialize Leaflet Map
+    var map = L.map('map').setView([-1.286389, 36.817223], 10); // Nairobi coordinates
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Check Logged-In User
+    document.addEventListener('DOMContentLoaded', function() {
+      const userStatus = document.getElementById('user-status');
+      const loggedInUser = localStorage.getItem('loggedInUser'); // Assuming user data is stored in localStorage
+
+      if (loggedInUser) {
+        // Parse the stored user data
+        const user = JSON.parse(loggedInUser);
+        userStatus.innerHTML = `
+          <div class="dropdown">
+            <button class="btn btn-getstarted fw-bold dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              Welcome, ${user.username}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="dashboard.html">Dashboard</a></li>
+              <li><a class="dropdown-item" href="#" id="logoutBtn">Logout</a></li>
+            </ul>
+          </div>
+        `;
+
+        // Add logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          localStorage.removeItem('loggedInUser');
+          window.location.href = 'index.html'; // Redirect to homepage after logout
+        });
+      } else {
+        userStatus.innerHTML = '<a class="btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
+      }
+    });
+  </script>
 </body>
 </html>
