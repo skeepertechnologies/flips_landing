@@ -58,67 +58,76 @@
     .use-case-card .btn:hover {
       background-color: #5a370d;
     }
-    /* Notification Slider Styles */
-    .notification-slider {
-      background: #7b4d11;
-      color: #fff;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      position: relative;
-      z-index: 2000;
-      overflow: hidden;
-      transition: height 0.3s ease;
-    }
-    .notification-slider.hidden {
-      height: 0;
-    }
-    .notification-slider .swiper-slide {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 20px;
-      font-size: 0.9rem;
-    }
-    .notification-slider .swiper-slide a {
-      color: #fff;
-      text-decoration: underline;
-      margin-left: 5px;
-    }
-    .notification-slider .swiper-slide a:hover {
-      color: #f0f0f0;
-    }
-    .notification-slider .close-btn {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .notification-slider .swiper-pagination {
-      bottom: 5px;
-    }
-    .notification-slider .swiper-pagination-bullet {
-      background: #fff;
-      opacity: 0.7;
-    }
-    .notification-slider .swiper-pagination-bullet-active {
-      opacity: 1;
-    }
-    /* Adjust header position when slider is visible */
-    .header {
-      transition: top 0.3s ease;
-    }
-    .notification-slider.hidden + .header {
-      top: 0;
-    }
-    .notification-slider:not(.hidden) + .header {
-      top: 50px;
-    }
+   /* Notification Slider Styles */
+.notification-slider {
+  background: #7b4d11;
+  color: #fff;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 2000;
+  overflow: hidden;
+  transition: height 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+.notification-slider.hidden {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+.notification-slider .swiper {
+  width: 100%;
+}
+.notification-slider .swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px 0 20px; /* Extra padding-right for close button */
+  font-size: 0.9rem;
+  text-align: center;
+  height: 50px; /* Match container height */
+}
+.notification-slider .swiper-slide a {
+  color: #fff;
+  text-decoration: underline;
+  margin-left: 5px;
+}
+.notification-slider .swiper-slide a:hover {
+  color: #f0f0f0;
+}
+.notification-slider .close-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 10;
+}
+.notification-slider .swiper-pagination {
+  bottom: 5px;
+}
+.notification-slider .swiper-pagination-bullet {
+  background: #fff;
+  opacity: 0.7;
+}
+.notification-slider .swiper-pagination-bullet-active {
+  opacity: 1;
+}
+/* Adjust header position when slider is visible */
+.header {
+  transition: top 0.3s ease;
+}
+.notification-slider.hidden + .header {
+  top: 0;
+}
+.notification-slider:not(.hidden) + .header {
+  top: 50px;
+}
   </style>
 </head>
 
@@ -1042,47 +1051,67 @@
 
   <!-- Custom JS for User Status -->
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const userStatus = document.getElementById('user-status');
-      const loggedInUser = sessionstorage.getItem('loggedInUser');
+   document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Swiper for Notification Slider
+  const notificationSwiper = new Swiper('.notification-swiper', {
+    loop: true,
+    autoplay: {
+      delay: 3000, // 3 seconds per slide
+      disableOnInteraction: false, // Continue autoplay after interaction
+    },
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+    },
+    speed: 600, // Smooth transition speed
+  });
 
-      if (loggedInUser) {
-        const user = JSON.parse(loggedInUser);
-        userStatus.innerHTML = `
-          <div class="dropdown">
-            <button class="btn btn-getstarted fw-bold dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              Welcome, ${user.username}
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="userDropdown">
-              <li><a class="dropdown-item" href="dashboard.html">Dashboard</a></li>
-              <li><a class="dropdown-item" href="#" id="logoutBtn">Logout</a></li>
-            </ul>
-          </div>
-        `;
-        document.getElementById('logoutBtn').addEventListener('click', function(e) {
-          e.preventDefault();
-          sessionstorage.removeItem('loggedInUser');
-          window.location.href = 'index.html';
-        });
-      } else {
-        userStatus.innerHTML = '<a class="btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
-      }
+  // Close Notification Slider
+  const notificationSlider = document.getElementById('notificationSlider');
+  const closeBtn = document.getElementById('closeNotification');
 
-          // Close Notification Slider
-      const notificationSlider = document.getElementById('notificationSlider');
-      const closeBtn = document.getElementById('closeNotification');
+  closeBtn.addEventListener('click', function() {
+    notificationSlider.classList.add('hidden');
+    // Store closed state in sessionStorage to persist across page reloads
+    sessionStorage.setItem('notificationClosed', 'true');
+    // Pause Swiper autoplay when closed
+    notificationSwiper.autoplay.stop();
+  });
 
-      closeBtn.addEventListener('click', function() {
-        notificationSlider.classList.add('hidden');
-        // Store closed state in sessionstorage to persist across page reloads
-        sessionstorage.setItem('notificationClosed', 'true');
-      });
+  // Check if notification was previously closed
+  if (sessionStorage.getItem('notificationClosed') === 'true') {
+    notificationSlider.classList.add('hidden');
+  } else {
+    // Start Swiper autoplay only if slider is visible
+    notificationSwiper.autoplay.start();
+  }
 
-      // Check if notification was previously closed
-      if (sessionstorage.getItem('notificationClosed') === 'true') {
-        notificationSlider.classList.add('hidden');
-      }
+  // User Status Handling (unchanged)
+  const userStatus = document.getElementById('user-status');
+  const loggedInUser = sessionStorage.getItem('loggedInUser');
+
+  if (loggedInUser) {
+    const user = JSON.parse(loggedInUser);
+    userStatus.innerHTML = `
+      <div class="dropdown">
+        <button class="btn btn-getstarted fw-bold dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          Welcome, ${user.username}
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="userDropdown">
+          <li><a class="dropdown-item" href="dashboard.html">Dashboard</a></li>
+          <li><a class="dropdown-item" href="#" id="logoutBtn">Logout</a></li>
+        </ul>
+      </div>
+    `;
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      sessionStorage.removeItem('loggedInUser');
+      window.location.href = 'index.html';
     });
+  } else {
+    userStatus.innerHTML = '<a class="btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
+  }
+});
 
  
   </script>
