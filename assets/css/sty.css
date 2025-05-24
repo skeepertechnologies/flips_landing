@@ -1,0 +1,140 @@
+    .use-case-section {
+      padding: 60px 0;
+      background: #f8f9fa;
+    }
+    .use-case-card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+    .use-case-card:hover {
+      transform: translateY(-10px);
+    }
+    .use-case-card img {
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      height: 200px;
+      object-fit: cover;
+    }
+    .use-case-card .card-body {
+      padding: 20px;
+    }
+    .use-case-card .btn {
+      background-color: #7b4d11;
+      color: white;
+      border: none;
+    }
+    .use-case-card .btn:hover {
+      background-color: #5a370d;
+    }
+   /* Notification Slider Styles */
+.notification-slider {
+  background: #7b4d11;
+  color: #fff;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 2000;
+  overflow: hidden;
+  transition: height 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+.notification-slider.hidden {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+.notification-slider .swiper {
+  width: 100%;
+}
+.notification-slider .swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px 0 20px; /* Extra padding-right for close button */
+  font-size: 0.9rem;
+  text-align: center;
+  height: 50px; /* Match container height */
+}
+.notification-slider .swiper-slide a {
+  color: #fff;
+  text-decoration: underline;
+  margin-left: 5px;
+}
+.notification-slider .swiper-slide a:hover {
+  color: #f0f0f0;
+}
+.notification-slider .close-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 10;
+}
+.notification-slider .swiper-pagination {
+  bottom: 5px;
+}
+.notification-slider .swiper-pagination-bullet {
+  background: #fff;
+  opacity: 0.7;
+}
+.notification-slider .swiper-pagination-bullet-active {
+  opacity: 1;
+}
+/* Adjust header position when slider is visible */
+.header {
+  transition: top 0.3s ease;
+}
+.notification-slider.hidden + .header {
+  top: 0;
+}
+.notification-slider:not(.hidden) + .header {
+  top: 50px;
+}
+/* Blog Section Styles */
+.blog-section {
+  padding: 60px 0;
+}
+.blog-card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+.blog-card:hover {
+  transform: translateY(-10px);
+}
+.blog-card img {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  height: 200px;
+  object-fit: cover;
+}
+.blog-card .card-body {
+  padding: 20px;
+}
+.blog-card .card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+.blog-card .card-text {
+  font-size: 0.9rem;
+  color: #666;
+}
+.blog-card .read-more {
+  color: #7b4d11;
+  font-weight: 500;
+  text-decoration: none;
+}
+.blog-card .read-more:hover {
+  color: #5a370d;
+  text-decoration: underline;
+}

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>FLIPS Blog - Environmental Insights Slider</title>
-  <meta name="description" content="Explore FLIPS' environmental insights through a visual journey of flood prediction and water management images.">
+  <title>FLIPS Blog - Environmental Insights</title>
+  <meta name="description" content="Explore FLIPS' insights on flood prediction, water management, and environmental monitoring.">
   <meta name="keywords" content="flood prediction, environmental data, water management, FLIPS blog, AI modeling">
 
   <!-- Favicons -->
@@ -20,34 +20,24 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
-  <link href="https://unpkg.com/swiper/swiper-bundle.min.css" rel="stylesheet">
 
   <!-- Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
 
-  <!-- Custom CSS for Blog Slider -->
+  <!-- Custom CSS for Blog -->
   <style>
     body {
       font-family: 'Roboto', sans-serif;
       background: #f8f9fa;
     }
-    .blog-slider-section {
+    .blog-section {
       padding: 80px 0;
       background: #fff;
     }
-    .blog-slider {
-      max-width: 800px;
-      margin: 0 auto;
-      position: relative;
+    .blog-post {
+      margin-bottom: 60px;
     }
-    .blog-slider .swiper-slide {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 20px;
-    }
-    .blog-slider .swiper-slide img {
+    .blog-post img {
       width: 100%;
       height: 400px;
       object-fit: cover;
@@ -55,22 +45,84 @@
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       margin-bottom: 20px;
     }
-    .blog-slider .caption {
-      font-size: 1.2rem;
+    .blog-post h2 {
+      font-size: 2rem;
+      font-weight: 700;
       color: #333;
-      font-weight: 500;
-      max-width: 600px;
+      margin-bottom: 20px;
     }
-    .blog-slider .swiper-button-next,
-    .blog-slider .swiper-button-prev {
+    .blog-post .meta {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .blog-post .content {
+      font-size: 1rem;
+      color: #444;
+      line-height: 1.8;
+      margin-bottom: 30px;
+    }
+    .blog-post .read-more {
       color: #7b4d11;
+      font-weight: 500;
+      text-decoration: none;
     }
-    .blog-slider .swiper-pagination-bullet {
+    .blog-post .read-more:hover {
+      color: #5a370d;
+      text-decoration: underline;
+    }
+    .comments-section {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+    .comments-section h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .comment {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+    .comment.reply {
+      margin-left: 40px;
+      background: #f1f1f1;
+    }
+    .comment .comment-author {
+      font-weight: 600;
+      color: #333;
+    }
+    .comment .comment-meta {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    .comment .comment-content {
+      font-size: 0.95rem;
+      color: #444;
+    }
+    .comment .reply-link {
+      color: #7b4d11;
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+    .comment .reply-link:hover {
+      color: #5a370d;
+      text-decoration: underline;
+    }
+    .comment-form {
+      margin-top: 30px;
+    }
+    .comment-form .btn-primary {
       background: #7b4d11;
-      opacity: 0.7;
+      border: none;
     }
-    .blog-slider .swiper-pagination-bullet-active {
-      opacity: 1;
+    .comment-form .btn-primary:hover {
+      background: #5a370d;
     }
     .header {
       background: #fff;
@@ -85,11 +137,14 @@
       background: #5a370d;
     }
     @media (max-width: 768px) {
-      .blog-slider .swiper-slide img {
+      .blog-post img {
         height: 300px;
       }
-      .blog-slider .caption {
-        font-size: 1rem;
+      .blog-post h2 {
+        font-size: 1.5rem;
+      }
+      .comment.reply {
+        margin-left: 20px;
       }
     }
   </style>
@@ -123,48 +178,134 @@
 
   <!-- Main Content -->
   <main class="main">
-    <!-- Blog Slider Section -->
-    <section id="blog-slider" class="blog-slider-section">
+    <!-- Blog Section -->
+    <section id="blog" class="blog-section">
       <div class="container" data-aos="fade-up">
         <div class="section-title text-center mb-5">
-          <h2>Environmental Insights Slider</h2>
-          <p>Discover the power of FLIPS through visuals of flood prediction, water management, and environmental monitoring.</p>
-          <p>Images sourced from our <a href="https://photos.app.goo.gl/45aeRDqZfeBWijoEA" target="_blank" rel="noopener">Google Photos album</a>.</p>
+          <h2>Environmental Insights Blog</h2>
+          <p>Read our latest articles on flood prediction, water management, and environmental monitoring.</p>
         </div>
-        <div class="blog-slider">
-          <div class="swiper blog-swiper">
-            <div class="swiper-wrapper">
-              <!-- Slide 1 -->
-              <div class="swiper-slide">
-                <img src="https://via.placeholder.com/800x400?text=Flood+Prediction" alt="Flood Prediction Model">
-                <div class="caption">AI-Powered Flood Prediction: Our models deliver 95% accuracy in forecasting flood events.</div>
-              </div>
-              <!-- Slide 2 -->
-              <div class="swiper-slide">
-                <img src="https://via.placeholder.com/800x400?text=Water+Monitoring" alt="Water Level Monitoring">
-                <div class="caption">Real-Time Water Monitoring: Track river levels to stay ahead of potential floods.</div>
-              </div>
-              <!-- Slide 3 -->
-              <div class="swiper-slide">
-                <img src="https://via.placeholder.com/800x400?text=Disaster+Planning" alt="Disaster Planning">
-                <div class="caption">Disaster Preparedness: Businesses use our data to protect assets and plan effectively.</div>
-              </div>
-              <!-- Slide 4 -->
-              <div class="swiper-slide">
-                <img src="https://via.placeholder.com/800x400?text=Home+Safety" alt="Home Safety Tools">
-                <div class="caption">Home Safety Tools: Individuals receive timely alerts to safeguard their families.</div>
-              </div>
-              <!-- Slide 5 -->
-              <div class="swiper-slide">
-                <img src="https://via.placeholder.com/800x400?text=Environmental+Data" alt="Environmental Data Analysis">
-                <div class="caption">Environmental Data Analysis: Comprehensive insights for sustainable water management.</div>
+
+        <!-- Blog Post 1 -->
+        <div id="post-1" class="blog-post" data-aos="fade-up" data-aos-delay="100">
+          <h2>The Future of Flood Prediction</h2>
+          <div class="meta">Posted by FLIPS Team on May 20, 2025</div>
+          <img src="https://via.placeholder.com/800x400?text=Flood+Prediction" alt="Flood Prediction">
+          <div class="content">
+            <p>Artificial Intelligence is transforming how we predict and prepare for floods. At FLIPS, our AI models achieve 95% accuracy by analyzing thousands of data points, including rainfall, river levels, and historical flood patterns. This technology empowers businesses to plan disaster responses and individuals to protect their homes.</p>
+            <p>Our latest advancements include integrating satellite imagery and real-time sensor data, allowing for hyper-localized predictions. For example, communities in flood-prone areas can receive alerts hours in advance, giving them critical time to evacuate or secure property.</p>
+            <p>Read more about how FLIPS is leading the charge in flood prediction innovation.</p>
+          </div>
+          <!-- Comments Section -->
+          <div class="comments-section">
+            <h3>Comments</h3>
+            <div class="comment">
+              <div class="comment-author">John Mwangi</div>
+              <div class="comment-meta">May 21, 2025 at 10:30 AM</div>
+              <div class="comment-content">This is impressive! How accessible are these tools for small communities?</div>
+              <a href="#" class="reply-link" onclick="showReplyForm('reply-form-1-1')">Reply</a>
+              <!-- Reply Form (Hidden by Default) -->
+              <form id="reply-form-1-1" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-1', true)">
+                <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
+                <button type="submit" class="btn btn-primary">Post Reply</button>
+              </form>
+              <!-- Nested Reply -->
+              <div class="comment reply">
+                <div class="comment-author">FLIPS Team</div>
+                <div class="comment-meta">May 21, 2025 at 2:15 PM</div>
+                <div class="comment-content">Thanks, John! Our Free Plan includes basic alerts accessible to small communities. Contact us for tailored solutions!</div>
+                <a href="#" class="reply-link" onclick="showReplyForm('reply-form-1-2')">Reply</a>
+                <form id="reply-form-1-2" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-1', true)">
+                  <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
+                  <button type="submit" class="btn btn-primary">Post Reply</button>
+                </form>
               </div>
             </div>
-            <!-- Add Pagination -->
-            <div class="swiper-pagination"></div>
-            <!-- Add Navigation -->
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
+            <!-- Comment Form -->
+            <form class="comment-form" onsubmit="submitComment(event, 'post-1')">
+              <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
+              <button type="submit" class="btn btn-primary">Post Comment</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Blog Post 2 -->
+        <div id="post-2" class="blog-post" data-aos="fade-up" data-aos-delay="200">
+          <h2>Real-Time Water Monitoring Benefits</h2>
+          <div class="meta">Posted by FLIPS Team on May 15, 2025</div>
+          <img src="https://via.placeholder.com/800x400?text=Water+Monitoring" alt="Water Monitoring">
+          <div class="content">
+            <p>Real-time water level monitoring is a cornerstone of effective flood prevention. FLIPS’ sensors and dashboards provide instant updates on river and stream levels, enabling communities to act swiftly when risks arise.</p>
+            <p>For businesses, this data supports resource allocation and risk assessment. For individuals, it means peace of mind knowing they can monitor local water bodies from their phones. Our case studies show a 30% reduction in flood-related damages for users leveraging real-time data.</p>
+            <p>Explore how FLIPS makes water monitoring accessible and actionable.</p>
+          </div>
+          <!-- Comments Section -->
+          <div class="comments-section">
+            <h3>Comments</h3>
+            <div class="comment">
+              <div class="comment-author">Grace Achieng</div>
+              <div class="comment-meta">May 16, 2025 at 9:45 AM</div>
+              <div class="comment-content">This saved my farm last season! Any plans to expand sensor coverage?</div>
+              <a href="#" class="reply-link" onclick="showReplyForm('reply-form-2-1')">Reply</a>
+              <form id="reply-form-2-1" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-2', true)">
+                <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
+                <button type="submit" class="btn btn-primary">Post Reply</button>
+              </form>
+              <div class="comment reply">
+                <div class="comment-author">FLIPS Team</div>
+                <div class="comment-meta">May 16, 2025 at 3:00 PM</div>
+                <div class="comment-content">Glad to hear, Grace! We’re deploying more sensors in 2025. Stay tuned!</div>
+                <a href="#" class="reply-link" onclick="showReplyForm('reply-form-2-2')">Reply</a>
+                <form id="reply-form-2-2" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-2', true)">
+                  <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
+                  <button type="submit" class="btn btn-primary">Post Reply</button>
+                </form>
+              </div>
+            </div>
+            <form class="comment-form" onsubmit="submitComment(event, 'post-2')">
+              <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
+              <button type="submit" class="btn btn-primary">Post Comment</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Blog Post 3 -->
+        <div id="post-3" class="blog-post" data-aos="fade-up" data-aos-delay="300">
+          <h2>Disaster Preparedness Strategies</h2>
+          <div class="meta">Posted by FLIPS Team on May 10, 2025</div>
+          <img src="https://via.placeholder.com/800x400?text=Disaster+Planning" alt="Disaster Planning">
+          <div class="content">
+            <p>Effective disaster preparedness can mitigate the impact of floods on businesses and communities. FLIPS provides detailed flood risk reports and API access, enabling organizations to integrate predictive data into their planning processes.</p>
+            <p>From insurance firms optimizing claims to NGOs coordinating relief efforts, our tools help stakeholders act proactively. Individuals also benefit from SMS alerts and dashboards tailored for home safety.</p>
+            <p>Learn how FLIPS data drives smarter disaster planning.</p>
+          </div>
+          <!-- Comments Section -->
+          <div class="comments-section">
+            <h3>Comments</h3>
+            <div class="comment">
+              <div class="comment-author">David Kimani</div>
+              <div class="comment-meta">May 11, 2025 at 11:20 AM</div>
+              <div class="comment-content">Great insights! How customizable are the risk reports for specific regions?</div>
+              <a href="#" class="reply-link" onclick="showReplyForm('reply-form-3-1')">Reply</a>
+              <form id="reply-form-3-1" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-3', true)">
+                <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
+                <button type="submit" class="btn btn-primary">Post Reply</button>
+              </form>
+              <div class="comment reply">
+                <div class="comment-author">FLIPS Team</div>
+                <div class="comment-meta">May 11, 2025 at 4:30 PM</div>
+                <div class="comment-content">Thanks, David! Reports are highly customizable by region. Reach out for a demo!</div>
+                <a href="#" class="reply-link" onclick="showReplyForm('reply-form-3-2')">Reply</a>
+                <form id="reply-form-3-2" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-3', true)">
+                  <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
+                  <button type="submit" class="btn btn-primary">Post Reply</button>
+                </form>
+              </div>
+            </div>
+            <form class="comment-form" onsubmit="submitComment(event, 'post-3')">
+              <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
+              <button type="submit" class="btn btn-primary">Post Comment</button>
+            </form>
           </div>
         </div>
       </div>
@@ -223,36 +364,13 @@
   <!-- Vendor JS Files -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-  <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
   <!-- Main JS File -->
   <script src="assets/js/main.js"></script>
 
-  <!-- Custom JS for Blog Slider and User Status -->
+  <!-- Custom JS for Blog and Comments -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize Swiper for Blog Slider
-      const blogSwiper = new Swiper('.blog-swiper', {
-        loop: true,
-        autoplay: {
-          delay: 5000, // 5 seconds per slide
-          disableOnInteraction: false,
-        },
-        pagination: {
-          el: '.swiper-pagination',
-          clickable: true,
-        },
-        navigation: {
-          nextEl: '.swiper-button-next',
-          prevEl: '.swiper-button-prev',
-        },
-        speed: 800,
-        effect: 'fade',
-        fadeEffect: {
-          crossFade: true,
-        },
-      });
-
       // AOS Initialization
       AOS.init({
         duration: 1000,
@@ -283,8 +401,59 @@
         });
       } else {
         userStatus.innerHTML = '<a class="btn btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
+        // Disable comment forms for non-logged-in users
+        document.querySelectorAll('.comment-form').forEach(form => {
+          form.innerHTML = '<p>Please <a href="login/login.html">log in</a> to post a comment.</p>';
+        });
       }
     });
+
+    // Show Reply Form
+    function showReplyForm(formId) {
+      const form = document.getElementById(formId);
+      form.classList.toggle('d-none');
+    }
+
+    // Submit Comment
+    function submitComment(event, postId, isReply = false) {
+      event.preventDefault();
+      const loggedInUser = sessionStorage.getItem('loggedInUser');
+      if (!loggedInUser) {
+        alert('Please log in to post a comment.');
+        window.location.href = 'login/login.html';
+        return;
+      }
+
+      const form = event.target;
+      const content = form.querySelector('textarea').value;
+      const user = JSON.parse(loggedInUser);
+      const commentSection = document.querySelector(`#${postId} .comments-section`);
+      const newComment = document.createElement('div');
+      newComment.className = isReply ? 'comment reply' : 'comment';
+      const date = new Date().toLocaleString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true
+      });
+
+      newComment.innerHTML = `
+        <div class="comment-author">${user.username}</div>
+        <div class="comment-meta">${date}</div>
+        <div class="comment-content">${content}</div>
+        ${!isReply ? `<a href="#" class="reply-link" onclick="showReplyForm('reply-form-${postId}-${Date.now()}')">Reply</a>
+        <form id="reply-form-${postId}-${Date.now()}" class="comment-form reply-form d-none" onsubmit="submitComment(event, '${postId}', true)">
+          <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
+          <button type="submit" class="btn btn-primary">Post Reply</button>
+        </form>` : ''}
+      `;
+
+      if (isReply) {
+        form.parentElement.appendChild(newComment);
+      } else {
+        commentSection.insertBefore(newComment, commentSection.querySelector('.comment-form'));
+      }
+
+      form.reset();
+      if (isReply) form.classList.add('d-none');
+    }
   </script>
 </body>
 </html>
