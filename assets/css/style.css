@@ -1770,7 +1770,7 @@ section,
 
 .pricing .pricing-card.popular h3,
 .pricing .pricing-card.popular h4 {
-  color: ;
+  color: grey ;
 }
 
 .pricing .pricing-card.popular .price .currency,
@@ -1884,7 +1884,7 @@ section,
 }
 
 .pricing .pricing-card .btn.btn-primary:hover {
-  background: rgba(10,4,97,1), var(--accent-color), transparent 15%);
+  background: rgba(10,4,97,1), var(--accent-color), transparent 15%;
 }
 
 /*--------------------------------------------------------------

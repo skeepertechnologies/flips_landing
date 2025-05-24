@@ -62,15 +62,6 @@
       line-height: 1.8;
       margin-bottom: 30px;
     }
-    .blog-post .read-more {
-      color: #7b4d11;
-      font-weight: 500;
-      text-decoration: none;
-    }
-    .blog-post .read-more:hover {
-      color: #5a370d;
-      text-decoration: underline;
-    }
     .comments-section {
       margin-top: 40px;
       padding-top: 20px;
@@ -185,128 +176,8 @@
           <h2>Environmental Insights Blog</h2>
           <p>Read our latest articles on flood prediction, water management, and environmental monitoring.</p>
         </div>
-
-        <!-- Blog Post 1 -->
-        <div id="post-1" class="blog-post" data-aos="fade-up" data-aos-delay="100">
-          <h2>The Future of Flood Prediction</h2>
-          <div class="meta">Posted by FLIPS Team on May 20, 2025</div>
-          <img src="https://via.placeholder.com/800x400?text=Flood+Prediction" alt="Flood Prediction">
-          <div class="content">
-            <p>Artificial Intelligence is transforming how we predict and prepare for floods. At FLIPS, our AI models achieve 95% accuracy by analyzing thousands of data points, including rainfall, river levels, and historical flood patterns. This technology empowers businesses to plan disaster responses and individuals to protect their homes.</p>
-            <p>Our latest advancements include integrating satellite imagery and real-time sensor data, allowing for hyper-localized predictions. For example, communities in flood-prone areas can receive alerts hours in advance, giving them critical time to evacuate or secure property.</p>
-            <p>Read more about how FLIPS is leading the charge in flood prediction innovation.</p>
-          </div>
-          <!-- Comments Section -->
-          <div class="comments-section">
-            <h3>Comments</h3>
-            <div class="comment">
-              <div class="comment-author">John Mwangi</div>
-              <div class="comment-meta">May 21, 2025 at 10:30 AM</div>
-              <div class="comment-content">This is impressive! How accessible are these tools for small communities?</div>
-              <a href="#" class="reply-link" onclick="showReplyForm('reply-form-1-1')">Reply</a>
-              <!-- Reply Form (Hidden by Default) -->
-              <form id="reply-form-1-1" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-1', true)">
-                <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
-                <button type="submit" class="btn btn-primary">Post Reply</button>
-              </form>
-              <!-- Nested Reply -->
-              <div class="comment reply">
-                <div class="comment-author">FLIPS Team</div>
-                <div class="comment-meta">May 21, 2025 at 2:15 PM</div>
-                <div class="comment-content">Thanks, John! Our Free Plan includes basic alerts accessible to small communities. Contact us for tailored solutions!</div>
-                <a href="#" class="reply-link" onclick="showReplyForm('reply-form-1-2')">Reply</a>
-                <form id="reply-form-1-2" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-1', true)">
-                  <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
-                  <button type="submit" class="btn btn-primary">Post Reply</button>
-                </form>
-              </div>
-            </div>
-            <!-- Comment Form -->
-            <form class="comment-form" onsubmit="submitComment(event, 'post-1')">
-              <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
-              <button type="submit" class="btn btn-primary">Post Comment</button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Blog Post 2 -->
-        <div id="post-2" class="blog-post" data-aos="fade-up" data-aos-delay="200">
-          <h2>Real-Time Water Monitoring Benefits</h2>
-          <div class="meta">Posted by FLIPS Team on May 15, 2025</div>
-          <img src="https://via.placeholder.com/800x400?text=Water+Monitoring" alt="Water Monitoring">
-          <div class="content">
-            <p>Real-time water level monitoring is a cornerstone of effective flood prevention. FLIPS’ sensors and dashboards provide instant updates on river and stream levels, enabling communities to act swiftly when risks arise.</p>
-            <p>For businesses, this data supports resource allocation and risk assessment. For individuals, it means peace of mind knowing they can monitor local water bodies from their phones. Our case studies show a 30% reduction in flood-related damages for users leveraging real-time data.</p>
-            <p>Explore how FLIPS makes water monitoring accessible and actionable.</p>
-          </div>
-          <!-- Comments Section -->
-          <div class="comments-section">
-            <h3>Comments</h3>
-            <div class="comment">
-              <div class="comment-author">Grace Achieng</div>
-              <div class="comment-meta">May 16, 2025 at 9:45 AM</div>
-              <div class="comment-content">This saved my farm last season! Any plans to expand sensor coverage?</div>
-              <a href="#" class="reply-link" onclick="showReplyForm('reply-form-2-1')">Reply</a>
-              <form id="reply-form-2-1" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-2', true)">
-                <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
-                <button type="submit" class="btn btn-primary">Post Reply</button>
-              </form>
-              <div class="comment reply">
-                <div class="comment-author">FLIPS Team</div>
-                <div class="comment-meta">May 16, 2025 at 3:00 PM</div>
-                <div class="comment-content">Glad to hear, Grace! We’re deploying more sensors in 2025. Stay tuned!</div>
-                <a href="#" class="reply-link" onclick="showReplyForm('reply-form-2-2')">Reply</a>
-                <form id="reply-form-2-2" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-2', true)">
-                  <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
-                  <button type="submit" class="btn btn-primary">Post Reply</button>
-                </form>
-              </div>
-            </div>
-            <form class="comment-form" onsubmit="submitComment(event, 'post-2')">
-              <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
-              <button type="submit" class="btn btn-primary">Post Comment</button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Blog Post 3 -->
-        <div id="post-3" class="blog-post" data-aos="fade-up" data-aos-delay="300">
-          <h2>Disaster Preparedness Strategies</h2>
-          <div class="meta">Posted by FLIPS Team on May 10, 2025</div>
-          <img src="https://via.placeholder.com/800x400?text=Disaster+Planning" alt="Disaster Planning">
-          <div class="content">
-            <p>Effective disaster preparedness can mitigate the impact of floods on businesses and communities. FLIPS provides detailed flood risk reports and API access, enabling organizations to integrate predictive data into their planning processes.</p>
-            <p>From insurance firms optimizing claims to NGOs coordinating relief efforts, our tools help stakeholders act proactively. Individuals also benefit from SMS alerts and dashboards tailored for home safety.</p>
-            <p>Learn how FLIPS data drives smarter disaster planning.</p>
-          </div>
-          <!-- Comments Section -->
-          <div class="comments-section">
-            <h3>Comments</h3>
-            <div class="comment">
-              <div class="comment-author">David Kimani</div>
-              <div class="comment-meta">May 11, 2025 at 11:20 AM</div>
-              <div class="comment-content">Great insights! How customizable are the risk reports for specific regions?</div>
-              <a href="#" class="reply-link" onclick="showReplyForm('reply-form-3-1')">Reply</a>
-              <form id="reply-form-3-1" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-3', true)">
-                <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
-                <button type="submit" class="btn btn-primary">Post Reply</button>
-              </form>
-              <div class="comment reply">
-                <div class="comment-author">FLIPS Team</div>
-                <div class="comment-meta">May 11, 2025 at 4:30 PM</div>
-                <div class="comment-content">Thanks, David! Reports are highly customizable by region. Reach out for a demo!</div>
-                <a href="#" class="reply-link" onclick="showReplyForm('reply-form-3-2')">Reply</a>
-                <form id="reply-form-3-2" class="comment-form reply-form d-none" onsubmit="submitComment(event, 'post-3', true)">
-                  <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
-                  <button type="submit" class="btn btn-primary">Post Reply</button>
-                </form>
-              </div>
-            </div>
-            <form class="comment-form" onsubmit="submitComment(event, 'post-3')">
-              <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
-              <button type="submit" class="btn btn-primary">Post Comment</button>
-            </form>
-          </div>
+        <div id="blog-posts">
+          <!-- Blog posts will be populated dynamically -->
         </div>
       </div>
     </section>
@@ -380,6 +251,7 @@
       // User Status Handling
       const userStatus = document.getElementById('user-status');
       const loggedInUser = sessionStorage.getItem('loggedInUser');
+      const token = sessionStorage.getItem('token');
 
       if (loggedInUser) {
         const user = JSON.parse(loggedInUser);
@@ -397,63 +269,151 @@
         document.getElementById('logoutBtn').addEventListener('click', function(e) {
           e.preventDefault();
           sessionStorage.removeItem('loggedInUser');
+          sessionStorage.removeItem('token');
           window.location.href = 'index.html';
         });
       } else {
         userStatus.innerHTML = '<a class="btn btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
-        // Disable comment forms for non-logged-in users
         document.querySelectorAll('.comment-form').forEach(form => {
-          form.innerHTML = '<p>Please <a href="login/login.html">log in</a> to post a comment.</p>';
+          if (form) form.innerHTML = '<p>Please <a href="login/login.html">log in</a> to post a comment.</p>';
         });
       }
+
+      // Fetch Blog Posts and Comments
+      async function fetchBlogPosts() {
+        try {
+          const response = await fetch('http://your-django-api-url/api/blogs/', {
+            headers: {
+              'Authorization': `Bearer ${token || ''}`
+            }
+          });
+          const blogs = await response.json();
+          const blogContainer = document.getElementById('blog-posts');
+          blogContainer.innerHTML = blogs.results.map((blog, index) => `
+            <div id="post-${blog.id}" class="blog-post" data-aos="fade-up" data-aos-delay="${100 + index * 100}">
+              <h2>${blog.title}</h2>
+              <div class="meta">Posted by ${blog.author.username} on ${new Date(blog.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              <img src="${blog.image || 'https://via.placeholder.com/800x400?text=Blog+Image'}" alt="${blog.title}">
+              <div class="content">${blog.content}</div>
+              <div class="comments-section" id="comments-${blog.id}">
+                <h3>Comments</h3>
+                <div id="comment-list-${blog.id}">
+                  <!-- Comments will be populated dynamically -->
+                </div>
+                ${loggedInUser ? `
+                  <form class="comment-form" data-blog-id="${blog.id}" onsubmit="submitComment(event, ${blog.id})">
+                    <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
+                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                  </form>
+                ` : '<p>Please <a href="login/login.html">log in</a> to post a comment.</p>'}
+              </div>
+            </div>
+          `).join('');
+
+          // Fetch comments for each blog
+          blogs.results.forEach(blog => fetchComments(blog.id));
+        } catch (error) {
+          console.error('Error fetching blog posts:', error);
+        }
+      }
+
+      // Fetch Comments for a Blog
+      async function fetchComments(blogId) {
+        try {
+          const response = await fetch(`http://your-django-api-url/api/comments/?blog_id=${blogId}`, {
+            headers: {
+              'Authorization': `Bearer ${token || ''}`
+            }
+          });
+          const comments = await response.json();
+          const commentList = document.getElementById(`comment-list-${blogId}`);
+          commentList.innerHTML = comments.map(comment => renderComment(comment, blogId)).join('');
+        } catch (error) {
+          console.error(`Error fetching comments for blog ${blogId}:`, error);
+        }
+      }
+
+      // Render a Comment (with Nested Replies)
+      function renderComment(comment, blogId) {
+        const replies = comment.replies.map(reply => `
+          <div class="comment reply" id="comment-${reply.id}">
+            <div class="comment-author">${reply.user.username}</div>
+            <div class="comment-meta">${new Date(reply.created_at).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</div>
+            <div class="comment-content">${reply.content}</div>
+            <a href="#" class="reply-link" onclick="showReplyForm('reply-form-${reply.id}')">Reply</a>
+            <form id="reply-form-${reply.id}" class="comment-form reply-form d-none" onsubmit="submitComment(event, ${blogId}, ${reply.id})">
+              <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
+              <button type="submit" class="btn btn-primary">Post Reply</button>
+            </form>
+          </div>
+        `).join('');
+
+        return `
+          <div class="comment" id="comment-${comment.id}">
+            <div class="comment-author">${comment.user.username}</div>
+            <div class="comment-meta">${new Date(comment.created_at).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</div>
+            <div class="comment-content">${comment.content}</div>
+            <a href="#" class="reply-link" onclick="showReplyForm('reply-form-${comment.id}')">Reply</a>
+            <form id="reply-form-${comment.id}" class="comment-form reply-form d-none" onsubmit="submitComment(event, ${blogId}, ${comment.id})">
+              <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
+              <button type="submit" class="btn btn-primary">Post Reply</button>
+            </form>
+            ${replies}
+          </div>
+        `;
+      }
+
+      // Show Reply Form
+      function showReplyForm(formId) {
+        const form = document.getElementById(formId);
+        form.classList.toggle('d-none');
+      }
+
+      // Submit Comment
+      async function submitComment(event, blogId, parentId = null) {
+        event.preventDefault();
+        const loggedInUser = sessionStorage.getItem('loggedInUser');
+        const token = sessionStorage.getItem('token');
+
+        if (!loggedInUser || !token) {
+          alert('Please log in to post a comment.');
+          window.location.href = 'login/login.html';
+          return;
+        }
+
+        const form = event.target;
+        const content = form.querySelector('textarea').value;
+
+        try {
+          const response = await fetch('http://your-django-api-url/api/comments/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              blog: blogId,
+              content: content,
+              parent: parentId
+            })
+          });
+
+          if (response.ok) {
+            form.reset();
+            if (parentId) form.classList.add('d-none');
+            fetchComments(blogId); // Refresh comments
+          } else {
+            alert('Error posting comment. Please try again.');
+          }
+        } catch (error) {
+          console.error('Error posting comment:', error);
+          alert('Error posting comment. Please try again.');
+        }
+      }
+
+      // Initial Fetch
+      fetchBlogPosts();
     });
-
-    // Show Reply Form
-    function showReplyForm(formId) {
-      const form = document.getElementById(formId);
-      form.classList.toggle('d-none');
-    }
-
-    // Submit Comment
-    function submitComment(event, postId, isReply = false) {
-      event.preventDefault();
-      const loggedInUser = sessionStorage.getItem('loggedInUser');
-      if (!loggedInUser) {
-        alert('Please log in to post a comment.');
-        window.location.href = 'login/login.html';
-        return;
-      }
-
-      const form = event.target;
-      const content = form.querySelector('textarea').value;
-      const user = JSON.parse(loggedInUser);
-      const commentSection = document.querySelector(`#${postId} .comments-section`);
-      const newComment = document.createElement('div');
-      newComment.className = isReply ? 'comment reply' : 'comment';
-      const date = new Date().toLocaleString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true
-      });
-
-      newComment.innerHTML = `
-        <div class="comment-author">${user.username}</div>
-        <div class="comment-meta">${date}</div>
-        <div class="comment-content">${content}</div>
-        ${!isReply ? `<a href="#" class="reply-link" onclick="showReplyForm('reply-form-${postId}-${Date.now()}')">Reply</a>
-        <form id="reply-form-${postId}-${Date.now()}" class="comment-form reply-form d-none" onsubmit="submitComment(event, '${postId}', true)">
-          <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
-          <button type="submit" class="btn btn-primary">Post Reply</button>
-        </form>` : ''}
-      `;
-
-      if (isReply) {
-        form.parentElement.appendChild(newComment);
-      } else {
-        commentSection.insertBefore(newComment, commentSection.querySelector('.comment-form'));
-      }
-
-      form.reset();
-      if (isReply) form.classList.add('d-none');
-    }
   </script>
 </body>
 </html>
