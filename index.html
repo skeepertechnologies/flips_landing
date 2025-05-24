@@ -5,7 +5,7 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <title>FLIPS</title>
   <meta name="description" content="FLIPS provides environmental data and flood prediction for businesses and individuals to make informed decisions.">
-  <meta name="keywords" content="flood prediction, environmental data, water management, business solutions, personal safety">
+  <meta name="keywords" content="flood prediction, environmental data, water management, business solutions, personal safety, AI modeling">
 
   <!-- Favicons -->
   <link href="assets/img/favicon.png" rel="icon">
@@ -26,7 +26,7 @@
   <!-- Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
 
-  <!-- Custom CSS for New Sections -->
+  <!-- Custom CSS for New Sections and Slider -->
   <style>
     .use-case-section {
       padding: 60px 0;
@@ -58,21 +58,82 @@
     .use-case-card .btn:hover {
       background-color: #5a370d;
     }
+    /* Slider Notification Styles */
+    .top-slider-notification {
+      background: #7b4d11;
+      color: #fff;
+      padding: 20px 0;
+      position: relative;
+      z-index: 1000;
+    }
+    .top-slider-notification .swiper-slide {
+      text-align: center;
+      padding: 15px;
+    }
+    .top-slider-notification h3 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    .top-slider-notification p {
+      font-size: 1rem;
+      margin-bottom: 15px;
+    }
+    .top-slider-notification .btn {
+      background: #fff;
+      color: #7b4d11;
+      font-weight: bold;
+      padding: 8px 20px;
+      border-radius: 5px;
+    }
+    .top-slider-notification .btn:hover {
+      background: #f0f0f0;
+    }
+    .top-slider-notification .swiper-pagination-bullet {
+      background: #fff;
+    }
+    .top-slider-notification .swiper-button-next,
+    .top-slider-notification .swiper-button-prev {
+      color: #fff;
+    }
   </style>
 </head>
 
 <body class="index-page">
+  <!-- Top Slider Notification -->
+  <div class="top-slider-notification">
+    <div class="swiper top-slider">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide">
+          <h3>Advanced AI Modeling with FLIPS</h3>
+          <p>FLIPS leverages proprietary AI algorithms and deep learning to achieve 95% accurate flood predictions, surpassing industry standards.</p>
+          <a href="about-ai.html" class="btn">Learn More About AI</a>
+        </div>
+        <div class="swiper-slide">
+          <h3>Comprehensive Water Management</h3>
+          <p>Monitor river levels and manage water resources with FLIPS' real-time data, empowering businesses and individuals to mitigate flood risks.</p>
+          <a href="about-water.html" class="btn">Learn More About Water</a>
+        </div>
+        <div class="swiper-slide">
+          <h3>Real-World Impact with FLIPS AI</h3>
+          <p>Our AI models have reduced flood-related damages by 30% in pilot regions, providing actionable insights for communities and authorities.</p>
+          <a href="about-ai.html" class="btn">Discover AI Impact</a>
+        </div>
+      </div>
+      <div class="swiper-pagination"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-button-next"></div>
+    </div>
+  </div><!-- /Top Slider Notification -->
+
   <header id="header" class="header d-flex align-items-center fixed-top">
     <div class="header-container container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
       <a href="index.html" class="logo d-flex align-items-center me-auto me-xl-0">
-        <img src="assets/img/logo.png" alt="">
+        <img src="assets/img/logo.png" alt="FLIPS Logo" class="img-fluid">
       </a>
       <nav id="navmenu" class="navmenu">
         <ul>
           <li><a href="#hero" class="nav-link fw-bold active">Home</a></li>
           <li><a href="#about" class="nav-link fw-bold">About</a></li>
-          <li><a href="about-water.html" class="nav-link fw-bold">About Water</a></li>
-          <li><a href="about-ai.html" class="nav-link fw-bold">About AI</a></li>
           <li><a href="#features" class="nav-link fw-bold">Features</a></li>
           <li><a href="#services" class="nav-link fw-bold">Services</a></li>
           <li><a href="#pricing" class="nav-link fw-bold">Pricing</a></li>
@@ -900,29 +961,29 @@
             <p><strong>Email:</strong> <span>flipsintelligence@gmail.com</span></p>
           </div>
           <div class="social-links d-flex mt-4">
-            <a href=""><i class="bi bi-twitter-x"></i></a>
-            <a href=""><i class="bi bi-facebook"></i></a>
+            <a href="https://twitter.com/flips_intel"><i class="bi bi-twitter-x"></i></a>
+            <a href="https://facebook.com/flipsintel"><i class="bi bi-facebook"></i></a>
             <a href="https://www.instagram.com/flips.intel?igsh=MWlqZDc5YTVsMXRwZA=="><i class="bi bi-instagram"></i></a>
-            <a href=""><i class="bi bi-linkedin"></i></a>
+            <a href="https://linkedin.com/company/flips-intel"><i class="bi bi-linkedin"></i></a>
           </div>
         </div>
         <div class="col-lg-2 col-md-3 footer-links">
           <h4>Useful Links</h4>
           <ul>
-            <li><a href="#">Home</a></li>
-            <li><a href="#">About us</a></li>
-            <li><a href="#">Services</a></li>
-            <li><a href="#">Terms of service</a></li>
-            <li><a href="#">Privacy policy</a></li>
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#about">About us</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="terms.html">Terms of service</a></li>
+            <li><a href="privacy.html">Privacy policy</a></li>
           </ul>
         </div>
         <div class="col-lg-2 col-md-3 footer-links">
           <h4>Our Services</h4>
           <ul>
-            <li><a href="#">Water management</a></li>
-            <li><a href="#">Flood prediction</a></li>
-            <li><a href="#">River water level reading</a></li>
-            <li><a href="#">ML prediction</a></li>
+            <li><a href="#services">Water Management</a></li>
+            <li><a href="#services">Flood Prediction</a></li>
+            <li><a href="#services">River Water Level Reading</a></li>
+            <li><a href="#services">ML Prediction</a></li>
           </ul>
         </div>
       </div>
@@ -960,9 +1021,10 @@
   <!-- Main JS File -->
   <script src="assets/js/main.js"></script>
 
-  <!-- Custom JS for User Status -->
+  <!-- Custom JS for User Status and Slider -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // User Status
       const userStatus = document.getElementById('user-status');
       const loggedInUser = localStorage.getItem('loggedInUser');
 
@@ -987,6 +1049,23 @@
       } else {
         userStatus.innerHTML = '<a class="btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
       }
+
+      // Initialize Top Slider
+      new Swiper('.top-slider', {
+        loop: true,
+        autoplay: {
+          delay: 5000,
+          disableOnInteraction: false
+        },
+        pagination: {
+          el: '.swiper-pagination',
+          clickable: true
+        },
+        navigation: {
+          nextEl: '.swiper-button-next',
+          prevEl: '.swiper-button-prev'
+        }
+      });
     });
   </script>
 </body>
