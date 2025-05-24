@@ -1044,7 +1044,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const userStatus = document.getElementById('user-status');
-      const loggedInUser = localStorage.getItem('loggedInUser');
+      const loggedInUser = sessionstorage.getItem('loggedInUser');
 
       if (loggedInUser) {
         const user = JSON.parse(loggedInUser);
@@ -1061,13 +1061,30 @@
         `;
         document.getElementById('logoutBtn').addEventListener('click', function(e) {
           e.preventDefault();
-          localStorage.removeItem('loggedInUser');
+          sessionstorage.removeItem('loggedInUser');
           window.location.href = 'index.html';
         });
       } else {
         userStatus.innerHTML = '<a class="btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
       }
+
+          // Close Notification Slider
+      const notificationSlider = document.getElementById('notificationSlider');
+      const closeBtn = document.getElementById('closeNotification');
+
+      closeBtn.addEventListener('click', function() {
+        notificationSlider.classList.add('hidden');
+        // Store closed state in sessionstorage to persist across page reloads
+        sessionstorage.setItem('notificationClosed', 'true');
+      });
+
+      // Check if notification was previously closed
+      if (sessionstorage.getItem('notificationClosed') === 'true') {
+        notificationSlider.classList.add('hidden');
+      }
     });
+
+ 
   </script>
 </body>
 </html>
