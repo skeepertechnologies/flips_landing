@@ -50,6 +50,12 @@
       font-weight: 700;
       color: #333;
       margin-bottom: 20px;
+      display: inline-block;
+    }
+    .blog-post .discussion-badge {
+      font-size: 0.9rem;
+      margin-left: 10px;
+      vertical-align: middle;
     }
     .blog-post .meta {
       font-size: 0.9rem;
@@ -274,12 +280,53 @@
         });
       } else {
         userStatus.innerHTML = '<a class="btn btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
-        document.querySelectorAll('.comment-form').forEach(form => {
-          if (form) form.innerHTML = '<p>Please <a href="login/login.html">log in</a> to post a comment.</p>';
-        });
       }
 
-      // Fetch Blog Posts and Comments
+      // List of images in assets/img/blog_images/ (simulating 20+ images)
+      const blogImages = Array.from({ length: 21 }, (_, i) => `assets/img/blog/DSC_${i + 1}.JPG`);
+
+      // Function to get a random image
+      function getRandomImage() {
+        return blogImages[Math.floor(Math.random() * blogImages.length)];
+      }
+
+      // Function to classify discussion level based on comment count
+      function getDiscussionLevel(commentCount) {
+        if (commentCount >= 10) {
+          return { label: 'Hot', class: 'badge bg-danger' };
+        } else if (commentCount >= 5) {
+          return { label: 'Active', class: 'badge bg-success' };
+        } else {
+          return { label: 'Quiet', class: 'badge bg-secondary' };
+        }
+      }
+
+      // Static Blog Data (for fallback if API fails)
+      const fallbackBlogs = [
+        {
+          id: 1,
+          title: 'The Future of Flood Prediction',
+          author: { username: 'FLIPS Team' },
+          created_at: '2025-05-20T10:00:00Z',
+          content: 'Artificial Intelligence is transforming how we predict and prepare for floods. At FLIPS, our AI models achieve 95% accuracy by analyzing thousands of data points, including rainfall, river levels, and historical flood patterns. This technology empowers businesses to plan disaster responses and individuals to protect their homes.<br><br>Our latest advancements include integrating satellite imagery and real-time sensor data, allowing for hyper-localized predictions. For example, communities in flood-prone areas can receive alerts hours in advance, giving them critical time to evacuate or secure property.'
+        },
+        {
+          id: 2,
+          title: 'Real-Time Water Monitoring Benefits',
+          author: { username: 'FLIPS Team' },
+          created_at: '2025-05-15T10:00:00Z',
+          content: 'Real-time water level monitoring is a cornerstone of effective flood prevention. FLIPS’ sensors and dashboards provide instant updates on river and stream levels, enabling communities to act swiftly when risks arise.<br><br>For businesses, this data supports resource allocation and risk assessment. For individuals, it means peace of mind knowing they can monitor local water bodies from their phones. Our case studies show a 30% reduction in flood-related damages for users leveraging real-time data.'
+        },
+        {
+          id: 3,
+          title: 'Disaster Preparedness Strategies',
+          author: { username: 'FLIPS Team' },
+          created_at: '2025-05-10T10:00:00Z',
+          content: 'Effective disaster preparedness can mitigate the impact of floods on businesses and communities. FLIPS provides detailed flood risk reports and API access, enabling organizations to integrate predictive data into their planning processes.<br><br>From insurance firms optimizing claims to NGOs coordinating relief efforts, our tools help stakeholders act proactively. Individuals also benefit from SMS alerts and dashboards tailored for home safety.'
+        }
+      ];
+
+      // Fetch Blog Posts
       async function fetchBlogPosts() {
         try {
           const response = await fetch('http://your-django-api-url/api/blogs/', {
@@ -287,66 +334,106 @@
               'Authorization': `Bearer ${token || ''}`
             }
           });
-          const blogs = await response.json();
+          let blogs = await response.json();
+          blogs = blogs.results || blogs; // Handle pagination if API returns results
           const blogContainer = document.getElementById('blog-posts');
-          blogContainer.innerHTML = blogs.results.map((blog, index) => `
-            <div id="post-${blog.id}" class="blog-post" data-aos="fade-up" data-aos-delay="${100 + index * 100}">
-              <h2>${blog.title}</h2>
-              <div class="meta">Posted by ${blog.author.username} on ${new Date(blog.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-              <img src="${blog.image || 'https://via.placeholder.com/800x400?text=Blog+Image'}" alt="${blog.title}">
-              <div class="content">${blog.content}</div>
-              <div class="comments-section" id="comments-${blog.id}">
-                <h3>Comments</h3>
-                <div id="comment-list-${blog.id}">
-                  <!-- Comments will be populated dynamically -->
+          blogContainer.innerHTML = blogs.map((blog, index) => {
+            const comments = JSON.parse(localStorage.getItem(`comments_${blog.id}`) || '[]');
+            const discussion = getDiscussionLevel(comments.length);
+            return `
+              <div id="post-${blog.id}" class="blog-post" data-aos="fade-up" data-aos-delay="${100 + index * 100}">
+                <h2>${blog.title} <span class="${discussion.class} discussion-badge">${discussion.label}</span></h2>
+                <div class="meta">Posted by ${blog.author.username} on ${new Date(blog.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                <img src="${getRandomImage()}" alt="${blog.title}">
+                <div class="content">${blog.content}</div>
+                <div class="comments-section" id="comments-${blog.id}">
+                  <h3>Comments</h3>
+                  <div id="comment-list-${blog.id}">
+                    <!-- Comments will be populated from localStorage -->
+                  </div>
+                  ${loggedInUser ? `
+                    <form class="comment-form" data-blog-id="${blog.id}" onsubmit="submitComment(event, ${blog.id})">
+                      <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
+                      <button type="submit" class="btn btn-primary">Post Comment</button>
+                    </form>
+                  ` : '<p>Please <a href="login/login.html">log in</a> to post a comment.</p>'}
                 </div>
-                ${loggedInUser ? `
-                  <form class="comment-form" data-blog-id="${blog.id}" onsubmit="submitComment(event, ${blog.id})">
-                    <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
-                    <button type="submit" class="btn btn-primary">Post Comment</button>
-                  </form>
-                ` : '<p>Please <a href="login/login.html">log in</a> to post a comment.</p>'}
               </div>
-            </div>
-          `).join('');
+            `;
+          }).join('');
 
-          // Fetch comments for each blog
-          blogs.results.forEach(blog => fetchComments(blog.id));
+          // Fetch comments from localStorage for each blog
+          blogs.forEach(blog => fetchComments(blog.id));
         } catch (error) {
           console.error('Error fetching blog posts:', error);
+          // Use fallback data
+          const blogContainer = document.getElementById('blog-posts');
+          blogContainer.innerHTML = fallbackBlogs.map((blog, index) => {
+            const comments = JSON.parse(localStorage.getItem(`comments_${blog.id}`) || '[]');
+            const discussion = getDiscussionLevel(comments.length);
+            return `
+              <div id="post-${blog.id}" class="blog-post" data-aos="fade-up" data-aos-delay="${100 + index * 100}">
+                <h2>${blog.title} <span class="${discussion.class} discussion-badge">${discussion.label}</span></h2>
+                <div class="meta">Posted by ${blog.author.username} on ${new Date(blog.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                <img src="${getRandomImage()}" alt="${blog.title}">
+                <div class="content">${blog.content}</div>
+                <div class="comments-section" id="comments-${blog.id}">
+                  <h3>Comments</h3>
+                  <div id="comment-list-${blog.id}">
+                    <!-- Comments will be populated from localStorage -->
+                  </div>
+                  ${loggedInUser ? `
+                    <form class="comment-form" data-blog-id="${blog.id}" onsubmit="submitComment(event, ${blog.id})">
+                      <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
+                      <button type="submit" class="btn btn-primary">Post Comment</button>
+                    </form>
+                  ` : '<p>Please <a href="login/login.html">log in</a> to post a comment.</p>'}
+                </div>
+              </div>
+            `;
+          }).join('');
+          fallbackBlogs.forEach(blog => fetchComments(blog.id));
         }
       }
 
-      // Fetch Comments for a Blog
-      async function fetchComments(blogId) {
-        try {
-          const response = await fetch(`http://your-django-api-url/api/comments/?blog_id=${blogId}`, {
-            headers: {
-              'Authorization': `Bearer ${token || ''}`
-            }
-          });
-          const comments = await response.json();
-          const commentList = document.getElementById(`comment-list-${blogId}`);
-          commentList.innerHTML = comments.map(comment => renderComment(comment, blogId)).join('');
-        } catch (error) {
-          console.error(`Error fetching comments for blog ${blogId}:`, error);
+      // Fetch Comments from localStorage
+      function fetchComments(blogId) {
+        const comments = JSON.parse(localStorage.getItem(`comments_${blogId}`) || '[]');
+        const commentList = document.getElementById(`comment-list-${blogId}`);
+        commentList.innerHTML = comments.filter(c => !c.parentId).map(comment => renderComment(comment, blogId, comments)).join('');
+        // Update discussion badge after fetching comments
+        updateDiscussionBadge(blogId, comments.length);
+      }
+
+      // Update Discussion Badge
+      function updateDiscussionBadge(blogId, commentCount) {
+        const blogPost = document.getElementById(`post-${blogId}`);
+        if (blogPost) {
+          const badge = blogPost.querySelector('.discussion-badge');
+          if (badge) {
+            const discussion = getDiscussionLevel(commentCount);
+            badge.textContent = discussion.label;
+            badge.className = `badge ${discussion.class} discussion-badge`;
+          }
         }
       }
 
       // Render a Comment (with Nested Replies)
-      function renderComment(comment, blogId) {
-        const replies = comment.replies.map(reply => `
-          <div class="comment reply" id="comment-${reply.id}">
-            <div class="comment-author">${reply.user.username}</div>
-            <div class="comment-meta">${new Date(reply.created_at).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</div>
-            <div class="comment-content">${reply.content}</div>
-            <a href="#" class="reply-link" onclick="showReplyForm('reply-form-${reply.id}')">Reply</a>
-            <form id="reply-form-${reply.id}" class="comment-form reply-form d-none" onsubmit="submitComment(event, ${blogId}, ${reply.id})">
-              <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
-              <button type="submit" class="btn btn-primary">Post Reply</button>
-            </form>
-          </div>
-        `).join('');
+      function renderComment(comment, blogId, allComments) {
+        const replies = allComments
+          .filter(reply => reply.parentId === comment.id)
+          .map(reply => `
+            <div class="comment reply" id="comment-${reply.id}">
+              <div class="comment-author">${reply.user.username}</div>
+              <div class="comment-meta">${new Date(reply.created_at).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</div>
+              <div class="comment-content">${reply.content}</div>
+              <a href="#" class="reply-link" onclick="showReplyForm('reply-form-${reply.id}')">Reply</a>
+              <form id="reply-form-${reply.id}" class="comment-form reply-form d-none" onsubmit="submitComment(event, ${blogId}, ${reply.id})">
+                <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
+                <button type="submit" class="btn btn-primary">Post Reply</button>
+              </form>
+            </div>
+          `).join('');
 
         return `
           <div class="comment" id="comment-${comment.id}">
@@ -370,12 +457,10 @@
       }
 
       // Submit Comment
-      async function submitComment(event, blogId, parentId = null) {
+      function submitComment(event, blogId, parentId = null) {
         event.preventDefault();
         const loggedInUser = sessionStorage.getItem('loggedInUser');
-        const token = sessionStorage.getItem('token');
-
-        if (!loggedInUser || !token) {
+        if (!loggedInUser) {
           alert('Please log in to post a comment.');
           window.location.href = 'login/login.html';
           return;
@@ -383,35 +468,77 @@
 
         const form = event.target;
         const content = form.querySelector('textarea').value;
+        const user = JSON.parse(loggedInUser);
+        const comments = JSON.parse(localStorage.getItem(`comments_${blogId}`) || '[]');
+        const newComment = {
+          id: Date.now(), // Unique ID based on timestamp
+          blogId: blogId,
+          user: { username: user.username },
+          content: content,
+          parentId: parentId,
+          created_at: new Date().toISOString()
+        };
 
-        try {
-          const response = await fetch('http://your-django-api-url/api/comments/', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              blog: blogId,
-              content: content,
-              parent: parentId
-            })
-          });
+        comments.push(newComment);
+        localStorage.setItem(`comments_${blogId}`, JSON.stringify(comments));
 
-          if (response.ok) {
-            form.reset();
-            if (parentId) form.classList.add('d-none');
-            fetchComments(blogId); // Refresh comments
-          } else {
-            alert('Error posting comment. Please try again.');
-          }
-        } catch (error) {
-          console.error('Error posting comment:', error);
-          alert('Error posting comment. Please try again.');
-        }
+        form.reset();
+        if (parentId) form.classList.add('d-none');
+        fetchComments(blogId); // Refresh comments
       }
 
-      // Initial Fetch
+      // Initialize with some sample comments in localStorage (for testing)
+      function initializeSampleComments() {
+        const sampleComments = {
+          comments_1: [
+            ...Array(10).fill().map((_, i) => ({
+              id: i + 1,
+              blogId: 1,
+              user: { username: `User${i + 1}` },
+              content: `Comment ${i + 1} on flood prediction!`,
+              parentId: i === 1 ? 1 : null,
+              created_at: `2025-05-21T${10 + i}:30:00Z`
+            }))
+          ],
+          comments_2: [
+            ...Array(6).fill().map((_, i) => ({
+              id: i + 11,
+              blogId: 2,
+              user: { username: `User${i + 11}` },
+              content: `Comment ${i + 1} on water monitoring!`,
+              parentId: i === 1 ? 11 : null,
+              created_at: `2025-05-16T${9 + i}:45:00Z`
+            }))
+          ],
+          comments_3: [
+            {
+              id: 17,
+              blogId: 3,
+              user: { username: 'David Kimani' },
+              content: 'Great insights! How customizable are the risk reports for specific regions?',
+              parentId: null,
+              created_at: '2025-05-11T11:20:00Z'
+            },
+            {
+              id: 18,
+              blogId: 3,
+              user: { username: 'FLIPS Team' },
+              content: 'Thanks, David! Reports are highly customizable by region. Reach out for a demo!',
+              parentId: 17,
+              created_at: '2025-05-11T16:30:00Z'
+            }
+          ]
+        };
+
+        Object.keys(sampleComments).forEach(key => {
+          if (!localStorage.getItem(key)) {
+            localStorage.setItem(key, JSON.stringify(sampleComments[key]));
+          }
+        });
+      }
+
+      // Initialize
+      initializeSampleComments();
       fetchBlogPosts();
     });
   </script>
