@@ -678,11 +678,8 @@
                 const planResponse = await axios.get(`${BASE_URL}/subscription/plans/${planId}/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
-                console.log('Plan Response:', planResponse.data);
-
                 let planData = planResponse.data;
                 if (Array.isArray(planResponse.data)) {
-                    console.warn('API returned an array instead of a single plan object. Attempting to find plan with id:', planId);
                     planData = planResponse.data.find(plan => plan.id === parseInt(planId));
                     if (!planData) {
                         throw new Error(`Plan with id ${planId} not found in API response array`);
@@ -700,6 +697,18 @@
                 if (selectedPlanPrice === 0) {
                     await subscribeToFreePlan(planId);
                     return;
+                }
+
+                // Subscribe to initiate paid plan flow
+                const subscribeResponse = await axios.post(`${BASE_URL}/subscription/subscribe/`, {
+                    planId: planId
+                }, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('Subscribe Response for Paid Plan:', subscribeResponse.data);
+
+                if (subscribeResponse.status !== 202) {
+                    throw new Error(subscribeResponse.data.message || 'Failed to initiate payment process.');
                 }
 
                 // Update UI with plan details for paid plans
@@ -838,11 +847,14 @@
                     throw new Error('Invalid plan data received: missing id or name');
                 }
 
+                console.log('Plan details:', { id: planData.id, name: planData.name, price: planData.price, priceType: typeof planData.price });
+
                 if (parseFloat(planData.price) !== 0) {
                     throw new Error('Selected plan is not free. Please choose a free plan or proceed with payment.');
                 }
 
                 // Subscribe to the free plan
+                console.log('Submitting free plan subscription:', { planId });
                 const subscribeResponse = await axios.post(`${BASE_URL}/subscription/subscribe/`, {
                     planId: planId
                 }, {
@@ -863,7 +875,7 @@
                 console.error('Error subscribing to free plan:', error.response ? error.response.data : error.message);
                 showErrorModal(error.response?.data?.detail || error.message || 'Failed to subscribe to the free plan. Please try again.');
             }
-        };
+        };;
 
         // Check Subscription Status
         const checkSubscriptionStatus = async () => {
