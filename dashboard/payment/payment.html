@@ -654,6 +654,7 @@
             document.getElementById('paymentSelection').classList.add('d-none');
             offcanvas.show();
         };
+        
         const showPaymentPanel = async (planId) => {
             if (!planId) {
                 console.error('No planId provided to showPaymentPanel');
@@ -690,7 +691,13 @@
                 selectedPlanPrice = parseFloat(planData.price) || 0;
                 const selectedPlanName = planData.name;
 
-                // Update UI with plan details
+                // Check if the plan is free
+                if (selectedPlanPrice === 0) {
+                    await subscribeToFreePlan(planId);
+                    return;
+                }
+
+                // Update UI with plan details for paid plans
                 document.getElementById('selectedPlanName').textContent = selectedPlanName;
                 document.getElementById('selectedPlanAmount').textContent = selectedPlanPrice.toFixed(2);
                 document.getElementById('paybillAmount').value = selectedPlanPrice;
@@ -749,7 +756,7 @@
         };
 
         // Load Plans
-        const loadPlans = async () => {
+       const loadPlans = async () => {
             const token = sessionStorage.getItem("token");
             if (!token) {
                 console.log('No token available for plans request, redirecting to login');
@@ -772,20 +779,21 @@
                         console.warn('Invalid plan data:', plan);
                         return;
                     }
+                    const isFreePlan = parseFloat(plan.price) === 0;
                     const promotionBadge = plan.is_promotion_active ? '<span class="badge bg-primary mb-2">Promotion Active</span>' : '';
                     plansList.insertAdjacentHTML("beforeend", `
                         <div class="card mb-3">
                             <div class="card-body">
                                 <h5 class="card-title">${plan.name}</h5>
                                 ${promotionBadge}
-                                <p><strong>KES ${parseFloat(plan.price).toFixed(2)}/month</strong></p>
+                                <p><strong>${isFreePlan ? 'Free' : `KES ${parseFloat(plan.price).toFixed(2)}/month`}</strong></p>
                                 <p>${plan.description || 'No description available'}</p>
                                 <ul>
                                     <li><i class="bi bi-check-circle"></i> Real-time water monitoring</li>
                                     <li><i class="bi bi-check-circle"></i> Flood prediction models</li>
                                     ${plan.name.toLowerCase().includes('premium') ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
                                 </ul>
-                                <button class="btn btn-primary w-100" onclick="showPaymentPanel(${plan.id})">Choose Plan</button>
+                                <button class="btn ${isFreePlan ? 'btn-success' : 'btn-primary'} w-100" onclick="${isFreePlan ? `subscribeToFreePlan(${plan.id})` : `showPaymentPanel(${plan.id})`}">${isFreePlan ? 'Select Free Plan' : 'Choose Plan'}</button>
                             </div>
                         </div>
                     `);
@@ -793,6 +801,59 @@
             } catch (error) {
                 console.error('Error loading plans:', error.response ? error.response.data : error.message);
                 showErrorModal("Failed to load plans. Please check your connection and try again.");
+            }
+        };
+
+        const subscribeToFreePlan = async (planId) => {
+            if (!planId) {
+                console.error('No planId provided for free plan subscription');
+                showErrorModal('Invalid plan selected. Please try again.');
+                return;
+            }
+            try {
+                const token = sessionStorage.getItem("token");
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+
+                // Fetch plan details to confirm it's free
+                const planResponse = await axios.get(`${BASE_URL}/subscription/plans/${planId}/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                let planData = planResponse.data;
+                if (Array.isArray(planResponse.data)) {
+                    planData = planResponse.data.find(plan => plan.id === parseInt(planId));
+                    if (!planData) {
+                        throw new Error(`Plan with id ${planId} not found in API response array`);
+                    }
+                }
+
+                if (!planData || !planData.id || !planData.name) {
+                    throw new Error('Invalid plan data received: missing id or name');
+                }
+
+                if (parseFloat(planData.price) !== 0) {
+                    throw new Error('Selected plan is not free. Please choose a free plan or proceed with payment.');
+                }
+
+                // Subscribe to the free plan
+                const subscribeResponse = await axios.post(`${BASE_URL}/subscription/subscribe/`, {
+                    plan_id: planId
+                }, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('Free Plan Subscription Response:', subscribeResponse.data);
+
+                // Update subscription status and redirect to dashboard
+                await checkSubscriptionStatus();
+                showErrorModal('Successfully subscribed to the free plan! Redirecting to your dashboard...');
+                bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+
+                // Redirect to dashboard
+                await getDashboardUrl();
+            } catch (error) {
+                console.error('Error subscribing to free plan:', error.response ? error.response.data : error.message);
+                showErrorModal(error.response?.data?.error || 'Failed to subscribe to the free plan. Please try again.');
             }
         };
 
@@ -807,8 +868,9 @@
                 console.log('Subscription Status Response:', response.data);
                 statusElement.classList.remove("alert-info", "alert-danger", "alert-warning");
                 if (response.data.isSubscribed) {
+                    const isFreePlan = response.data.plan_price === 0; // Assuming API returns plan_price
                     statusElement.classList.add("alert-success");
-                    statusElement.innerHTML = "You are actively subscribed. Enjoy full access to FLIPS services! <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                    statusElement.innerHTML = `You are ${isFreePlan ? 'on the free plan' : 'actively subscribed'}. Enjoy ${isFreePlan ? 'basic' : 'full'} access to FLIPS services! <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>`;
                     document.getElementById("getDashboardUrlButton").classList.remove("d-none");
                     document.getElementById("verifyPaymentButtonContainer").classList.add("d-none");
                 } else {
