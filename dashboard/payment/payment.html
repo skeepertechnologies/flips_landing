@@ -20,6 +20,21 @@
             overflow: hidden;
             position: relative;
         }
+        .btn-primary {
+            background-color: #1d0979;
+            border-color: #1d0979;
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background-color: #15055a;
+            border-color: #15055a;
+        }
+        .back-to-top {
+            background-color: #1d0979;
+            border: none;
+        }
 
         /* Static flickering stars */
         .stars {
@@ -196,13 +211,14 @@
                 padding: 1.5rem;
             }
         }
-        .custom-offcanvas {
+       .custom-offcanvas {
             position: fixed;
             top: 50% !important;
             left: 50% !important;
             transform: translate(-50%, -50%) !important;
-            width: 90%;
-            max-width: 800px; /* Increased from 600px to 800px for a wider modal */
+            width: 65%; /* Set to 65% of page width */
+            max-width: 900px; /* Increased to allow wider modal on larger screens */
+            min-width: 600px; /* Ensure minimum width for smaller screens */
             height: auto;
             max-height: 90vh;
             overflow-y: auto;
@@ -213,9 +229,14 @@
             padding: 1.5rem;
             display: none; /* Prevent flash before JS triggers */
         }
-
         .custom-offcanvas.show {
           display: block;
+        }
+        @media (max-width: 768px) {
+            .custom-offcanvas {
+                width: 90% !important; /* Override to 90% for smaller screens */
+                min-width: 0; /* Remove min-width constraint for very small screens */
+            }
         }
     </style>
 </head>
@@ -311,6 +332,79 @@
                 </div>
             </div>
         </section>
+        <!-- Features Section -->
+        <section class="py-5">
+            <div class="container">
+                <h2 class="text-center mb-5 fw-bold" style="color: #1d0979;">Why Choose FLIPS?</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="feature-card text-center p-4">
+                            <i class="bi bi-water text-primary" style="font-size: 2rem;"></i>
+                            <h5 class="mt-3">Advanced Water Management</h5>
+                            <p>Monitor and manage water resources with real-time data and analytics.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card text-center p-4">
+                            <i class="bi bi-shield-check text-primary" style="font-size: 2rem;"></i>
+                            <h5 class="mt-3">Flood Prediction</h5>
+                            <p>Predict and prepare for floods with our AI-driven models.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card text-center p-4">
+                            <i class="bi bi-graph-up text-primary" style="font-size: 2rem;"></i>
+                            <h5 class="mt-3">ML Insights</h5>
+                            <p>Leverage machine learning for accurate water level predictions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- FAQ Section -->
+        <section class="py-5 bg-light">
+            <div class="container">
+                <h2 class="text-center mb-5 fw-bold" style="color: #1d0979;">Frequently Asked Questions</h2>
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq1">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                                What is included in each plan?
+                            </button>
+                        </h2>
+                        <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Each plan offers access to FLIPS’ core features, with higher tiers including advanced analytics, priority support, and exclusive tools.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq2">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                                Can I change my plan later?
+                            </button>
+                        </h2>
+                        <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, you can upgrade or downgrade your plan at any time from your account settings.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq3">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                                How do I verify my payment?
+                            </button>
+                        </h2>
+                        <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                For M-Pesa Paybill payments, enter your transaction ID in the verification modal.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- Centered Offcanvas Styled as a Modal -->
@@ -326,13 +420,21 @@
             </div>
             <div id="paymentSelection" class="payment-details d-none">
                 <h5 class="mb-3 text-primary">Payment Details</h5>
+                <div id="selectedPlanInfo" class="mb-3">
+                    <p><strong>Selected Plan:</strong> <span id="selectedPlanName"></span></p>
+                    <p><strong>Amount:</strong> KES <span id="selectedPlanAmount"></span></p>
+                    <div id="stkPushButtonContainer" class="mt-2 d-none">
+                        <button id="initiateStkPushButton" class="btn btn-success" onclick="initiateStkPush()">Initiate STK Push</button>
+                    </div>
+                </div>
                 <form id="paymentForm">
                     <div class="mb-3">
                         <label for="paymentMethod" class="form-label">Payment Method</label>
                         <select class="form-select" id="paymentMethod" required>
                             <option value="">Select a payment method</option>
-                            <option value="card">Credit/Debit Card (MasterCard)</option>
                             <option value="paybill">M-Pesa Paybill</option>
+                            <option value="stk_push">M-Pesa STK Push</option>
+                            <option value="card">Credit/Debit Card (MasterCard)</option>
                         </select>
                     </div>
                     <!-- Card Payment Fields -->
@@ -346,22 +448,22 @@
                     <!-- M-Pesa Paybill Fields -->
                     <div id="paybillPaymentFields" class="d-none">
                         <div class="paybill-instructions mb-3">
-                            <h6 class="mb-2">How to Pay via M-Pesa Paybill</h6>
+                            <h6 class="mb-3">How to Pay via M-Pesa Paybill</h6>
                             <ul class="small">
                                 <li>Go to Safaricom Menu > M-Pesa > Lipa na M-Pesa > Paybill.</li>
                                 <li>Enter the Paybill Number below.</li>
-                                <li>Enter the Account Number below (or your email).</li>
+                                <li>Enter the Account Number below (or your phone number).</li>
                                 <li>Enter the Amount and confirm the payment.</li>
                                 <li>Enter the M-Pesa Transaction ID received via SMS below.</li>
                             </ul>
                         </div>
                         <div class="mb-3">
                             <label for="paybillNumber" class="form-label">Paybill Number</label>
-                            <input type="text" class="form-control" id="paybillNumber" value="123456" readonly>
+                            <input type="text" class="form-control" id="paybillNumber" readonly>
                         </div>
                         <div class="mb-3">
-                            <label for="accountNumber" class="form-label">Account Number</label>
-                            <input type="text" class="form-control" id="accountNumber" placeholder="Your email or account ID">
+                            <label for="accountNumber" class="form-label">Account Number (Phone Number)</label>
+                            <input type="text" class="form-control" id="accountNumber" placeholder="Your phone number">
                         </div>
                         <div class="mb-3">
                             <label for="paybillAmount" class="form-label">Amount (KES)</label>
@@ -373,7 +475,27 @@
                             <div id="transactionIdError" class="text-danger small mt-1"></div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 mt-3">Proceed to Payment</button>
+                    <!-- M-Pesa STK Push Fields -->
+                    <div id="stkPushPaymentFields" class="d-none">
+                        <div class="stk-push-instructions mb-3">
+                            <h6 class="mb-3">How to Pay via M-Pesa STK Push</h6>
+                            <ul class="small">
+                                <li>Enter your phone number below.</li>
+                                <li>Click 'Initiate STK Push' to receive a payment prompt on your phone.</li>
+                                <li>Enter your M-Pesa PIN to authorize the payment.</li>
+                                <li>Wait for confirmation and verify the payment using the Transaction ID.</li>
+                            </ul>
+                        </div>
+                        <div class="mb-3">
+                            <label for="stkAccountNumber" class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" id="stkAccountNumber" placeholder="e.g., +254712345678">
+                        </div>
+                        <div class="mb-3">
+                            <label for="stkAmount" class="form-label">Amount (KES)</label>
+                            <input type="number" class="form-control" id="stkAmount" readonly>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-3" id="paymentFormSubmit">Proceed to Payment</button>
                 </form>
             </div>
         </div>
@@ -495,7 +617,10 @@
         let idleTimeout;
         let selectedPlanId = null;
         let selectedPlanPrice = null;
-        const stripe = Stripe('pk_test_your_stripe_publishable_key'); // Replace with your Stripe publishable key
+        let paybillNumber = null;
+
+        // Stripe initialization
+        const stripe = Stripe('pk_test_your_stripe_publishable_key');
         const elements = stripe.elements();
         const cardElement = elements.create('card');
         cardElement.mount('#cardElement');
@@ -530,21 +655,77 @@
             offcanvas.show();
         };
         const showPaymentPanel = async (planId) => {
+            if (!planId) {
+                console.error('No planId provided to showPaymentPanel');
+                showErrorModal('Invalid plan selected. Please try again.');
+                return;
+            }
             selectedPlanId = planId;
+            console.log('Selected Plan ID:', planId);
             try {
                 const token = sessionStorage.getItem("token");
-                const response = await axios.get(`${BASE_URL}/subscription/plans/${planId}/`, {
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+
+                // Fetch plan details
+                const planResponse = await axios.get(`${BASE_URL}/subscription/plans/${planId}/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
-                selectedPlanPrice = response.data.price;
+                console.log('Plan Response:', planResponse.data);
+
+                let planData = planResponse.data;
+                if (Array.isArray(planResponse.data)) {
+                    console.warn('API returned an array instead of a single plan object. Attempting to find plan with id:', planId);
+                    planData = planResponse.data.find(plan => plan.id === parseInt(planId));
+                    if (!planData) {
+                        throw new Error(`Plan with id ${planId} not found in API response array`);
+                    }
+                }
+
+                if (!planData || !planData.id || !planData.name) {
+                    throw new Error('Invalid plan data received: missing id or name');
+                }
+
+                selectedPlanPrice = parseFloat(planData.price) || 0;
+                const selectedPlanName = planData.name;
+
+                // Update UI with plan details
+                document.getElementById('selectedPlanName').textContent = selectedPlanName;
+                document.getElementById('selectedPlanAmount').textContent = selectedPlanPrice.toFixed(2);
                 document.getElementById('paybillAmount').value = selectedPlanPrice;
-                const email = sessionStorage.getItem("email");
-                document.getElementById('accountNumber').value = email || '';
+                document.getElementById('stkAmount').value = selectedPlanPrice;
+
+                // Fetch Paybill number from backend
+                const paymentMethodResponse = await axios.get(`${BASE_URL}/payments/payment-methods/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('Payment Methods Response:', paymentMethodResponse.data);
+                let paybillMethod = paymentMethodResponse.data.find(method =>
+                    method.name.toLowerCase().includes('m-pesa') || method.name.toLowerCase().includes('mpesa')
+                );
+                if (!paybillMethod) {
+                    paybillMethod = paymentMethodResponse.data.find(method => method.paybill_number);
+                }
+                if (paybillMethod && paybillMethod.paybill_number) {
+                    paybillNumber = paybillMethod.paybill_number;
+                    document.getElementById('paybillNumber').value = paybillNumber;
+                } else {
+                    throw new Error('No valid Paybill number found in payment methods.');
+                }
+
+                const phoneNumber = sessionStorage.getItem("phone_number") || '';
+                document.getElementById('accountNumber').value = phoneNumber || '';
+                document.getElementById('stkAccountNumber').value = phoneNumber || '';
+                if (!phoneNumber) {
+                    console.warn('No phone number found in sessionStorage');
+                }
+
                 document.getElementById('planSelection').classList.add('d-none');
                 document.getElementById('paymentSelection').classList.remove('d-none');
             } catch (error) {
-                console.error('Error fetching plan details:', error.response ? error.response.data : error.message);
-                showErrorModal("Failed to load plan details. Please select a different plan or try again.");
+                console.error('Error fetching plan or payment method details:', error.response ? error.response.data : error.message);
+                showErrorModal(`Failed to load plan details: ${error.response?.data?.error || error.message}. Please select a different plan or try again.`);
             }
         };
 
@@ -557,6 +738,7 @@
                 console.log('User Data Response:', response.data);
                 sessionStorage.setItem("username", response.data.username);
                 sessionStorage.setItem("email", response.data.email);
+                sessionStorage.setItem("phone_number", response.data.phone_number || '');
                 document.getElementById("userEmail").textContent = response.data.email || 'User';
             } catch (error) {
                 console.error('Error loading user data:', error.response ? error.response.data : error.message);
@@ -581,28 +763,36 @@
                 console.log('Plans Response:', response.data);
                 const plansList = document.getElementById("plansList");
                 plansList.innerHTML = "";
+                if (!Array.isArray(response.data) || response.data.length === 0) {
+                    plansList.innerHTML = '<p>No plans available at this time.</p>';
+                    return;
+                }
                 response.data.forEach(plan => {
+                    if (!plan.id || !plan.name || plan.price == null) {
+                        console.warn('Invalid plan data:', plan);
+                        return;
+                    }
                     const promotionBadge = plan.is_promotion_active ? '<span class="badge bg-primary mb-2">Promotion Active</span>' : '';
                     plansList.insertAdjacentHTML("beforeend", `
                         <div class="card mb-3">
                             <div class="card-body">
                                 <h5 class="card-title">${plan.name}</h5>
                                 ${promotionBadge}
-                                <p><strong>KES ${plan.price}/month</strong></p>
-                                <p>${plan.description}</p>
+                                <p><strong>KES ${parseFloat(plan.price).toFixed(2)}/month</strong></p>
+                                <p>${plan.description || 'No description available'}</p>
                                 <ul>
                                     <li><i class="bi bi-check-circle"></i> Real-time water monitoring</li>
                                     <li><i class="bi bi-check-circle"></i> Flood prediction models</li>
-                                    ${plan.name === 'Premium' ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
+                                    ${plan.name.toLowerCase().includes('premium') ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
                                 </ul>
-                                <button class="btn btn-primary w-100" onclick="showPaymentPanel('${plan.id}')">Choose Plan</button>
+                                <button class="btn btn-primary w-100" onclick="showPaymentPanel(${plan.id})">Choose Plan</button>
                             </div>
                         </div>
                     `);
                 });
             } catch (error) {
                 console.error('Error loading plans:', error.response ? error.response.data : error.message);
-                showErrorModal("Failed to load plans. Please try again.");
+                showErrorModal("Failed to load plans. Please check your connection and try again.");
             }
         };
 
@@ -642,54 +832,100 @@
             return regex.test(transactionId);
         };
 
+        // Validate Phone Number
+        const validatePhoneNumber = (phoneNumber) => {
+            if (!phoneNumber || typeof phoneNumber !== 'string') {
+                console.warn('Invalid phone number input:', phoneNumber);
+                return false;
+            }
+            const cleanedNumber = phoneNumber.replace(/[\s-]/g, '');
+            const regex = /^(?:\+2547[0-9]{8}|07[0-9]{8}|7[0-9]{8})$/;
+            const isValid = regex.test(cleanedNumber);
+            console.log('Phone number validation:', { input: phoneNumber, cleaned: cleanedNumber, isValid });
+            return isValid;
+        };
+
+        // Normalize Phone Number
+        const normalizePhoneNumber = (phoneNumber) => {
+            if (!phoneNumber || typeof phoneNumber !== 'string') {
+                console.warn('Invalid phone number for normalization:', phoneNumber);
+                return '';
+            }
+            const cleanedNumber = phoneNumber.replace(/[\s-]/g, '');
+            if (/^\+2547[0-9]{8}$/.test(cleanedNumber)) {
+                return cleanedNumber;
+            } else if (/^07[0-9]{8}$/.test(cleanedNumber)) {
+                return '+254' + cleanedNumber.slice(1);
+            } else if (/^7[0-9]{8}$/.test(cleanedNumber)) {
+                return '+254' + cleanedNumber;
+            }
+            console.warn('Phone number not normalized, returning cleaned:', cleanedNumber);
+            return cleanedNumber;
+        };
+
+        // Initiate STK Push Payment
+        const initiateStkPush = async () => {
+            const token = sessionStorage.getItem("token");
+            const accountNumber = document.getElementById("stkAccountNumber").value;
+            const amount = document.getElementById("stkAmount").value;
+
+            if (!accountNumber) {
+                showErrorModal("Phone number is required for STK Push payment.");
+                return;
+            }
+            if (!validatePhoneNumber(accountNumber)) {
+                showErrorModal("Invalid phone number format. Use +2547XXXXXXXX, 07XXXXXXXX, or 7XXXXXXXX.");
+                return;
+            }
+            if (!amount || isNaN(parseFloat(amount))) {
+                showErrorModal("Valid amount is required for STK Push payment.");
+                return;
+            }
+
+            const normalizedPhoneNumber = normalizePhoneNumber(accountNumber);
+            console.log('Initiating STK Push with:', { accountNumber, normalizedPhoneNumber, amount });
+
+            try {
+                const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+                    plan: selectedPlanId,
+                    payment_type: 'stk_push',
+                    account_number: normalizedPhoneNumber,
+                    amount: parseFloat(amount)
+                }, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('STK Push Payment Response:', response.data);
+                showErrorModal(response.data.message || "STK Push initiated successfully! Please check your phone to complete the payment.");
+                checkSubscriptionStatus();
+                bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+            } catch (error) {
+                console.error('Error initiating STK Push:', error.response ? error.response.data : error.message);
+                showErrorModal(error.response?.data?.error || "Failed to initiate STK Push. Please try again.");
+            }
+        };
+
         // Handle Payment
         const handlePayment = async (e) => {
             e.preventDefault();
             const token = sessionStorage.getItem("token");
             const paymentMethod = document.getElementById("paymentMethod").value;
+
             try {
-                if (paymentMethod === "card") {
-                    const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
-                        plan: selectedPlanId,
-                        payment_type: 'card'
-                    }, {
-                        headers: { Authorization: `Token ${token}` }
-                    });
-                    console.log('Payment Initiation Response:', response.data);
-                    const { client_secret } = response.data;
-                    const { paymentIntent, error } = await stripe.confirmCardPayment(client_secret, {
-                        payment_method: {
-                            card: cardElement
-                        }
-                    });
-                    if (error) {
-                        showErrorModal(error.message);
-                        return;
-                    }
-                    if (paymentIntent.status === 'succeeded') {
-                        await axios.post(`${BASE_URL}/payments/verify-payment/`, {
-                            unique_reference: paymentIntent.id
-                        }, {
-                            headers: { Authorization: `Token ${token}` }
-                        });
-                        showErrorModal("Payment processed successfully!");
-                        checkSubscriptionStatus();
-                        bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
-                    } else {
-                        showErrorModal("Payment failed. Please try again.");
-                    }
-                } else if (paymentMethod === "paybill") {
-                    const paybillNumber = document.getElementById("paybillNumber").value;
+                if (paymentMethod === "paybill") {
                     const accountNumber = document.getElementById("accountNumber").value;
                     const amount = document.getElementById("paybillAmount").value;
                     const transactionId = document.getElementById("transactionId").value;
 
                     if (!accountNumber) {
-                        showErrorModal("Account number is required for Paybill payment.");
+                        showErrorModal("Account number (phone number) is required for Paybill payment.");
                         return;
                     }
-                    if (!amount) {
-                        showErrorModal("Amount is required for Paybill payment.");
+                    if (!validatePhoneNumber(accountNumber)) {
+                        showErrorModal("Invalid phone number format for Paybill. Use +2547XXXXXXXX, 07XXXXXXXX, or 7XXXXXXXX.");
+                        return;
+                    }
+                    if (!amount || isNaN(parseFloat(amount))) {
+                        showErrorModal("Valid amount is required for Paybill payment.");
                         return;
                     }
                     if (!transactionId) {
@@ -701,11 +937,14 @@
                         return;
                     }
 
+                    const normalizedPhoneNumber = normalizePhoneNumber(accountNumber);
+                    console.log('Initiating Paybill with:', { accountNumber, normalizedPhoneNumber, amount, transactionId });
+
                     const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
                         plan: selectedPlanId,
                         payment_type: 'paybill',
                         paybill_number: paybillNumber,
-                        account_number: accountNumber,
+                        account_number: normalizedPhoneNumber,
                         amount: parseFloat(amount),
                         transaction_id: transactionId
                     }, {
@@ -715,6 +954,35 @@
                     showErrorModal("Paybill payment submitted successfully! Awaiting verification.");
                     checkSubscriptionStatus();
                     bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                } else if (paymentMethod === "card") {
+                    const { paymentIntent, error } = await stripe.confirmCardPayment(
+                        sessionStorage.getItem("clientSecret"),
+                        {
+                            payment_method: {
+                                card: cardElement,
+                            },
+                        }
+                    );
+                    if (error) {
+                        document.getElementById("cardErrors").textContent = error.message;
+                        return;
+                    }
+                    const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
+                        plan: selectedPlanId,
+                        payment_type: 'card',
+                        amount: parseFloat(selectedPlanPrice),
+                        payment_intent_id: paymentIntent.id
+                    }, {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    console.log('Card Payment Response:', response.data);
+                    showErrorModal("Card payment submitted successfully! Awaiting verification.");
+                    checkSubscriptionStatus();
+                    bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                } else if (paymentMethod === "stk_push") {
+                    showErrorModal("Please use the 'Initiate STK Push' button to proceed with STK Push payment.");
+                } else {
+                    showErrorModal("Selected payment method is not supported.");
                 }
             } catch (error) {
                 console.error('Error processing payment:', error.response ? error.response.data : error.message);
@@ -812,6 +1080,7 @@
                 }
                 document.getElementById("userEmail").textContent = userInfoResponse.data.email || 'User';
                 sessionStorage.setItem("username", userInfoResponse.data.username);
+                sessionStorage.setItem("phone_number", userInfoResponse.data.phone_number || '');
             } catch (error) {
                 console.error('Error validating user data:', error.response ? error.response.data : error.message);
                 sessionStorage.clear();
@@ -821,6 +1090,14 @@
 
             await checkSubscriptionStatus();
             await loadPlans();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const planIdFromUrl = urlParams.get('planId');
+            if (planIdFromUrl) {
+                console.log('Plan ID from URL:', planIdFromUrl);
+                showPaymentPanel(parseInt(planIdFromUrl));
+            }
+
             document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
                 e.preventDefault();
                 const uniqueReference = document.getElementById("uniqueReference").value;
@@ -831,16 +1108,23 @@
             document.getElementById("paymentMethod").addEventListener("change", (e) => {
                 const cardFields = document.getElementById("cardPaymentFields");
                 const paybillFields = document.getElementById("paybillPaymentFields");
+                const stkPushFields = document.getElementById("stkPushPaymentFields");
+                const stkPushButton = document.getElementById("stkPushButtonContainer");
+
+                cardFields.classList.add("d-none");
+                paybillFields.classList.add("d-none");
+                stkPushFields.classList.add("d-none");
+                stkPushButton.classList.add("d-none");
+
                 if (e.target.value === "card") {
                     cardFields.classList.remove("d-none");
-                    paybillFields.classList.add("d-none");
                 } else if (e.target.value === "paybill") {
-                    cardFields.classList.add("d-none");
                     paybillFields.classList.remove("d-none");
-                } else {
-                    cardFields.classList.add("d-none");
-                    paybillFields.classList.add("d-none");
+                } else if (e.target.value === "stk_push") {
+                    stkPushFields.classList.remove("d-none");
+                    stkPushButton.classList.remove("d-none");
                 }
+
                 document.getElementById("transactionIdError").textContent = "";
             });
         });
