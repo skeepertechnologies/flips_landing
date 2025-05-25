@@ -647,6 +647,11 @@
             document.querySelector('#errorModal .modal-body').textContent = message || 'An error occurred. Please try again.';
             const modal = new bootstrap.Modal(document.getElementById('errorModal'));
             modal.show();
+            // Focus the close button to avoid aria-hidden issue
+            setTimeout(() => {
+                const closeButton = document.querySelector('#errorModal .btn-close');
+                if (closeButton) closeButton.focus();
+            }, 0);
         };
         const showPlansPanel = () => {
             const offcanvas = new bootstrap.Offcanvas(document.getElementById('plansOffcanvas'));
@@ -779,6 +784,7 @@
                         console.warn('Invalid plan data:', plan);
                         return;
                     }
+                    console.log('Rendering plan:', { id: plan.id, name: plan.name, price: plan.price }); // Debug log
                     const isFreePlan = parseFloat(plan.price) === 0;
                     const promotionBadge = plan.is_promotion_active ? '<span class="badge bg-primary mb-2">Promotion Active</span>' : '';
                     plansList.insertAdjacentHTML("beforeend", `
@@ -838,22 +844,24 @@
 
                 // Subscribe to the free plan
                 const subscribeResponse = await axios.post(`${BASE_URL}/subscription/subscribe/`, {
-                    plan_id: planId
+                    planId: planId
                 }, {
                     headers: { Authorization: `Token ${token}` }
                 });
                 console.log('Free Plan Subscription Response:', subscribeResponse.data);
 
-                // Update subscription status and redirect to dashboard
-                await checkSubscriptionStatus();
-                showErrorModal('Successfully subscribed to the free plan! Redirecting to your dashboard...');
-                bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
-
-                // Redirect to dashboard
-                await getDashboardUrl();
+                // Check if subscription was successful
+                if (subscribeResponse.status === 201) {
+                    await checkSubscriptionStatus();
+                    showErrorModal(subscribeResponse.data.message || 'Successfully subscribed to the free plan for 14 days! Redirecting to your dashboard...');
+                    bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                    await getDashboardUrl();
+                } else {
+                    throw new Error(subscribeResponse.data.message || 'Unexpected response from subscription endpoint.');
+                }
             } catch (error) {
                 console.error('Error subscribing to free plan:', error.response ? error.response.data : error.message);
-                showErrorModal(error.response?.data?.error || 'Failed to subscribe to the free plan. Please try again.');
+                showErrorModal(error.response?.data?.detail || error.message || 'Failed to subscribe to the free plan. Please try again.');
             }
         };
 
@@ -862,13 +870,13 @@
             const token = sessionStorage.getItem("token");
             const statusElement = document.getElementById("subscriptionStatus");
             try {
-                const response = await axios.get(`${BASE_URL}/payments/verify-subscription/`, {
+                const response = await axios.get(`${BASE_URL}/subscription/status/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
                 console.log('Subscription Status Response:', response.data);
                 statusElement.classList.remove("alert-info", "alert-danger", "alert-warning");
                 if (response.data.isSubscribed) {
-                    const isFreePlan = response.data.plan_price === 0; // Assuming API returns plan_price
+                    const isFreePlan = response.data.planName.toLowerCase() === 'free';
                     statusElement.classList.add("alert-success");
                     statusElement.innerHTML = `You are ${isFreePlan ? 'on the free plan' : 'actively subscribed'}. Enjoy ${isFreePlan ? 'basic' : 'full'} access to FLIPS services! <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>`;
                     document.getElementById("getDashboardUrlButton").classList.remove("d-none");
