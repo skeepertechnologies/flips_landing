@@ -751,7 +751,7 @@ function saveModel(event) {
     const attributes = Array.from(document.getElementById('attributesSelect').selectedOptions).map(option => option.value);
     const mlModel = document.getElementById('mlModelSelect').value;
     const token = localStorage.getItem('token');
-    const backendBaseUrl = 'https://api.flipsintel.org';
+    const backendBaseUrl = 'http://flipsintel.org:8000';
 
     // Validate inputs
     if (!name || !sensorId || attributes.length === 0 || !mlModel) {
@@ -883,7 +883,7 @@ function viewReport(modelId) {
     const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
     reportModal.show();
 
-    const backendBaseUrl = 'https://api.flipsintel.org';
+    const backendBaseUrl = 'http://flipsintel.org:8000';
     const token = localStorage.getItem('token');
 
     // Reset modal content

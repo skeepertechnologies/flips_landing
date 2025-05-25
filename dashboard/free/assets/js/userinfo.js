@@ -1,7 +1,7 @@
 // userinfo.js
 const BASE_URL = 'https://api.flipsintel.org';
 
-// Function to fetch user information
+// Fetch user information
 function fetchUserInfo() {
     const token = sessionStorage.getItem('token');
     const isVerified = sessionStorage.getItem('is_verified') === 'true';
@@ -9,31 +9,25 @@ function fetchUserInfo() {
 
     console.log('Session data on page load:', { token, isVerified, email });
 
-    // Check if token exists
     if (!token) {
         console.log('No token found, redirecting to login');
         window.location.href = '../login/login.html';
         return;
     }
 
-    // Check if email is verified
     if (!isVerified) {
         console.log('Email not verified, redirecting to verify-email');
         window.location.href = '../login/verify-email.html';
         return;
     }
 
-    // Fetch user information from the API
     axios.get(`${BASE_URL}/api/user-info/`, {
-        headers: {
-            'Authorization': `Token ${token}`,
-        },
+        headers: { 'Authorization': `Token ${token}` },
     })
     .then(response => {
         const userData = response.data;
         console.log('User info:', userData);
 
-        // Validate email consistency
         if (userData.email !== email) {
             console.warn('Email mismatch between sessionStorage and API');
             sessionStorage.clear();
@@ -41,11 +35,18 @@ function fetchUserInfo() {
             return;
         }
 
-        // Update the email in the dropdown
         const emailElement = document.getElementById('userEmail');
-        emailElement.textContent = userData.email || 'User';
+        if (emailElement) {
+            emailElement.textContent = userData.email || 'User';
+        } else {
+            console.warn('Element #userEmail not found in DOM');
+        }
 
-        // Store additional user data
+        const usernameElement = document.getElementById('username');
+        if (usernameElement) {
+            usernameElement.textContent = userData.username || 'User';
+        }
+
         sessionStorage.setItem('username', userData.username || '');
     })
     .catch(error => {
@@ -70,11 +71,9 @@ function handleLogout() {
     }
 
     axios.post(`${BASE_URL}/logout/`, {}, {
-        headers: {
-            'Authorization': `Token ${token}`,
-        },
+        headers: { 'Authorization': `Token ${token}` },
     })
-    .then(response => {
+    .then(() => {
         console.log('Logout successful');
         sessionStorage.clear();
         window.location.href = '../index.html';
@@ -86,5 +85,5 @@ function handleLogout() {
     });
 }
 
-// Initialize user information when the page loads
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', fetchUserInfo);
