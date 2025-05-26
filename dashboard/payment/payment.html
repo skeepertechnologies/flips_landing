@@ -819,6 +819,7 @@
             }
         };
 
+        // Subscribe to Free Plan
         const subscribeToFreePlan = async (planId) => {
             if (!planId) {
                 console.error('No planId provided for free plan subscription');
@@ -829,6 +830,23 @@
                 const token = sessionStorage.getItem("token");
                 if (!token) {
                     throw new Error('No authentication token found');
+                }
+
+                // Check subscription status first
+                const statusResponse = await axios.get(`${BASE_URL}/subscription/status/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                console.log('Subscription Status:', statusResponse.data);
+                if (statusResponse.data.isSubscribed && statusResponse.data.planId === parseInt(planId)) {
+                    showErrorModal('You are already subscribed to this plan. Redirecting to dashboard...');
+                    // Safely hide offcanvas if it exists
+                    const offcanvasElement = document.getElementById('plansOffcanvas');
+                    const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasElement);
+                    if (offcanvasInstance) {
+                        offcanvasInstance.hide();
+                    }
+                    await getDashboardUrl();
+                    return;
                 }
 
                 // Fetch plan details to confirm it's free
@@ -866,18 +884,35 @@
                 if (subscribeResponse.status === 201) {
                     await checkSubscriptionStatus();
                     showErrorModal(subscribeResponse.data.message || 'Successfully subscribed to the free plan for 14 days! Redirecting to your dashboard...');
-                    bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                    // Safely hide offcanvas if it exists
+                    const offcanvasElement = document.getElementById('plansOffcanvas');
+                    const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasElement);
+                    if (offcanvasInstance) {
+                        offcanvasInstance.hide();
+                    }
                     await getDashboardUrl();
                 } else {
                     throw new Error(subscribeResponse.data.message || 'Unexpected response from subscription endpoint.');
                 }
             } catch (error) {
                 console.error('Error subscribing to free plan:', error.response ? error.response.data : error.message);
-                showErrorModal(error.response?.data?.detail || error.message || 'Failed to subscribe to the free plan. Please try again.');
+                const errorMessage = error.response?.data?.detail || error.message || 'Failed to subscribe to the free plan. Please try again.';
+                showErrorModal(errorMessage);
+                if (errorMessage.includes('already subscribed')) {
+                    // Redirect to dashboard if already subscribed
+                    const offcanvasElement = document.getElementById('plansOffcanvas');
+                    const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasElement);
+                    if (offcanvasInstance) {
+                        offcanvasInstance.hide();
+                    }
+                    await getDashboardUrl();
+                } else {
+                    // Redirect to index.html for other errors
+                    window.location.href = '../index.html';
+                }
             }
-        };;
-
-        // Check Subscription Status
+        };
+        // Check Subscription Status and Redirect if Subscribed
         const checkSubscriptionStatus = async () => {
             const token = sessionStorage.getItem("token");
             const statusElement = document.getElementById("subscriptionStatus");
@@ -893,18 +928,22 @@
                     statusElement.innerHTML = `You are ${isFreePlan ? 'on the free plan' : 'actively subscribed'}. Enjoy ${isFreePlan ? 'basic' : 'full'} access to FLIPS services! <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>`;
                     document.getElementById("getDashboardUrlButton").classList.remove("d-none");
                     document.getElementById("verifyPaymentButtonContainer").classList.add("d-none");
+                    // Redirect to dashboard if already subscribed
+                    await getDashboardUrl();
                 } else {
                     statusElement.classList.add("alert-warning");
                     statusElement.innerHTML = "You are not subscribed. Please verify your payment or subscribe to a plan. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
                     document.getElementById("verifyPaymentButtonContainer").classList.remove("d-none");
                     document.getElementById("getDashboardUrlButton").classList.add("d-none");
-                    setTimeout(showVerifyPaymentModal, 1000);
+                    // Redirect to index.html for payment verification
+                    window.location.href = '../index.html';
                 }
             } catch (error) {
                 console.error('Error checking subscription status:', error.response ? error.response.data : error.message);
                 statusElement.classList.remove("alert-info", "alert-success", "alert-warning");
                 statusElement.classList.add("alert-danger");
                 statusElement.innerHTML = "Failed to check subscription status. Please try again. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                window.location.href = '../index.html';
             }
         };
 
@@ -1132,6 +1171,7 @@
 
         // Initialize Page
         document.addEventListener("DOMContentLoaded", async () => {
+
             const token = sessionStorage.getItem("token");
             const isVerified = sessionStorage.getItem("is_verified") === 'true';
             const email = sessionStorage.getItem("email");
