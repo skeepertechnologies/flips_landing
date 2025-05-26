@@ -819,7 +819,6 @@
             }
         };
 
-        // Subscribe to Free Plan
         const subscribeToFreePlan = async (planId) => {
             if (!planId) {
                 console.error('No planId provided for free plan subscription');
@@ -832,24 +831,9 @@
                     throw new Error('No authentication token found');
                 }
 
-                // Check subscription status
-                const statusResponse = await axios.get(`${BASE_URL}/subscription/status/`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (statusResponse.data.isSubscribed && statusResponse.data.planId === parseInt(planId)) {
-                    showErrorModal('You are already subscribed to this plan. Redirecting to dashboard...');
-                    const offcanvasElement = document.getElementById('plansOffcanvas');
-                    const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasElement);
-                    if (offcanvasInstance) {
-                        offcanvasInstance.hide();
-                    }
-                    await getDashboardUrl();
-                    return;
-                }
-
                 // Fetch plan details to confirm it's free
                 const planResponse = await axios.get(`${BASE_URL}/subscription/plans/${planId}/`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Token ${token}` }
                 });
                 let planData = planResponse.data;
                 if (Array.isArray(planResponse.data)) {
@@ -863,50 +847,45 @@
                     throw new Error('Invalid plan data received: missing id or name');
                 }
 
+                console.log('Plan details:', { id: planData.id, name: planData.name, price: planData.price, priceType: typeof planData.price });
+
                 if (parseFloat(planData.price) !== 0) {
-                    throw new Error('Selected plan is not free. Please choose a free plan.');
+                    throw new Error('Selected plan is not free. Please choose a free plan or proceed with payment.');
                 }
 
                 // Subscribe to the free plan
+                console.log('Submitting free plan subscription:', { planId });
                 const subscribeResponse = await axios.post(`${BASE_URL}/subscription/subscribe/`, {
                     planId: planId
                 }, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Token ${token}` }
                 });
+                console.log('Free Plan Subscription Response:', subscribeResponse.data);
 
+                // Check if subscription was successful
                 if (subscribeResponse.status === 201) {
-                    showErrorModal('Successfully subscribed to the free plan! Redirecting to dashboard...');
-                    const offcanvasElement = document.getElementById('plansOffcanvas');
-                    const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasElement);
-                    if (offcanvasInstance) {
-                        offcanvasInstance.hide();
-                    }
+                    await checkSubscriptionStatus();
+                    showErrorModal(subscribeResponse.data.message || 'Successfully subscribed to the free plan for 14 days! Redirecting to your dashboard...');
+                    bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
                     await getDashboardUrl();
                 } else {
-                    throw new Error(subscribeResponse.data.message || 'Failed to subscribe to free plan.');
+                    throw new Error(subscribeResponse.data.message || 'Unexpected response from subscription endpoint.');
                 }
             } catch (error) {
                 console.error('Error subscribing to free plan:', error.response ? error.response.data : error.message);
-                const errorMessage = error.response?.data?.detail || error.message || 'Failed to subscribe to the free plan.';
-                showErrorModal(errorMessage);
-                if (errorMessage.includes('already subscribed')) {
-                    const offcanvasElement = document.getElementById('plansOffcanvas');
-                    const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasElement);
-                    if (offcanvasInstance) {
-                        offcanvasInstance.hide();
-                    }
-                    await getDashboardUrl();
-                }
+                showErrorModal(error.response?.data?.detail || error.message || 'Failed to subscribe to the free plan. Please try again.');
             }
-        };
-        // Check Subscription Status (No Immediate Redirect)
+        };;
+
+        // Check Subscription Status
         const checkSubscriptionStatus = async () => {
             const token = sessionStorage.getItem("token");
             const statusElement = document.getElementById("subscriptionStatus");
             try {
                 const response = await axios.get(`${BASE_URL}/subscription/status/`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Token ${token}` }
                 });
+                console.log('Subscription Status Response:', response.data);
                 statusElement.classList.remove("alert-info", "alert-danger", "alert-warning");
                 if (response.data.isSubscribed) {
                     const isFreePlan = response.data.planName.toLowerCase() === 'free';
@@ -916,16 +895,16 @@
                     document.getElementById("verifyPaymentButtonContainer").classList.add("d-none");
                 } else {
                     statusElement.classList.add("alert-warning");
-                    statusElement.innerHTML = "You are not subscribed. Please subscribe to a plan or verify your payment. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                    statusElement.innerHTML = "You are not subscribed. Please verify your payment or subscribe to a plan. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
                     document.getElementById("verifyPaymentButtonContainer").classList.remove("d-none");
                     document.getElementById("getDashboardUrlButton").classList.add("d-none");
+                    setTimeout(showVerifyPaymentModal, 1000);
                 }
-                return response.data;
             } catch (error) {
                 console.error('Error checking subscription status:', error.response ? error.response.data : error.message);
+                statusElement.classList.remove("alert-info", "alert-success", "alert-warning");
                 statusElement.classList.add("alert-danger");
                 statusElement.innerHTML = "Failed to check subscription status. Please try again. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
-                return null;
             }
         };
 
@@ -1153,7 +1132,6 @@
 
         // Initialize Page
         document.addEventListener("DOMContentLoaded", async () => {
-
             const token = sessionStorage.getItem("token");
             const isVerified = sessionStorage.getItem("is_verified") === 'true';
             const email = sessionStorage.getItem("email");
