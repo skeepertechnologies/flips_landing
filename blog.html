@@ -58,11 +58,6 @@
       margin-bottom: 20px;
       display: inline-block;
     }
-    .blog-post .discussion-badge {
-      font-size: 0.9rem;
-      margin-left: 10px;
-      vertical-align: middle;
-    }
     .blog-post .meta {
       font-size: 0.9rem;
       color: #666;
@@ -73,65 +68,6 @@
       color: #444;
       line-height: 1.8;
       margin-bottom: 30px;
-    }
-    .comments-section {
-      margin-top: 40px;
-      padding-top: 20px;
-    }
-    .comments-section h3 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 20px;
-    }
-    .comments-container {
-      max-height: 400px;
-      overflow-y: auto;
-      padding-right: 10px;
-      margin-bottom: 20px;
-    }
-    .comment {
-      margin-bottom: 15px;
-      padding: 15px;
-      background: #f9f9f9;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-    .comment.reply {
-      margin-left: 20px;
-      background: #f1f1f1;
-    }
-    .comment .comment-author {
-      font-weight: 600;
-      color: #333;
-    }
-    .comment .comment-meta {
-      font-size: 0.85rem;
-      color: #666;
-      margin-bottom: 10px;
-    }
-    .comment .comment-content {
-      font-size: 0.95rem;
-      color: #444;
-    }
-    .comment .reply-link {
-      color: #7b4d11;
-      font-size: 0.85rem;
-      text-decoration: none;
-    }
-    .comment .reply-link:hover {
-      color: #5a370d;
-      text-decoration: underline;
-    }
-    .comment-form {
-      margin-top: 20px;
-    }
-    .comment-form .btn-primary {
-      background: #7b4d11;
-      border: none;
-    }
-    .comment-form .btn-primary:hover {
-      background: #5a370d;
     }
     .header {
       background: #fff;
@@ -167,12 +103,6 @@
       }
       .blog-post h2 {
         font-size: 1.5rem;
-      }
-      .comment.reply {
-        margin-left: 10px;
-      }
-      .comments-container {
-        max-height: 300px;
       }
     }
   </style>
@@ -284,7 +214,7 @@
   <!-- Main JS File -->
   <script src="assets/js/main.js"></script>
 
-  <!-- Custom JS for Blog and Comments -->
+  <!-- Custom JS for Blog -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       // AOS Initialization
@@ -321,7 +251,7 @@
         userStatus.innerHTML = '<a class="btn btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
       }
 
-      // List of images in assets/img/blog/ (simulating 20+ images)
+      // List of images in assets/img/blog/
       const blogImages = Array.from({ length: 21 }, (_, i) => `assets/img/blog/DSC_${i + 1}.JPG`);
 
       // Function to get a random image
@@ -329,19 +259,8 @@
         return blogImages[Math.floor(Math.random() * blogImages.length)];
       }
 
-      // Function to classify discussion level based on comment count
-      function getDiscussionLevel(commentCount) {
-        if (commentCount >= 10) {
-          return { label: 'Hot', class: 'badge bg-danger' };
-        } else if (commentCount >= 5) {
-          return { label: 'Active', class: 'badge bg-success' };
-        } else {
-          return { label: 'Quiet', class: 'badge bg-secondary' };
-        }
-      }
-
-      // Static Blog Data (for fallback if API fails)
-      const fallbackBlogs = [
+      // Static Blog Data
+      const blogs = [
         {
           id: 1,
           title: 'The Future of Flood Prediction',
@@ -364,6 +283,34 @@
           content: 'Effective disaster preparedness can mitigate the impact of floods on businesses and communities. FLIPS provides detailed flood risk reports and API access, enabling organizations to integrate predictive data into their planning processes.<br><br>From insurance firms optimizing claims to NGOs coordinating relief efforts, our tools help stakeholders act proactively. Individuals also benefit from SMS alerts and dashboards tailored for home safety.'
         }
       ];
+
+      // Object to store current image for each blog post
+      const blogImageMap = {};
+
+      // Function to assign and update images
+      function updateBlogImages() {
+        blogs.forEach(blog => {
+          blogImageMap[blog.id] = getRandomImage();
+        });
+        renderBlogPosts();
+      }
+
+      // Function to render blog posts
+      function renderBlogPosts() {
+        const blogContainer = document.querySelector('#blog-posts .swiper-wrapper');
+        blogContainer.innerHTML = blogs.map((blog, index) => {
+          return `
+            <div class="swiper-slide">
+              <div id="post-${blog.id}" class="blog-post" data-aos="fade-up" data-aos-delay="${100 + index * 100}">
+                <h2>${blog.title}</h2>
+                <div class="meta">Posted by ${blog.author.username} on ${new Date(blog.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                <img src="${blogImageMap[blog.id]}" alt="${blog.title}">
+                <div class="content">${blog.content}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
 
       // Initialize Swiper
       function initializeSwiper() {
@@ -389,234 +336,40 @@
         });
       }
 
-      // Fetch Blog Posts
-      async function fetchBlogPosts() {
+      // Initial render with random images
+      updateBlogImages();
+      initializeSwiper();
+
+      // Update images every 2 minutes
+      setInterval(() => {
+        updateBlogImages();
+        initializeSwiper(); // Reinitialize Swiper after updating images
+      }, 120000); // 2 minutes in milliseconds
+
+      // Commented out: Possible way to fetch blog posts from admin side
+      /*
+      async function fetchBlogPostsFromAdmin() {
         try {
-          const response = await fetch('http://your-django-api-url/api/blogs/', {
+          const response = await fetch('http://api.flipsintel.org/admin/blogs/', {
+            method: 'GET',
             headers: {
-              'Authorization': `Bearer ${token || ''}`
+              'Authorization': `Bearer ${token || ''}`,
+              'Content-Type': 'application/json'
             }
           });
-          let blogs = await response.json();
-          blogs = blogs.results || blogs; // Handle pagination if API returns results
-          const blogContainer = document.querySelector('#blog-posts .swiper-wrapper');
-          blogContainer.innerHTML = blogs.map((blog, index) => {
-            const comments = JSON.parse(localStorage.getItem(`comments_${blog.id}`) || '[]');
-            const discussion = getDiscussionLevel(comments.length);
-            return `
-              <div class="swiper-slide">
-                <div id="post-${blog.id}" class="blog-post" data-aos="fade-up" data-aos-delay="${100 + index * 100}">
-                  <h2>${blog.title} <span class="${discussion.class} discussion-badge">${discussion.label}</span></h2>
-                  <div class="meta">Posted by ${blog.author.username} on ${new Date(blog.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                  <img src="${getRandomImage()}" alt="${blog.title}">
-                  <div class="content">${blog.content}</div>
-                  <div class="comments-section" id="comments-${blog.id}">
-                    <h3>Comments</h3>
-                    <div class="card">
-                      <div class="card-body comments-container" id="comment-list-${blog.id}">
-                        <!-- Comments will be populated from localStorage -->
-                      </div>
-                    </div>
-                    ${loggedInUser ? `
-                      <form class="comment-form" data-blog-id="${blog.id}" onsubmit="submitComment(event, ${blog.id})">
-                        <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
-                        <button type="submit" class="btn btn-primary">Post Comment</button>
-                      </form>
-                    ` : '<p>Please <a href="login/login.html">log in</a> to post a comment.</p>'}
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('');
-
-          // Fetch comments for each blog
-          blogs.forEach(blog => fetchComments(blog.id));
-
-          // Initialize Swiper after content is loaded
-          initializeSwiper();
+          if (!response.ok) {
+            throw new Error('Failed to fetch blog posts from admin');
+          }
+          const blogs = await response.json();
+          // Process and render blogs as above
+          return blogs;
         } catch (error) {
-          console.error('Error fetching blog posts:', error);
-          // Use fallback data
-          const blogContainer = document.querySelector('#blog-posts .swiper-wrapper');
-          blogContainer.innerHTML = fallbackBlogs.map((blog, index) => {
-            const comments = JSON.parse(localStorage.getItem(`comments_${blog.id}`) || '[]');
-            const discussion = getDiscussionLevel(comments.length);
-            return `
-              <div class="swiper-slide">
-                <div id="post-${blog.id}" class="blog-post" data-aos="fade-up" data-aos-delay="${100 + index * 100}">
-                  <h2>${blog.title} <span class="${discussion.class} discussion-badge">${discussion.label}</span></h2>
-                  <div class="meta">Posted by ${blog.author.username} on ${new Date(blog.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                  <img src="${getRandomImage()}" alt="${blog.title}">
-                  <div class="content">${blog.content}</div>
-                  <div class="comments-section" id="comments-${blog.id}">
-                    <h3>Comments</h3>
-                    <div class="card">
-                      <div class="card-body comments-container" id="comment-list-${blog.id}">
-                        <!-- Comments will be populated from localStorage -->
-                      </div>
-                    </div>
-                    ${loggedInUser ? `
-                      <form class="comment-form" data-blog-id="${blog.id}" onsubmit="submitComment(event, ${blog.id})">
-                        <textarea class="form-control mb-3" rows="5" placeholder="Add a Comment" required></textarea>
-                        <button type="submit" class="btn btn-primary">Post Comment</button>
-                      </form>
-                    ` : '<p>Please <a href="login/login.html">log in</a> to post a comment.</p>'}
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('');
-          fallbackBlogs.forEach(blog => fetchComments(blog.id));
-
-          // Initialize Swiper after content is loaded
-          initializeSwiper();
+          console.error('Error fetching blog posts from admin:', error);
+          // Fallback to static data
+          return [];
         }
       }
-
-      // Fetch Comments from localStorage
-      function fetchComments(blogId) {
-        const comments = JSON.parse(localStorage.getItem(`comments_${blogId}`) || '[]');
-        const commentList = document.getElementById(`comment-list-${blogId}`);
-        commentList.innerHTML = comments.filter(c => !c.parentId).map(comment => renderComment(comment, blogId, comments)).join('');
-        // Update discussion badge after fetching comments
-        updateDiscussionBadge(blogId, comments.length);
-      }
-
-      // Update Discussion Badge
-      function updateDiscussionBadge(blogId, commentCount) {
-        const blogPost = document.getElementById(`post-${blogId}`);
-        if (blogPost) {
-          const badge = blogPost.querySelector('.discussion-badge');
-          if (badge) {
-            const discussion = getDiscussionLevel(commentCount);
-            badge.textContent = discussion.label;
-            badge.className = `badge ${discussion.class} discussion-badge`;
-          }
-        }
-      }
-
-      // Render a Comment (with Nested Replies)
-      function renderComment(comment, blogId, allComments) {
-        const replies = allComments
-          .filter(reply => reply.parentId === comment.id)
-          .map(reply => `
-            <div class="comment reply" id="comment-${reply.id}">
-              <div class="comment-author">${reply.user.username}</div>
-              <div class="comment-meta">${new Date(reply.created_at).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</div>
-              <div class="comment-content">${reply.content}</div>
-              <a href="#" class="reply-link" onclick="showReplyForm('reply-form-${reply.id}')">Reply</a>
-              <form id="reply-form-${reply.id}" class="comment-form reply-form d-none" onsubmit="submitComment(event, ${blogId}, ${reply.id})">
-                <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
-                <button type="submit" class="btn btn-primary">Post Reply</button>
-              </form>
-            </div>
-          `).join('');
-
-        return `
-          <div class="comment" id="comment-${comment.id}">
-            <div class="comment-author">${comment.user.username}</div>
-            <div class="comment-meta">${new Date(comment.created_at).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</div>
-            <div class="comment-content">${comment.content}</div>
-            <a href="#" class="reply-link" onclick="showReplyForm('reply-form-${comment.id}')">Reply</a>
-            <form id="reply-form-${comment.id}" class="comment-form reply-form d-none" onsubmit="submitComment(event, ${blogId}, ${comment.id})">
-              <textarea class="form-control mb-3" rows="3" placeholder="Your Reply" required></textarea>
-              <button type="submit" class="btn btn-primary">Post Reply</button>
-            </form>
-            ${replies}
-          </div>
-        `;
-      }
-
-      // Show Reply Form
-      function showReplyForm(formId) {
-        const form = document.getElementById(formId);
-        form.classList.toggle('d-none');
-      }
-
-      // Submit Comment
-      function submitComment(event, blogId, parentId = null) {
-        event.preventDefault();
-        const loggedInUser = sessionStorage.getItem('loggedInUser');
-        if (!loggedInUser) {
-          alert('Please log in to post a comment.');
-          window.location.href = 'login/login.html';
-          return;
-        }
-
-        const form = event.target;
-        const content = form.querySelector('textarea').value;
-        const user = JSON.parse(loggedInUser);
-        const comments = JSON.parse(localStorage.getItem(`comments_${blogId}`) || '[]');
-        const newComment = {
-          id: Date.now(), // Unique ID based on timestamp
-          blogId: blogId,
-          user: { username: user.username },
-          content: content,
-          parentId: parentId,
-          created_at: new Date().toISOString()
-        };
-
-        comments.push(newComment);
-        localStorage.setItem(`comments_${blogId}`, JSON.stringify(comments));
-
-        form.reset();
-        if (parentId) form.classList.add('d-none');
-        fetchComments(blogId); // Refresh comments
-      }
-
-      // Initialize with some sample comments in localStorage (for testing)
-      function initializeSampleComments() {
-        const sampleComments = {
-          comments_1: [
-            ...Array(10).fill().map((_, i) => ({
-              id: i + 1,
-              blogId: 1,
-              user: { username: `User${i + 1}` },
-              content: `Comment ${i + 1} on flood prediction!`,
-              parentId: i === 1 ? 1 : null,
-              created_at: `2025-05-21T${10 + i}:30:00Z`
-            }))
-          ],
-          comments_2: [
-            ...Array(6).fill().map((_, i) => ({
-              id: i + 11,
-              blogId: 2,
-              user: { username: `User${i + 11}` },
-              content: `Comment ${i + 1} on water monitoring!`,
-              parentId: i === 1 ? 11 : null,
-              created_at: `2025-05-16T${9 + i}:45:00Z`
-            }))
-          ],
-          comments_3: [
-            {
-              id: 17,
-              blogId: 3,
-              user: { username: 'David Kimani' },
-              content: 'Great insights! How customizable are the risk reports for specific regions?',
-              parentId: null,
-              created_at: '2025-05-11T11:20:00Z'
-            },
-            {
-              id: 18,
-              blogId: 3,
-              user: { username: 'FLIPS Team' },
-              content: 'Thanks, David! Reports are highly customizable by region. Reach out for a demo!',
-              parentId: 17,
-              created_at: '2025-05-11T16:30:00Z'
-            }
-          ]
-        };
-
-        Object.keys(sampleComments).forEach(key => {
-          if (!localStorage.getItem(key)) {
-            localStorage.setItem(key, JSON.stringify(sampleComments[key]));
-          }
-        });
-      }
-
-      // Initialize
-      initializeSampleComments();
-      fetchBlogPosts();
+      */
     });
   </script>
 </body>

@@ -533,7 +533,7 @@
           <!-- Blog Post 1 -->
           <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
             <div class="blog-card card h-100">
-              <img src="https://via.placeholder.com/400x250?text=Flood+Prediction" class="card-img-top" alt="Flood Prediction Blog">
+              <img src="assets/img/blog/image (2).jpg" class="card-img-top" alt="Flood Prediction Blog">
               <div class="card-body">
                 <h4 class="card-title">The Future of Flood Prediction</h4>
                 <p class="card-text">Discover how AI is revolutionizing flood forecasting with 95% accuracy, helping businesses and individuals prepare better.</p>
@@ -544,7 +544,7 @@
           <!-- Blog Post 2 -->
           <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
             <div class="blog-card card h-100">
-              <img src="https://via.placeholder.com/400x250?text=Water+Management" class="card-img-top" alt="Water Management Blog">
+              <img src="assets/img/blog/image (3).jpg" class="card-img-top" alt="Water Management Blog">
               <div class="card-body">
                 <h4 class="card-title">Real-Time Water Monitoring Benefits</h4>
                 <p class="card-text">Learn how real-time water level tracking can protect communities and optimize resource management.</p>
@@ -555,7 +555,7 @@
           <!-- Blog Post 3 -->
           <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
             <div class="blog-card card h-100">
-              <img src="https://via.placeholder.com/400x250?text=Disaster+Planning" class="card-img-top" alt="Disaster Planning Blog">
+              <img src="assets/img/blog/image (4).jpg" class="card-img-top" alt="Disaster Planning Blog">
               <div class="card-body">
                 <h4 class="card-title">Disaster Preparedness Strategies</h4>
                 <p class="card-text">Explore how businesses leverage FLIPS data to safeguard assets and plan for flood events.</p>
@@ -828,30 +828,125 @@
       </div>
     </section><!-- /Faq Section -->
 
-    <!-- Call To Action 2 Section -->
-    <section id="call-to-action-2" class="call-to-action-2 section dark-background">
-      <div class="container">
-        <div class="row justify-content-center" data-aos="zoom-in" data-aos-delay="100">
-          <div class="col-xl-10">
-            <div class="text-center">
-              <h3>Our Newsletter</h3>
-              <p>Stay updated with the latest developments in flood prediction technology and events.</p>
-              <div class="col-lg-12 col-md-8">
-                <form id="newsletter-form">
-                  <div class="input-group">
-                    <input type="email" id="email" name="email" class="form-control" placeholder="Enter your Email" required style="height: 50px;">
-                    <button type="submit" class="btn fw-bold text-white" style="background: #FF851B;">Subscribe</button>
-                  </div>
-                  <p id="message" class="mt-3"></p>
-                </form>
-              </div>
-            </div>
+   <!-- Call To Action 2 Section -->
+<section id="call-to-action-2" class="call-to-action-2 section dark-background">
+  <div class="container">
+    <div class="row justify-content-center" data-aos="zoom-in" data-aos-delay="100">
+      <div class="col-xl-10">
+        <div class="text-center">
+          <h3>Our Newsletter</h3>
+          <p>Stay updated with the latest developments in flood prediction technology and events.</p>
+          <div class="col-lg-12 col-md-8">
+            <button type="button" class="btn fw-bold text-white" style="background: #FF851B;" data-bs-toggle="modal" data-bs-target="#newsletterModal">
+              Subscribe
+            </button>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Newsletter Subscription Modal -->
+  <div class="modal fade" id="newsletterModal" tabindex="-1" aria-labelledby="newsletterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newsletterModalLabel">Subscribe to Our Newsletter</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="newsletter-form">
+            <div class="mb-3">
+              <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+              <input type="email" id="email" name="email" class="form-control" placeholder="Enter your Email" required>
+            </div>
+            <div class="mb-3">
+              <label for="phone_number" class="form-label">Phone Number (Optional)</label>
+              <input type="text" id="phone_number" name="phone_number" class="form-control" placeholder="+2547XXXXXXXX">
+              <small class="form-text text-muted">Format: +2547XXXXXXXX (e.g., +254712345678)</small>
+            </div>
+            <p id="message" class="mt-3 text-center"></p>
+            <button type="submit" class="btn fw-bold text-white w-100" style="background: #FF851B;">Subscribe Now</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section><!-- /Call To Action 2 Section -->
+
+<!-- JavaScript for Newsletter Subscription -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('newsletter-form');
+    const messageDiv = document.getElementById('message');
+    const phoneInput = document.getElementById('phone_number');
+
+    // Phone number validation
+    function validatePhoneNumber(phone) {
+      const phoneRegex = /^\+2547\d{8}$/;
+      return phone === '' || phoneRegex.test(phone);
+    }
+
+    form.addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('email').value;
+      let phoneNumber = phoneInput.value.trim();
+
+      // Validate phone number format
+      if (phoneNumber && !validatePhoneNumber(phoneNumber)) {
+        messageDiv.classList.remove('text-success');
+        messageDiv.classList.add('text-danger');
+        messageDiv.textContent = 'Phone number must be in the format: +2547XXXXXXXX (e.g., +254712345678)';
+        return;
+      }
+
+      // Prepare data for submission
+      const data = { email };
+      if (phoneNumber) {
+        data.phone_number = phoneNumber;
+      }
+
+      try {
+        const response = await fetch('http://api.flipsintel.org/newsletter/subscribe/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          messageDiv.classList.remove('text-danger');
+          messageDiv.classList.add('text-success');
+          messageDiv.textContent = 'Subscribed successfully! Check your email for updates.';
+          form.reset();
+
+          // Optionally close the modal after a delay
+          setTimeout(() => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('newsletterModal'));
+            modal.hide();
+            messageDiv.textContent = ''; // Clear message when modal closes
+          }, 2000);
+        } else {
+          messageDiv.classList.remove('text-success');
+          messageDiv.classList.add('text-danger');
+          messageDiv.textContent = result.email?.[0] || result.phone_number?.[0] || 'An error occurred. Please try again.';
+        }
+      } catch (error) {
+        console.error('Error subscribing:', error);
+        messageDiv.classList.remove('text-success');
+        messageDiv.classList.add('text-danger');
+        messageDiv.textContent = 'Failed to subscribe. Please check your connection and try again.';
+      }
+    });
+  });
+</script>
     </section><!-- /Call To Action 2 Section -->
 
-    <!-- Contact Section -->
+   <!-- Contact Section -->
     <section id="contact" class="contact section light-background">
       <div class="container section-title" data-aos="fade-up">
         <h2>Contact</h2>
@@ -896,24 +991,24 @@
             <div class="contact-form" data-aos="fade-up" data-aos-delay="300">
               <h3>Get In Touch</h3>
               <p>Send us a message to learn more about how FLIPS can help you manage environmental risks.</p>
-              <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
+              <form id="contact-form" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
                 <div class="row gy-4">
                   <div class="col-md-6">
-                    <input type="text" name="name" class="form-control" placeholder="Your Name" required="">
+                    <input type="text" name="name" class="form-control" placeholder="Your Name" required>
                   </div>
                   <div class="col-md-6">
-                    <input type="email" class="form-control" name="email" placeholder="Your Email" required="">
+                    <input type="email" class="form-control" name="email" placeholder="Your Email" required>
                   </div>
                   <div class="col-12">
-                    <input type="text" class="form-control" name="subject" placeholder="Subject" required="">
+                    <input type="text" class="form-control" name="subject" placeholder="Subject" required>
                   </div>
                   <div class="col-12">
-                    <textarea class="form-control" name="message" rows="6" placeholder="Message" required=""></textarea>
+                    <textarea class="form-control" name="message" rows="6" placeholder="Message" required></textarea>
                   </div>
                   <div class="col-12 text-center">
-                    <div class="loading">Loading</div>
-                    <div class="error-message"></div>
-                    <div class="sent-message">Your message has been sent. Thank you!</div>
+                    <div class="loading" style="display: none;">Loading</div>
+                    <div class="error-message" style="display: none;"></div>
+                    <div class="sent-message" style="display: none;">Your message has been sent. Thank you!</div>
                     <button type="submit" class="btn">Send Message</button>
                   </div>
                 </div>
@@ -1061,8 +1156,75 @@
     userStatus.innerHTML = '<a class="btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
   }
 });
-
  
+
+
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('contact-form');
+    const loading = form.querySelector('.loading');
+    const errorMessage = form.querySelector('.error-message');
+    const sentMessage = form.querySelector('.sent-message');
+
+    // Function to reset message displays
+    function resetMessages() {
+      loading.style.display = 'none';
+      errorMessage.style.display = 'none';
+      sentMessage.style.display = 'none';
+      errorMessage.textContent = '';
+    }
+
+    form.addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      // Reset previous messages
+      resetMessages();
+
+      // Show loading state
+      loading.style.display = 'block';
+
+      // Collect form data
+      const formData = new FormData(form);
+      const data = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        subject: formData.get('subject'),
+        message: formData.get('message'),
+      };
+
+      try {
+        const response = await fetch('http://api.flipsintel.org/contact/submit/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+
+        // Hide loading state
+        loading.style.display = 'none';
+
+        if (response.ok) {
+          // Show success message
+          sentMessage.style.display = 'block';
+          form.reset(); // Reset the form
+        } else {
+          // Show error message
+          errorMessage.style.display = 'block';
+          errorMessage.textContent = result.message || 'An error occurred. Please try again.';
+        }
+      } catch (error) {
+        // Hide loading state
+        loading.style.display = 'none';
+        // Show error message
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = 'Failed to send message. Please check your connection and try again.';
+        console.error('Error submitting contact form:', error);
+      }
+    });
+  });
   </script>
 </body>
 </html>
