@@ -253,14 +253,37 @@
 
       // List of images in assets/img/blog/
       console.log('Loading blog images...');
-      const blogImages = Array.from({ length: 21 }, (_, i) => {
-        const basePath = `assets/img/blog/DSC_${i + 1}`;
-        // Try both .JPG and .jpg extensions to handle case sensitivity
-        return [basePath + '.JPG', basePath + '.jpg'];
-      }).flat();
+      // Generate continuous ranges and add duplicates manually
+      const blogImages = [
+        // Range DSC_3797 to DSC_3824
+        ...Array.from({ length: 28 }, (_, i) => `assets/img/blog/DSC_${3797 + i}.JPG`),
+        // DSC_3825 and duplicate
+        'assets/img/blog/DSC_3825.JPG',
+        'assets/img/blog/DSC_3825(1).JPG',
+        // DSC_3826 to DSC_3827
+        'assets/img/blog/DSC_3826.JPG',
+        'assets/img/blog/DSC_3827.JPG',
+        // DSC_3828 and duplicate
+        'assets/img/blog/DSC_3828.JPG',
+        'assets/img/blog/DSC_3828(1).JPG',
+        // DSC_3829
+        'assets/img/blog/DSC_3829.JPG',
+        // DSC_3830 (.jpg and duplicate)
+        'assets/img/blog/DSC_3830.jpg',
+        'assets/img/blog/DSC_3830(1).JPG',
+        // DSC_3831
+        'assets/img/blog/DSC_3831.JPG',
+        // DSC_3832 and duplicate
+        'assets/img/blog/DSC_3832.JPG',
+        'assets/img/blog/DSC_3832(1).JPG',
+        // Range DSC_3833 to DSC_3859
+        ...Array.from({ length: 27 }, (_, i) => `assets/img/blog/DSC_${3833 + i}.JPG`),
+      ];
 
-      // Fallback image in case an image fails to load
-      const fallbackImage = 'assets/img/blog/fallback-image.jpg';
+      console.log('Blog images loaded:', blogImages);
+
+      // Fallback image (using an existing image since fallback-image.jpg doesn't exist)
+      const fallbackImage = 'assets/img/blog/DSC_3797.JPG';
 
       // Function to get a random image
       function getRandomImage() {
