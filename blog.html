@@ -252,11 +252,21 @@
       }
 
       // List of images in assets/img/blog/
-      const blogImages = Array.from({ length: 21 }, (_, i) => `assets/img/blog/DSC_${i + 1}.JPG`);
+      console.log('Loading blog images...');
+      const blogImages = Array.from({ length: 21 }, (_, i) => {
+        const basePath = `assets/img/blog/DSC_${i + 1}`;
+        // Try both .JPG and .jpg extensions to handle case sensitivity
+        return [basePath + '.JPG', basePath + '.jpg'];
+      }).flat();
+
+      // Fallback image in case an image fails to load
+      const fallbackImage = 'assets/img/blog/fallback-image.jpg';
 
       // Function to get a random image
       function getRandomImage() {
-        return blogImages[Math.floor(Math.random() * blogImages.length)];
+        const image = blogImages[Math.floor(Math.random() * blogImages.length)];
+        console.log('Selected image:', image);
+        return image;
       }
 
       // Static Blog Data
@@ -289,6 +299,7 @@
 
       // Function to assign and update images
       function updateBlogImages() {
+        console.log('Updating blog images...');
         blogs.forEach(blog => {
           blogImageMap[blog.id] = getRandomImage();
         });
@@ -297,14 +308,20 @@
 
       // Function to render blog posts
       function renderBlogPosts() {
+        console.log('Rendering blog posts...');
         const blogContainer = document.querySelector('#blog-posts .swiper-wrapper');
+        if (!blogContainer) {
+          console.error('Blog container not found!');
+          return;
+        }
         blogContainer.innerHTML = blogs.map((blog, index) => {
+          const imageSrc = blogImageMap[blog.id] || fallbackImage;
           return `
             <div class="swiper-slide">
               <div id="post-${blog.id}" class="blog-post" data-aos="fade-up" data-aos-delay="${100 + index * 100}">
                 <h2>${blog.title}</h2>
                 <div class="meta">Posted by ${blog.author.username} on ${new Date(blog.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                <img src="${blogImageMap[blog.id]}" alt="${blog.title}">
+                <img src="${imageSrc}" alt="${blog.title}" onerror="this.src='${fallbackImage}'; console.error('Failed to load image: ${imageSrc}');">
                 <div class="content">${blog.content}</div>
               </div>
             </div>
@@ -314,26 +331,39 @@
 
       // Initialize Swiper
       function initializeSwiper() {
-        new Swiper('#blog-posts', {
-          slidesPerView: 1,
-          spaceBetween: 20,
-          navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-          },
-          pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-          },
-          breakpoints: {
-            768: {
-              slidesPerView: 2,
+        console.log('Initializing Swiper...');
+        try {
+          const swiper = new Swiper('#blog-posts', {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            navigation: {
+              nextEl: '.swiper-button-next',
+              prevEl: '.swiper-button-prev',
             },
-            1200: {
-              slidesPerView: 3,
+            pagination: {
+              el: '.swiper-pagination',
+              clickable: true,
             },
-          },
-        });
+            breakpoints: {
+              768: {
+                slidesPerView: 2,
+              },
+              1200: {
+                slidesPerView: 3,
+              },
+            },
+            on: {
+              init: function () {
+                console.log('Swiper initialized successfully');
+              },
+              slideChange: function () {
+                console.log('Swiper slide changed');
+              },
+            },
+          });
+        } catch (error) {
+          console.error('Failed to initialize Swiper:', error);
+        }
       }
 
       // Initial render with random images
@@ -342,6 +372,7 @@
 
       // Update images every 2 minutes
       setInterval(() => {
+        console.log('Updating images after 2 minutes...');
         updateBlogImages();
         initializeSwiper(); // Reinitialize Swiper after updating images
       }, 120000); // 2 minutes in milliseconds
