@@ -1,21 +1,36 @@
 let refreshTimers = {};
 let isInitialLoad = true; // Track if it is the first time loading the chart
 
-// Function to show the loader during the initial load
+let refreshTimers = {};
+let isLoading = false; // Track loading state
+
+// Function to show the loader
 function showLoader(loadingMessage) {
-    if (isInitialLoad) {
-        document.getElementById('chartLoader').style.display = 'flex';
-        document.getElementById('loaderText').textContent = loadingMessage;
-        document.getElementById('dominantChart').style.opacity = '0.5'; // Dim the chart during loading
+    if (!isLoading) {
+        isLoading = true;
+        const chartLoader = document.getElementById('chartLoader');
+        const loaderText = document.getElementById('loaderText');
+        const dominantChart = document.getElementById('dominantChart');
+        
+        if (chartLoader && loaderText && dominantChart) {
+            chartLoader.style.display = 'flex';
+            loaderText.textContent = loadingMessage;
+            dominantChart.style.opacity = '0.5'; // Dim the chart during loading
+        }
     }
 }
 
 // Function to hide the loader
 function hideLoader() {
-    if (isInitialLoad) {
-        document.getElementById('chartLoader').style.display = 'none';
-        document.getElementById('dominantChart').style.opacity = '1'; // Restore full opacity
-        isInitialLoad = false; // Disable the loader for subsequent refreshes
+    if (isLoading) {
+        isLoading = false;
+        const chartLoader = document.getElementById('chartLoader');
+        const dominantChart = document.getElementById('dominantChart');
+        
+        if (chartLoader && dominantChart) {
+            chartLoader.style.display = 'none';
+            dominantChart.style.opacity = '1'; // Restore full opacity
+        }
     }
 }
 
@@ -84,36 +99,52 @@ function initializeChart(chartType) {
 
 // Function to render the chart
 // Function to render the chart
-// Function to render the chart
 function renderChart(chartType, data) {
     const chartConfig = {
         waterLevelChart: {
-            chartType: 'areaspline', // Filled area chart (already working)
+            chartType: 'areaspline', // Filled area chart
             title: 'Water Level Over Time',
             yAxisTitle: 'Water Level (ft)',
             dataKey: 'levels',
             plotOptions: {
-                fillOpacity: 0.3, // Transparency for the filled area
-                marker: {
-                    enabled: true,
-                    radius: 3,
+                areaspline: {
+                    fillColor: {
+                        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                        stops: [
+                            [0, '#1E90FF'], // DodgerBlue at the top
+                            [1, 'rgba(30, 144, 255, 0.3)'] // Lighter blue at the bottom
+                        ]
+                    },
+                    marker: {
+                        enabled: true,
+                        radius: 3,
+                    },
+                    connectNulls: false,
                 },
-                connectNulls: false,
             },
         },
         humidityChart: {
-            chartType: 'spline', // Smooth polyline (no fill)
+            chartType: 'areaspline', // Changed from spline to areaspline to fill below the line
             title: 'Humidity Over Time',
             yAxisTitle: 'Humidity (%)',
             dataKey: 'humidities',
             plotOptions: {
-                lineWidth: 2, // Thicker line for visibility
-                marker: {
-                    enabled: true,
-                    radius: 4,
-                    symbol: 'circle', // Circular markers for data points
+                areaspline: {
+                    fillColor: {
+                        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                        stops: [
+                            [0, '#32CD32'], // LimeGreen at the top
+                            [1, 'rgba(50, 205, 50, 0.2)'] // Lighter green at the bottom
+                        ]
+                    },
+                    lineWidth: 2,
+                    marker: {
+                        enabled: true,
+                        radius: 4,
+                        symbol: 'circle',
+                    },
+                    connectNulls: false,
                 },
-                connectNulls: false,
             },
         },
         temperatureChart: {
@@ -123,9 +154,16 @@ function renderChart(chartType, data) {
             dataKey: 'temperatures',
             plotOptions: {
                 column: {
-                    pointPadding: 0.1, // Space between columns
-                    borderWidth: 0, // No border on columns
-                    groupPadding: 0.2, // Space between groups
+                    color: {
+                        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                        stops: [
+                            [0, '#FF4500'], // OrangeRed at the top
+                            [1, 'rgba(255, 69, 0, 0.5)'] // Lighter orange at the bottom
+                        ]
+                    },
+                    pointPadding: 0.1,
+                    borderWidth: 0,
+                    groupPadding: 0.2,
                 },
             },
         },
@@ -137,62 +175,48 @@ function renderChart(chartType, data) {
     // Prepare series data with validation
     const seriesData = rigs.map((rig) => {
         const rigData = data.current_data[rig];
-        console.log(`Processing rig ${rig}:`, rigData); // Debug log
+        console.log(`Processing rig ${rig}:`, rigData);
 
-        // Validate timestamps and dataKey
         if (!rigData.timestamps || !rigData[dataKey]) {
             console.warn(`Missing timestamps or ${dataKey} for rig ${rig}`);
-            return { name: rig, data: [] }; // Return empty series for this rig
+            return { name: rig, data: [] };
         }
 
-        // Ensure timestamps and data arrays have the same length
         if (rigData.timestamps.length !== rigData[dataKey].length) {
             console.warn(`Mismatch in lengths for rig ${rig}: timestamps (${rigData.timestamps.length}), ${dataKey} (${rigData[dataKey].length})`);
             return { name: rig, data: [] };
         }
 
-        // Map the data, validating each point
         const points = rigData.timestamps.map((timestamp, index) => {
             const value = rigData[dataKey][index];
             const parsedTime = Date.parse(timestamp);
 
-            // Validate timestamp
             if (isNaN(parsedTime)) {
                 console.warn(`Invalid timestamp for rig ${rig} at index ${index}:`, timestamp);
-                return null; // Skip invalid timestamps
+                return null;
             }
 
-            // Validate value
             const numericValue = parseFloat(value);
             if (isNaN(numericValue)) {
                 console.warn(`Invalid ${dataKey} value for rig ${rig} at index ${index}:`, value);
-                return [parsedTime, null]; // Allow Highcharts to handle null values (creates gaps)
+                return [parsedTime, null];
             }
 
             return [parsedTime, numericValue];
-        }).filter(point => point !== null); // Remove invalid points
+        }).filter(point => point !== null);
 
-         // Define colors for each chart type
-        const colors = {
-            waterLevelChart: '#1E90FF', // DodgerBlue for water levels
-            humidityChart: '#32CD32',   // LimeGreen for humidity
-            temperatureChart: '#FF4500' // OrangeRed for temperature
-        };
-
+        // Colors are now handled in plotOptions, so remove series-level color
         return {
             name: rig,
             data: points,
-            color: colors[chartType], // Assign a color based on chart type
         };
-    }).filter(series => series.data.length > 0); // Filter out empty series
+    }).filter(series => series.data.length > 0);
 
-    // Log the final series data for debugging
     console.log(`Series data for ${chartType}:`, seriesData);
 
-    // Render the chart
     Highcharts.chart('dominantChart', {
         chart: {
-            type: highchartsType, // Dynamically set the chart type
+            type: highchartsType,
             zoomType: 'x',
             events: {
                 load: function () {
@@ -212,21 +236,19 @@ function renderChart(chartType, data) {
                 text: 'Date',
             },
             labels: {
-                format: '{value:%Y-%m-%d %H:%M}', // Format timestamps
+                format: '{value:%Y-%m-%d %H:%M}',
             },
         },
         yAxis: {
             title: {
                 text: yAxisTitle,
             },
-            min: chartType === 'waterLevelChart' ? 0 : null, // Only enforce min: 0 for water levels
+            min: chartType === 'waterLevelChart' ? 0 : null,
         },
-        series: seriesData.length > 0 ? seriesData : [{ name: 'No Data', data: [] }], // Fallback for no data
-        plotOptions: {
-            [highchartsType]: plotOptions, // Apply chart-specific plot options
-        },
+        series: seriesData.length > 0 ? seriesData : [{ name: 'No Data', data: [] }],
+        plotOptions: plotOptions, // Apply chart-specific plot options
         tooltip: {
-            xDateFormat: '%Y-%m-%d %H:%M:%S', // Format tooltip date
+            xDateFormat: '%Y-%m-%d %H:%M:%S',
             pointFormat: '{series.name}: <b>{point.y}</b> ' + yAxisTitle,
         },
         exporting: {
