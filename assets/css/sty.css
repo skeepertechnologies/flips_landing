@@ -96,10 +96,21 @@
 }
 
 /* Header and Main Styles to Remove Gap */
+
 .header {
   margin-bottom: 0;
   padding-bottom: 0;
   /* Removed top transition and related rules since header is not fixed */
+}
+/* Adjust header position when slider is visible */
+.header {
+  transition: top 0.3s ease;
+}
+.notification-slider.hidden + .header {
+  top: 0;
+}
+.notification-slider:not(.hidden) + .header {
+  top: 50px;
 }
 .main {
   margin-top: 0;
