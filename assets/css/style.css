@@ -897,11 +897,11 @@ section,
 
 .hero .stat-item .stat-icon i {
   font-size: 1.5rem;
-  color: rgba(10,4,97,1);
+  color: rgb(132, 148, 107);
 }
 
 .hero .stat-item:hover .stat-icon {
-  background-color: rgba(10,4,97,1);
+  background-color: rgb(120, 115, 201);
 }
 
 .hero .stat-item:hover .stat-icon i {
