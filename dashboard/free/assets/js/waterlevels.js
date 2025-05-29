@@ -7,41 +7,61 @@ let isLoading = false; // Track loading state
 // Function to show the loader
 function showLoader(loadingMessage) {
     if (!isLoading) {
+        console.log(`Showing loader: ${loadingMessage}`);
         isLoading = true;
         const chartLoader = document.getElementById('chartLoader');
         const loaderText = document.getElementById('loaderText');
         const dominantChart = document.getElementById('dominantChart');
-        
-        if (chartLoader && loaderText && dominantChart) {
-            chartLoader.style.display = 'flex';
-            loaderText.textContent = loadingMessage;
-            dominantChart.style.opacity = '0.5'; // Dim the chart during loading
+
+        if (!chartLoader || !loaderText || !dominantChart) {
+            console.error('Loader elements not found:', { chartLoader, loaderText, dominantChart });
+            isLoading = false;
+            return;
         }
+
+        chartLoader.style.display = 'flex';
+        loaderText.textContent = loadingMessage;
+        dominantChart.style.opacity = '0.5';
+    } else {
+        console.log(`Loader already active, skipping showLoader: ${loadingMessage}`);
     }
 }
 
-// Function to hide the loader
 function hideLoader() {
     if (isLoading) {
+        console.log('Hiding loader');
         isLoading = false;
         const chartLoader = document.getElementById('chartLoader');
         const dominantChart = document.getElementById('dominantChart');
-        
-        if (chartLoader && dominantChart) {
-            chartLoader.style.display = 'none';
-            dominantChart.style.opacity = '1'; // Restore full opacity
+
+        if (!chartLoader || !dominantChart) {
+            console.error('Loader elements not found:', { chartLoader, dominantChart });
+            return;
         }
+
+        chartLoader.style.display = 'none';
+        dominantChart.style.opacity = '1';
+    } else {
+        console.log('Loader already hidden, skipping hideLoader');
     }
 }
 
 // Function to initialize the dominant chart with live data
-// Function to initialize the dominant chart with live data
+let isLoading = false; // Track loading state
+let currentRequest = null; // Track ongoing request
+
 function initializeChart(chartType) {
+    if (isLoading) {
+        console.log(`Request for ${chartType} already in progress. Skipping.`);
+        return;
+    }
+
     const token = sessionStorage.getItem('token');
     if (!token) {
         console.error(`No authentication token found for ${chartType}. Redirecting to login.`);
         alert('Your session has expired. Please sign in again.');
         window.location.href = '../login.html';
+        hideLoader();
         return;
     }
 
@@ -53,49 +73,73 @@ function initializeChart(chartType) {
 
     showLoader(loadingMessages[chartType]);
 
+    if (currentRequest) {
+        currentRequest.cancel('New chart request initiated');
+    }
+
+    const CancelToken = axios.CancelToken;
+    const source = CancelToken.source();
+    currentRequest = source;
+
     axios
         .get('https://api.flipsintel.org/monitor/graph-data/', {
             headers: {
                 Authorization: `Token ${token}`,
             },
+            cancelToken: source.token,
+            timeout: 10000, // 10-second timeout
         })
         .then((response) => {
             const data = response.data;
-            console.log(`API Response for ${chartType}:`, data); // Debug log
+            console.log(`API Response for ${chartType}:`, data);
 
-            // Validate the API response structure
-            if (!data || !data.current_data || typeof data.current_data !== 'object') {
-                console.error('Invalid API response: current_data is missing or not an object', data);
-                alert('Failed to load chart data. Please try again later.');
+            try {
+                if (!data || !data.current_data || typeof data.current_data !== 'object') {
+                    console.error('Invalid API response: current_data is missing or not an object', data);
+                    alert('Failed to load chart data. Please try again later.');
+                    renderChart(chartType, { current_data: {} });
+                    return;
+                }
+
+                const rigs = Object.keys(data.current_data);
+                if (!rigs.length) {
+                    console.warn('No rigs found in current_data');
+                    renderChart(chartType, { current_data: {} });
+                    return;
+                }
+
+                renderChart(chartType, data);
+            } catch (error) {
+                console.error(`Error processing ${chartType} data:`, error);
+                alert('An error occurred while processing chart data.');
+                renderChart(chartType, { current_data: {} });
+            } finally {
                 hideLoader();
-                return;
+                currentRequest = null;
             }
-
-            // Check if there are any rigs
-            const rigs = Object.keys(data.current_data);
-            if (!rigs.length) {
-                console.warn('No rigs found in current_data');
-                renderChart(chartType, { current_data: {} }); // Render an empty chart
-                hideLoader();
-                return;
-            }
-
-            renderChart(chartType, data);
-            hideLoader();
         })
         .catch((error) => {
+            if (axios.isCancel(error)) {
+                console.log(`Request for ${chartType} was cancelled:`, error.message);
+                return;
+            }
             console.error(`Error fetching ${chartType} data:`, error);
-            if (error.response && error.response.status === 401) {
+            if (error.code === 'ECONNABORTED') {
+                console.error('Request timed out');
+                alert('Request timed out. Please try again.');
+            } else if (error.response && error.response.status === 401) {
                 console.error('Unauthorized: Invalid or expired token. Redirecting to login.');
                 alert('Your session is invalid. Please sign in again.');
                 sessionStorage.clear();
                 window.location.href = '../login.html';
             } else {
                 alert('An error occurred while fetching chart data. Please try again.');
+                renderChart(chartType, { current_data: {} });
             }
             hideLoader();
+            currentRequest = null;
         });
-}
+}   
 
 // Function to render the chart
 // Function to render the chart
@@ -276,8 +320,17 @@ function renderChart(chartType, data) {
 }
 
 // Function to switch the dominant chart
+// Debounce utility
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
 // Function to switch the dominant chart
-function switchChart(chartType, chartTitle) {
+const switchChart = debounce((chartType, chartTitle) => {
     clearRefreshTimers(); // Clear existing timers
     document.getElementById('chartTitle').textContent = chartTitle; // Update chart title
     initializeChart(chartType); // Load the chart
@@ -285,7 +338,7 @@ function switchChart(chartType, chartTitle) {
         console.log(`Refreshing ${chartType} chart...`);
         initializeChart(chartType);
     }, 5000);
-}
+}, 300);
 
 // Function to clear all refresh timers
 function clearRefreshTimers() {
