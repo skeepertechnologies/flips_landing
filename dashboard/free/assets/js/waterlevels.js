@@ -1,8 +1,6 @@
 let refreshTimers = {};
-let isInitialLoad = true; // Track if it is the first time loading the chart
-
-let refreshTimers = {};
 let isLoading = false; // Track loading state
+let currentRequest = null; // Track ongoing request
 
 // Function to show the loader
 function showLoader(loadingMessage) {
@@ -21,12 +19,33 @@ function showLoader(loadingMessage) {
 
         chartLoader.style.display = 'flex';
         loaderText.textContent = loadingMessage;
+        loaderText.classList.remove('text-danger'); // Reset error style
         dominantChart.style.opacity = '0.5';
     } else {
         console.log(`Loader already active, skipping showLoader: ${loadingMessage}`);
     }
 }
 
+// Function to show error in loader
+function showLoaderError(errorMessage) {
+    console.log(`Showing loader error: ${errorMessage}`);
+    const chartLoader = document.getElementById('chartLoader');
+    const loaderText = document.getElementById('loaderText');
+    const dominantChart = document.getElementById('dominantChart');
+
+    if (!chartLoader || !loaderText || !dominantChart) {
+        console.error('Loader elements not found:', { chartLoader, loaderText, dominantChart });
+        return;
+    }
+
+    chartLoader.style.display = 'flex';
+    loaderText.textContent = errorMessage;
+    loaderText.classList.add('text-danger');
+    dominantChart.style.opacity = '0.5';
+    isLoading = false; // Allow new requests
+}
+
+// Function to hide loader
 function hideLoader() {
     if (isLoading) {
         console.log('Hiding loader');
@@ -47,10 +66,7 @@ function hideLoader() {
 }
 
 // Function to initialize the dominant chart with live data
-let isLoading = false; // Track loading state
-let currentRequest = null; // Track ongoing request
-
-function initializeChart(chartType) {
+function initializeChart(chartType, retries = 2) {
     if (isLoading) {
         console.log(`Request for ${chartType} already in progress. Skipping.`);
         return;
@@ -58,10 +74,11 @@ function initializeChart(chartType) {
 
     const token = sessionStorage.getItem('token');
     if (!token) {
-        console.error(`No authentication token found for ${chartType}. Redirecting to login.`);
-        alert('Your session has expired. Please sign in again.');
-        window.location.href = '../login.html';
-        hideLoader();
+        console.error(`No authentication token found for ${chartType}.`);
+        showLoaderError('No authentication token. Redirecting to login...');
+        setTimeout(() => {
+            window.location.href = '../login.html';
+        }, 2000);
         return;
     }
 
@@ -81,13 +98,15 @@ function initializeChart(chartType) {
     const source = CancelToken.source();
     currentRequest = source;
 
+    console.log(`Initiating API request for ${chartType} with ${retries} retries remaining`);
+
     axios
         .get('https://api.flipsintel.org/monitor/graph-data/', {
             headers: {
                 Authorization: `Token ${token}`,
             },
             cancelToken: source.token,
-            timeout: 10000, // 10-second timeout
+            timeout: 15000, // Increased to 15 seconds
         })
         .then((response) => {
             const data = response.data;
@@ -96,7 +115,7 @@ function initializeChart(chartType) {
             try {
                 if (!data || !data.current_data || typeof data.current_data !== 'object') {
                     console.error('Invalid API response: current_data is missing or not an object', data);
-                    alert('Failed to load chart data. Please try again later.');
+                    showLoaderError('No data available. Please try again later.');
                     renderChart(chartType, { current_data: {} });
                     return;
                 }
@@ -104,6 +123,7 @@ function initializeChart(chartType) {
                 const rigs = Object.keys(data.current_data);
                 if (!rigs.length) {
                     console.warn('No rigs found in current_data');
+                    showLoaderError('No rigs available for this chart.');
                     renderChart(chartType, { current_data: {} });
                     return;
                 }
@@ -111,7 +131,7 @@ function initializeChart(chartType) {
                 renderChart(chartType, data);
             } catch (error) {
                 console.error(`Error processing ${chartType} data:`, error);
-                alert('An error occurred while processing chart data.');
+                showLoaderError('Error processing chart data.');
                 renderChart(chartType, { current_data: {} });
             } finally {
                 hideLoader();
@@ -119,34 +139,54 @@ function initializeChart(chartType) {
             }
         })
         .catch((error) => {
+            currentRequest = null;
             if (axios.isCancel(error)) {
                 console.log(`Request for ${chartType} was cancelled:`, error.message);
                 return;
             }
             console.error(`Error fetching ${chartType} data:`, error);
+
+            let errorMessage = 'Failed to load chart data. Please try again.';
             if (error.code === 'ECONNABORTED') {
                 console.error('Request timed out');
-                alert('Request timed out. Please try again.');
-            } else if (error.response && error.response.status === 401) {
-                console.error('Unauthorized: Invalid or expired token. Redirecting to login.');
-                alert('Your session is invalid. Please sign in again.');
-                sessionStorage.clear();
-                window.location.href = '../login.html';
-            } else {
-                alert('An error occurred while fetching chart data. Please try again.');
-                renderChart(chartType, { current_data: {} });
+                errorMessage = 'Request timed out. Please check your connection.';
+            } else if (error.response) {
+                if (error.response.status === 401) {
+                    console.error('Unauthorized: Invalid or expired token.');
+                    errorMessage = 'Session expired. Redirecting to login...';
+                    setTimeout(() => {
+                        sessionStorage.clear();
+                        window.location.href = '../login.html';
+                    }, 2000);
+                    showLoaderError(errorMessage);
+                    return;
+                } else if (error.response.status === 403) {
+                    errorMessage = 'You do not have permission to access this data.';
+                } else if (error.response.status === 404) {
+                    errorMessage = 'Data not found. Please try again later.';
+                } else {
+                    errorMessage = `Server error (${error.response.status}). Please try again.`;
+                }
+            } else if (error.request) {
+                errorMessage = 'No response from server. Please check your connection.';
             }
-            hideLoader();
-            currentRequest = null;
-        });
-}   
 
-// Function to render the chart
+            if (retries > 0) {
+                console.log(`Retrying ${chartType} request. ${retries} retries left.`);
+                setTimeout(() => initializeChart(chartType, retries - 1), 2000);
+            } else {
+                showLoaderError(errorMessage);
+                renderChart(chartType, { current_data: {} });
+                hideLoader();
+            }
+        });
+}
+
 // Function to render the chart
 function renderChart(chartType, data) {
     const chartConfig = {
         waterLevelChart: {
-            chartType: 'areaspline', // Filled area chart
+            chartType: 'areaspline',
             title: 'Water Level Over Time',
             yAxisTitle: 'Water Level (ft)',
             dataKey: 'levels',
@@ -155,9 +195,9 @@ function renderChart(chartType, data) {
                     fillColor: {
                         linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
                         stops: [
-                            [0, '#1E90FF'], // DodgerBlue at the top
-                            [1, 'rgba(30, 144, 255, 0.3)'] // Lighter blue at the bottom
-                        ]
+                            [0, '#1E90FF'],
+                            [1, 'rgba(30, 144, 255, 0.3)'],
+                        ],
                     },
                     marker: {
                         enabled: true,
@@ -168,7 +208,7 @@ function renderChart(chartType, data) {
             },
         },
         humidityChart: {
-            chartType: 'areaspline', // Changed from spline to areaspline to fill below the line
+            chartType: 'areaspline',
             title: 'Humidity Over Time',
             yAxisTitle: 'Humidity (%)',
             dataKey: 'humidities',
@@ -177,9 +217,9 @@ function renderChart(chartType, data) {
                     fillColor: {
                         linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
                         stops: [
-                            [0, '#32CD32'], // LimeGreen at the top
-                            [1, 'rgba(50, 205, 50, 0.2)'] // Lighter green at the bottom
-                        ]
+                            [0, '#32CD32'],
+                            [1, 'rgba(50, 205, 50, 0.2)'],
+                        ],
                     },
                     lineWidth: 2,
                     marker: {
@@ -192,7 +232,7 @@ function renderChart(chartType, data) {
             },
         },
         temperatureChart: {
-            chartType: 'column', // Bar/column chart
+            chartType: 'column',
             title: 'Temperature Over Time',
             yAxisTitle: 'Temperature (°C)',
             dataKey: 'temperatures',
@@ -201,9 +241,9 @@ function renderChart(chartType, data) {
                     color: {
                         linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
                         stops: [
-                            [0, '#FF4500'], // OrangeRed at the top
-                            [1, 'rgba(255, 69, 0, 0.5)'] // Lighter orange at the bottom
-                        ]
+                            [0, '#FF4500'],
+                            [1, 'rgba(255, 69, 0, 0.5)'],
+                        ],
                     },
                     pointPadding: 0.1,
                     borderWidth: 0,
@@ -214,14 +254,14 @@ function renderChart(chartType, data) {
     };
 
     const { chartType: highchartsType, title, yAxisTitle, dataKey, plotOptions } = chartConfig[chartType];
-    const rigs = Object.keys(data.current_data);
+    const rigs = data.current_data ? Object.keys(data.current_data) : [];
 
     // Prepare series data with validation
     const seriesData = rigs.map((rig) => {
         const rigData = data.current_data[rig];
         console.log(`Processing rig ${rig}:`, rigData);
 
-        if (!rigData.timestamps || !rigData[dataKey]) {
+        if (!rigData || !rigData.timestamps || !rigData[dataKey]) {
             console.warn(`Missing timestamps or ${dataKey} for rig ${rig}`);
             return { name: rig, data: [] };
         }
@@ -249,7 +289,6 @@ function renderChart(chartType, data) {
             return [parsedTime, numericValue];
         }).filter(point => point !== null);
 
-        // Colors are now handled in plotOptions, so remove series-level color
         return {
             name: rig,
             data: points,
@@ -258,68 +297,73 @@ function renderChart(chartType, data) {
 
     console.log(`Series data for ${chartType}:`, seriesData);
 
-    Highcharts.chart('dominantChart', {
-        chart: {
-            type: highchartsType,
-            zoomType: 'x',
-            events: {
-                load: function () {
-                    console.log(`${chartType} chart loaded successfully`);
-                },
-                redraw: function () {
-                    console.log(`${chartType} chart redrawn`);
+    try {
+        Highcharts.chart('dominantChart', {
+            chart: {
+                type: highchartsType,
+                zoomType: 'x',
+                events: {
+                    load: function () {
+                        console.log(`${chartType} chart loaded successfully`);
+                    },
+                    redraw: function () {
+                        console.log(`${chartType} chart redrawn`);
+                    },
                 },
             },
-        },
-        title: {
-            text: title,
-        },
-        xAxis: {
-            type: 'datetime',
             title: {
-                text: 'Date',
+                text: title,
             },
-            labels: {
-                format: '{value:%Y-%m-%d %H:%M}',
-            },
-        },
-        yAxis: {
-            title: {
-                text: yAxisTitle,
-            },
-            min: chartType === 'waterLevelChart' ? 0 : null,
-        },
-        series: seriesData.length > 0 ? seriesData : [{ name: 'No Data', data: [] }],
-        plotOptions: plotOptions, // Apply chart-specific plot options
-        tooltip: {
-            xDateFormat: '%Y-%m-%d %H:%M:%S',
-            pointFormat: '{series.name}: <b>{point.y}</b> ' + yAxisTitle,
-        },
-        exporting: {
-            enabled: true,
-            buttons: {
-                contextButton: {
-                    menuItems: ['downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG'],
+            xAxis: {
+                type: 'datetime',
+                title: {
+                    text: 'Date',
+                },
+                labels: {
+                    format: '{value:%Y-%m-%d %H:%M}',
                 },
             },
-        },
-        navigator: {
-            enabled: true,
-        },
-        scrollbar: {
-            enabled: true,
-        },
-        noData: {
-            style: {
-                fontWeight: 'bold',
-                fontSize: '15px',
-                color: '#303030',
+            yAxis: {
+                title: {
+                    text: yAxisTitle,
+                },
+                min: chartType === 'waterLevelChart' ? 0 : null,
             },
-        },
-    });
+            series: seriesData.length > 0 ? seriesData : [{ name: 'No Data', data: [] }],
+            plotOptions: plotOptions,
+            tooltip: {
+                xDateFormat: '%Y-%m-%d %H:%M:%S',
+                pointFormat: '{series.name}: <b>{point.y}</b> ' + yAxisTitle,
+            },
+            exporting: {
+                enabled: true,
+                buttons: {
+                    contextButton: {
+                        menuItems: ['downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG'],
+                    },
+                },
+            },
+            navigator: {
+                enabled: true,
+            },
+            scrollbar: {
+                enabled: true,
+            },
+            noData: {
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '15px',
+                    color: '#303030',
+                },
+                text: 'No data available for this chart.',
+            },
+        });
+    } catch (error) {
+        console.error(`Error rendering ${chartType} chart:`, error);
+        showLoaderError('Failed to render chart. Please try again.');
+    }
 }
 
-// Function to switch the dominant chart
 // Debounce utility
 function debounce(func, wait) {
     let timeout;
@@ -331,19 +375,22 @@ function debounce(func, wait) {
 
 // Function to switch the dominant chart
 const switchChart = debounce((chartType, chartTitle) => {
-    clearRefreshTimers(); // Clear existing timers
-    document.getElementById('chartTitle').textContent = chartTitle; // Update chart title
-    initializeChart(chartType); // Load the chart
+    clearRefreshTimers();
+    document.getElementById('chartTitle').textContent = chartTitle;
+    initializeChart(chartType);
     refreshTimers[chartType] = setInterval(() => {
         console.log(`Refreshing ${chartType} chart...`);
         initializeChart(chartType);
-    }, 5000);
+    }, 60000); // Increased to 60 seconds
 }, 300);
 
+// Function to clear all refresh timers
 // Function to clear all refresh timers
 function clearRefreshTimers() {
     Object.keys(refreshTimers).forEach((chartType) => {
         clearInterval(refreshTimers[chartType]);
+        console.log(`Cleared timer for ${chartType}`);
+
     });
     refreshTimers = {};
 }
