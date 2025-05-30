@@ -35,22 +35,16 @@ function fetchUserInfo() {
             return;
         }
 
-        // Update username in navbar
+        const emailElement = document.getElementById('userEmail');
+        if (emailElement) {
+            emailElement.textContent = userData.email || 'User';
+        } else {
+            console.warn('Element #userEmail not found in DOM');
+        }
+
         const usernameElement = document.getElementById('username');
         if (usernameElement) {
             usernameElement.textContent = userData.username || 'User';
-        } else {
-            console.warn('Element #username not found in DOM');
-        }
-
-        // Update modal fields
-        const modalUsername = document.getElementById('modalUsername');
-        const modalEmail = document.getElementById('modalEmail');
-        if (modalUsername) {
-            modalUsername.textContent = userData.username || 'User';
-        }
-        if (modalEmail) {
-            modalEmail.textContent = userData.email || 'N/A';
         }
 
         sessionStorage.setItem('username', userData.username || '');
@@ -58,11 +52,11 @@ function fetchUserInfo() {
     .catch(error => {
         console.error('Failed to fetch user info:', error);
         if (error.response && error.response.status === 401) {
-            console.log('Session expired. Redirecting to login.');
+            alert('Session expired. Please log in again.');
             sessionStorage.clear();
             window.location.href = '../login/login.html';
         } else {
-            console.log('Failed to load user data. Continuing without user info.');
+            alert('Failed to load user data. Please try again.');
         }
     });
 }
