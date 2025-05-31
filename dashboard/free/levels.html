@@ -8,8 +8,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
         integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/styles.css">
-    <!-- jQuery (already included) -->
+    <link rel="stylesheet" href="assets/css/sty.css">
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
@@ -18,23 +20,12 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <!-- Flot Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.time.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.stack.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.time.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.stack.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.time.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.3/jquery.flot.stack.min.js"></script>
-    <!-- Your Custom Scripts -->
-    <script src="assets/js/userinfo.js"></script>
-
-    <script src="assets/js/waterlevels.js"></script>
     <!-- Font Awesome -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
-    <!-- Leaflet and Mapbox (unchanged) -->
+    <!-- Leaflet and Mapbox -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/georaster"></script>
@@ -44,22 +35,101 @@
     <script src="https://unpkg.com/georaster-layer-for-leaflet/dist/georaster-layer-for-leaflet.bundle.min.js"></script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css" rel="stylesheet" />
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.js"></script>
-    <title>FLIPS Portal | Free|</title>
-    <link rel="stylesheet" href="assets/css/sty.css">
+    <!-- Custom Scripts -->
+    <script src="assets/js/userinfo.js"></script>
+    <script src="assets/js/waterlevels.js"></script>
+    <script src="assets/js/performance.js"></script>
+    <title>FLIPS Portal | Free</title>
+    <style>
+        body {
+            background-color: #f0feff;
+        }
+        .navbar {
+            height: 50px;
+            background-color: #1d0979;
+            color: #fff;
+        }
+        .navbar .nav-link, .navbar-brand {
+            color: #fff;
+        }
+        .search-container {
+            width: 65%;
+            margin: 0 auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .search-input::placeholder {
+            text-align: center;
+        }
+        .hamburger-menu {
+            font-size: 20px;
+            cursor: pointer;
+            color: #fff;
+        }
+        .sidebar {
+            position: fixed;
+            top: 50px;
+            left: -250px;
+            width: 250px;
+            height: calc(100vh - 50px);
+            background-color: #1d0979;
+            border: 1px solid #fff;
+            padding: 15px;
+            transition: left 0.3s ease-in-out;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        .sidebar a {
+            display: block;
+            color: #fff;
+            padding: 10px;
+            font-size: 14px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .sidebar a:hover {
+            background: #0a0340;
+        }
+        .submenu a {
+            padding-left: 35px;
+            font-size: 13px;
+        }
+        .content {
+            transition: margin-left 0.3s;
+            margin-left: 0;
+        }
+        .sidebar.active ~ .content {
+            margin-left: 250px;
+        }
+        #dominantChart {
+            width: 100%;
+            height: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+        @media (max-width: 991px) {
+            .sidebar.active ~ .content {
+                margin-left: 0;
+            }
+        }
+    </style>
 </head>
 
 <body>
-         <!-- Add this to your existing HTML -->
-         <div id="spinner" class="spinner" style="display: none;">
-            <div class="loader"></div> <!-- Create your loader here -->
-            <p>Loading...</p>
-        </div>
-    <nav class="navbar navbar-expand-lg" style="background: #1d0979;">
-        <div class="hamburger-menu" onclick="toggleSidebar()">&#9776;</div>
+    <div id="spinner" class="spinner" style="display: none;">
+        <div class="loader"></div>
+        <p>Loading...</p>
+    </div>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="hamburger-menu" onclick="toggleSidebar()">☰</div>
         <a class="navbar-brand" href="#">
-            <li class="nav-item active">
-                <a class="nav-link" href=""><strong>FLIPS</strong> <span class="sr-only">(current)</span></a>
-            </li>
+            <strong>FLIPS</strong> <span class="sr-only">(current)</span>
         </a>
         <div class="search-container">
             <input class="form-control search-input" type="search" placeholder="Start typing to search..."
@@ -87,20 +157,15 @@
                     </a>
                 </li>
                 <li class="nav-item dropdown">
-                   <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown"
-    role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    <img src="assets/images.png" alt="Profile Image" class="rounded-circle"
-        style="height: 20px; width: 20px" />
-    <span class="ml-2" style="color: #fff; font-size: small; font-weight: bold;"
-        id="username">Loading..</span>
-</a>
-
-                    <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="profileDropdown"
-                        style="width: 320px">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown"
+                        role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <img src="assets/images.png" alt="Profile Image" class="rounded-circle"
+                            style="height: 20px; width: 20px" />
+                        <span class="ml-2" style="color: #fff; font-size: small; font-weight: bold;" id="username">Loading...</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="profileDropdown" style="width: 320px">
                         <div class="row">
-                            <!-- Column 1 - Profile Dropdown Menu -->
                             <div class="col-12 d-flex flex-column">
-                                <!-- Settings Dropdown -->
                                 <div class="mb-2">
                                     <h6 class="dropdown-header d-flex justify-content-between align-items-center"
                                         style="cursor: pointer; color: #1d0979; font-weight: bold;"
@@ -109,14 +174,11 @@
                                         Settings <i class="fas fa-chevron-down"></i>
                                     </h6>
                                     <div class="collapse" id="settingsSection">
-                                        <a class="dropdown-item" id="accountSettingsModal" data-toggle="modal" data-target="#subscriptionModal"><i
-                                                class="fas fa-user-cog mr-2"></i> Account Settings</a>
-                                        <a class="dropdown-item" href="#"><i class="fas fa-cog mr-2"></i> General
-                                            Settings</a>
+                                        <a class="dropdown-item" id="accountSettingsModal" data-toggle="modal"
+                                            data-target="#accountSettingsModal"><i class="fas fa-user-cog mr-2"></i> Account Settings</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-cog mr-2"></i> General Settings</a>
                                     </div>
                                 </div>
-
-                                <!-- Notifications Section -->
                                 <div class="mb-2">
                                     <h6 class="dropdown-header d-flex justify-content-between align-items-center"
                                         style="cursor: pointer; color: #1d0979; font-weight: bold;"
@@ -125,12 +187,9 @@
                                         Notifications <i class="fas fa-chevron-down"></i>
                                     </h6>
                                     <div class="collapse" id="notificationsSection">
-                                        <a class="dropdown-item" href="#"><i class="fas fa-bell mr-2"></i> View
-                                            Notifications</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-bell mr-2"></i> View Notifications</a>
                                     </div>
                                 </div>
-
-                                <!-- Subscription Section -->
                                 <div class="mb-2">
                                     <h6 class="dropdown-header d-flex justify-content-between align-items-center"
                                         style="cursor: pointer; color: #1d0979; font-weight: bold;"
@@ -139,12 +198,9 @@
                                         Subscription <i class="fas fa-chevron-down"></i>
                                     </h6>
                                     <div class="collapse" id="subscriptionSection">
-                                        <a class="dropdown-item" href="#"><i class="fas fa-star mr-2"></i>
-                                            Tier/Subscription Plan</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-star mr-2"></i> Tier/Subscription Plan</a>
                                     </div>
                                 </div>
-
-                                <!-- Feedback Section -->
                                 <div class="mb-2">
                                     <h6 class="dropdown-header d-flex justify-content-between align-items-center"
                                         style="cursor: pointer; color: #1d0979; font-weight: bold;"
@@ -153,12 +209,9 @@
                                         Feedback <i class="fas fa-chevron-down"></i>
                                     </h6>
                                     <div class="collapse" id="feedbackSection">
-                                        <a class="dropdown-item" href="#"><i class="fas fa-comment-dots mr-2"></i> Send
-                                            Feedback</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-comment-dots mr-2"></i> Send Feedback</a>
                                     </div>
                                 </div>
-
-                                <!-- Follow Us Section -->
                                 <div class="mb-2">
                                     <h6 class="dropdown-header d-flex justify-content-between align-items-center"
                                         style="cursor: pointer; color: #1d0979; font-weight: bold;"
@@ -167,46 +220,37 @@
                                         Follow Us <i class="fas fa-chevron-down"></i>
                                     </h6>
                                     <div class="collapse" id="followUsSection">
-                                        <a class="dropdown-item" href="#"><i class="fab fa-facebook mr-2"></i>
-                                            Facebook</a>
-                                        <a class="dropdown-item" href="#"><i class="fab fa-twitter mr-2"></i>
-                                            Twitter</a>
-                                        <a class="dropdown-item" href="#"><i class="fab fa-linkedin mr-2"></i>
-                                            LinkedIn</a>
+                                        <a class="dropdown-item" href="#"><i class="fab fa-facebook mr-2"></i> Facebook</a>
+                                        <a class="dropdown-item" href="#"><i class="fab fa-twitter mr-2"></i> Twitter</a>
+                                        <a class="dropdown-item" href="#"><i class="fab fa-linkedin mr-2"></i> LinkedIn</a>
                                     </div>
                                 </div>
-                                <!-- Logout Button -->
                                 <button class="btn w-100 mt-2" onclick="handleLogout()"
                                     style="background: #1d0979; color: #fff; border-radius: 5px;">
                                     Logout
                                 </button>
                             </div>
                         </div>
-
                     </div>
                 </li>
             </ul>
         </div>
     </nav>
 
-    <div id="sidebar" class="sidebar" style="background: #1d0979; border: 1px solid #fff;">
+    <div id="sidebar" class="sidebar">
         <div>
-            <a href="#rigsSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="rigsSubmenu"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;">
+            <a href="#rigsSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="rigsSubmenu">
                 <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>Rigs
                 <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
             </a>
             <div id="rigsSubmenu" class="collapse submenu">
-                <a href="#" onclick="checkTokenAndFetchData()"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>All
-                    Rigs</a>
+                <a href="#" onclick="checkTokenAndFetchData()"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>All Rigs</a>
                 <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Active Rigs</a>
                 <a href="#"><i class="fa fa-paint-brush mr-2" aria-hidden="true"></i>Maintenance</a>
             </div>
         </div>
-
         <div>
-            <a href="#rigMenu" data-toggle="collapse" aria-expanded="false" aria-controls="rigMenu"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;">
+            <a href="#rigMenu" data-toggle="collapse" aria-expanded="false" aria-controls="rigMenu">
                 <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>GIS
                 <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
             </a>
@@ -217,10 +261,8 @@
                 <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Topography</a>
             </div>
         </div>
-
         <div>
-            <a href="#addonMenu" data-toggle="collapse" aria-expanded="false" aria-controls="addonMenu"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;">
+            <a href="#addonMenu" data-toggle="collapse" aria-expanded="false" aria-controls="addonMenu">
                 <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>Add-ons
                 <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
             </a>
@@ -231,10 +273,8 @@
                 <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>API Access</a>
             </div>
         </div>
-
         <div>
-            <a href="#weatherMenu" data-toggle="collapse" aria-expanded="false" aria-controls="weatherMenu"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;">
+            <a href="#weatherMenu" data-toggle="collapse" aria-expanded="false" aria-controls="weatherMenu">
                 <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>Weather
                 <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
             </a>
@@ -244,10 +284,8 @@
                 <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Rainfall</a>
             </div>
         </div>
-
         <div>
-            <a href="#predictionSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="predictionSubmenu"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;">
+            <a href="#predictionSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="predictionSubmenu">
                 <i class="bi bi-sliders mr-2"></i>Prediction
                 <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
             </a>
@@ -256,11 +294,8 @@
                 <a href="#"><i class="bi bi-graph-down-arrow mr-2"></i>Forecasting</a>
             </div>
         </div>
-
         <div>
-            <a href="#waterLevelsSubmenu" data-toggle="collapse" aria-expanded="false"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;"
-                aria-controls="waterLevelsSubmenu">
+            <a href="#waterLevelsSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="waterLevelsSubmenu">
                 <i class="bi bi-moisture mr-2"></i>Water Levels
                 <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
             </a>
@@ -269,54 +304,44 @@
                 <a href="#"><i class="bi bi-clock-history mr-2"></i>Historical Data</a>
             </div>
         </div>
-
         <div>
-            <a href="#" class="mb-5" style="color: #fff; padding: 10px;"><i
-                    class="bi bi-gear-wide-connected mr-2"></i>Settings</a>
+            <a href="#" class="mb-5"><i class="bi bi-gear-wide-connected mr-2"></i>Settings</a>
         </div>
-
         <div>
-            <a href="#" class="mt-5" style="color: #fff; padding: 10px;" onclick="handleLogout()"><i
-                    class="bi bi-box-arrow-right mr-2"></i>Logout</a>
+            <a href="#" class="mt-5" onclick="handleLogout()"><i class="bi bi-box-arrow-right mr-2"></i>Logout</a>
         </div>
     </div>
 
-
-<div class="container-fluid">
-    <div class="container-fluid">
-    <div class="container-fluid p-4 m-0">
-
-        <h2>Live Data - Water Levels, Temperature, and Humidity  <a href="index.html" class="btn btn-primary btn-sm" style="float: right;">
-            Back to Home
-        </a></h2>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h4 id="chartTitle" class="text-center">Water Levels</h4>
-                        <div id="chartLoader" class="text-center" style="display: none;">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="sr-only">Loading...</span>
+    <div class="content">
+        <div class="container-fluid p-4 m-0">
+            <h2>Live Data - Water Levels, Temperature, and Humidity
+                <a href="index.html" class="btn btn-primary btn-sm" style="float: right;">Back to Home</a>
+            </h2>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h4 id="chartTitle" class="text-center">Water Levels</h4>
+                            <div id="chartLoader" class="text-center" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <p id="loaderText" class="mt-2"></p>
                             </div>
-                            <p id="loaderText" class="mt-2"></p>
+                            <div id="dominantChart"></div>
                         </div>
-                        <div id="dominantChart" style="min-height: 600px;"></div>
                     </div>
                 </div>
-            </div>
-            <div class="col-12 d-flex justify-content-center mt-3">
-                <button class="btn btn-outline-primary mx-2" onclick="switchChart('waterLevelChart', 'Water Levels')">Water Levels</button>
-                <button class="btn btn-outline-primary mx-2" onclick="switchChart('humidityChart', 'Humidity')">Humidity</button>
-                <button class="btn btn-outline-primary mx-2" onclick="switchChart('temperatureChart', 'Temperature')">Temperature</button>
+                <div class="col-12 d-flex justify-content-center mt-3">
+                    <button class="btn btn-outline-primary mx-2" onclick="switchChart('waterLevelChart', 'Water Levels')">Water Levels</button>
+                    <button class="btn btn-outline-primary mx-2" onclick="switchChart('humidityChart', 'Humidity')">Humidity</button>
+                    <button class="btn btn-outline-primary mx-2" onclick="switchChart('temperatureChart', 'Temperature')">Temperature</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-
-
-<!-- Account Settings Modal -->
+    <!-- Account Settings Modal -->
     <div class="modal" id="accountSettingsModal">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -334,30 +359,10 @@
         </div>
     </div>
 
-</div>
-<!-- Include Highcharts Exporting Module -->
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
-    <script src="assets/js/performance.js"></script>
-     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<script src="https://unpkg.com/georaster"></script>
-<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
-<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
-<script src="https://unpkg.com/georaster-layer-for-leaflet/dist/georaster-layer-for-leaflet.bundle.min.js"></script>
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<script src="https://unpkg.com/georaster"></script>
-<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
-<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css" rel="stylesheet" />
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.js"></script>
-<script src="https://unpkg.com/georaster"></script>
-<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
-<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
-
-
-  </body></html>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

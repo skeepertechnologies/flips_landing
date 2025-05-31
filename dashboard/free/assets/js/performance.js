@@ -1,30 +1,18 @@
-function showDrawnPerfromanceValues() {
-    document.querySelector('.content').innerHTML = `
-        <div class="container-fluid p-4 m-0">
-            <h2>Model Performance</h2>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div id="modelPredictionChart"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+// performance.js
+function showDrawnPerformanceValues() {
+    // Update chart title instead of overwriting .content
+    document.getElementById('chartTitle').textContent = 'Model Performance';
     fetchPerformanceData();
 }
 
 function fetchPerformanceData() {
-    const token = sessionStorage.getItem('token'); // Changed from localStorage to sessionStorage
+    const token = sessionStorage.getItem('token');
     if (!token) {
         alert('You need to be logged in to view performance data.');
-        window.location.href = '../login/login.html'; // Adjust path as needed
+        window.location.href = '../login/login.html';
         return;
     }
 
-    // Fetch subscription details to determine allowed services
     axios.get('https://api.flipsintel.org/subscription/details/', {
         headers: {
             'Authorization': `Token ${token}`,
@@ -48,27 +36,22 @@ function fetchPerformanceData() {
 }
 
 function fetchModelData(token, subscriptionData) {
-    // Determine allowed services from subscription
     const allowedServices = subscriptionData.services || [];
     const subscriptionTier = subscriptionData.tier || 'Free';
     const usageLimits = subscriptionData.usage_limits || { historical_data_days: 7, report_count: 1 };
 
-    // Only fetch water level predictions if allowed by subscription
     if (!allowedServices.includes('water_level')) {
         alert(`Your ${subscriptionTier} plan does not include access to predictive water level data. Please upgrade.`);
-        document.querySelector('.content').innerHTML = `
-            <div class="container-fluid p-4 m-0">
-                <h2>Model Performance</h2>
-                <div class="alert alert-info">
-                    <strong>Your ${subscriptionTier} plan does not include predictive data.</strong><br>
-                    <a href="../payment.html" class="btn btn-primary">Upgrade Now</a>
-                </div>
+        document.getElementById('chartTitle').textContent = 'Model Performance';
+        document.getElementById('dominantChart').innerHTML = `
+            <div class="alert alert-info text-center">
+                <strong>Your ${subscriptionTier} plan does not include predictive data.</strong><br>
+                <a href="../payment.html" class="btn btn-primary mt-2">Upgrade Now</a>
             </div>
         `;
         return;
     }
 
-    // Add query parameter for historical data limit
     const params = new URLSearchParams();
     if (usageLimits.historical_data_days) {
         params.append('days', usageLimits.historical_data_days);
@@ -110,83 +93,99 @@ function renderPerformance(data, subscriptionData) {
     const previousPredictions = data.previous_predictions || [];
     const subscriptionTier = subscriptionData.tier || 'Free';
 
-    // Structure series data for predicted values with accuracy labels
-    const seriesData = Object.keys(predictedData).map(model => ({
-        name: `${model} Prediction (Accuracy: ${accuracyPercentages[model].toFixed(2)}%)`,
-        data: predictedData[model].map(entry => ({
-            name: entry.name,
-            y: entry.y
-        })),
-        color: getModelColor(model),
-        marker: { enabled: true }
+    // Prepare Flot data series
+    const plotData = Object.keys(predictedData).map(model => ({
+        label: `${model} Prediction (${accuracyPercentages[model].toFixed(2)}%)`,
+        data: predictedData[model].map(entry => [
+            entry.name, // Use location name as x-axis (string)
+            entry.y
+        ]),
     }));
 
-    // Add previous predictions for historical analysis, limited by subscription
-    const maxHistorical = subscriptionTier === 'Free' ? 1 : subscriptionTier === 'Premium' ? 5 : 10; // Example limits
-    const previousSeriesData = previousPredictions.slice(0, maxHistorical).map(entry => ({
-        name: `Historical Prediction - ${new Date(entry.timestamp).toLocaleString()}`,
-        data: Array(predictedData.knn.length).fill(entry.predicted_level),
-        dashStyle: 'ShortDot',
-        color: '#cccccc',
-        marker: { enabled: false }
+    // Add historical predictions
+    const maxHistorical = subscriptionTier === 'Free' ? 1 : subscriptionTier === 'Premium' ? 5 : 10;
+    const historicalData = previousPredictions.slice(0, maxHistorical).map(entry => ({
+        label: `Historical - ${new Date(entry.timestamp).toLocaleString()}`,
+        data: predictedData[Object.keys(predictedData)[0]].map(() => [
+            '', // Empty x-axis for constant line
+            entry.predicted_level
+        ]),
+        lines: { show: true, lineWidth: 1, dashPattern: [5, 5] }, // Dotted line
+        color: '#cccccc'
     }));
 
-    const combinedSeries = [...seriesData, ...previousSeriesData];
-    const categories = predictedData[Object.keys(predictedData)[0]].map(entry => entry.name);
+    const combinedData = [...plotData, ...historicalData];
 
-    Highcharts.chart('modelPredictionChart', {
-        chart: {
-            type: 'line'
-        },
-        title: {
-            text: 'Model Predictions with Accuracies and Historical Data'
-        },
-        subtitle: {
-            text: `Prediction reliability based on model accuracy (${subscriptionTier} Plan)`
-        },
-        xAxis: {
-            title: {
-                text: 'Locations'
+    // Clear previous chart
+    $('#dominantChart').empty();
+
+    // Render Flot chart
+    $.plot('#dominantChart', combinedData, {
+        series: {
+            lines: {
+                show: true,
+                fill: true,
+                fillColor: { colors: [{ opacity: 0.2 }, { opacity: 0.4 }] },
             },
-            categories: categories
+            points: { show: true, radius: 3 },
         },
-        yAxis: {
-            title: {
-                text: 'Water Levels'
-            },
-            plotLines: data.threshold ? [{
+        xaxis: {
+            axisLabel: 'Locations',
+            axisLabelUseCanvas: true,
+            axisLabelFontSizePixels: 12,
+            axisLabelPadding: 10,
+            ticks: predictedData[Object.keys(predictedData)[0]].map(entry => entry.name), // Use location names
+        },
+        yaxis: {
+            axisLabel: 'Water Levels',
+            axisLabelUseCanvas: true,
+            axisLabelFontSizePixels: 12,
+            axisLabelPadding: 10,
+            gridLines: data.threshold ? [{
+                value: data.threshold,
                 color: '#FF0000',
                 width: 2,
-                value: data.threshold,
-                label: {
-                    text: 'Threshold Level',
-                    align: 'center',
-                    style: {
-                        color: '#FF0000'
-                    }
-                }
+                label: { text: 'Threshold Level', align: 'center', style: { color: '#FF0000' } }
             }] : []
         },
-        tooltip: {
-            shared: true,
-            useHTML: true,
-            headerFormat: '<small>{point.key}</small><table>',
-            pointFormat: '<tr><td style="color: {series.color}">{series.name}: </td>' +
-                '<td style="text-align: right"><b>{point.y}</b></td></tr>',
-            footerFormat: '</table>',
-            valueDecimals: 2
+        grid: {
+            borderWidth: 1,
+            borderColor: '#ddd',
+            hoverable: true,
         },
-        series: combinedSeries
+        legend: {
+            show: true,
+            position: 'nw',
+        },
+        colors: ['#4572A7', '#AA4643', '#89A54E', '#80699B', '#3D96AE'], // Match Highcharts colors
+    });
+
+    // Add tooltip
+    let previousPoint = null;
+    $('#dominantChart').bind('plothover', function (event, pos, item) {
+        if (item) {
+            if (previousPoint !== item.dataIndex) {
+                previousPoint = item.dataIndex;
+                $('#tooltip').remove();
+                const x = item.datapoint[0];
+                const y = item.datapoint[1].toFixed(2);
+                showTooltip(
+                    item.pageX,
+                    item.pageY,
+                    `${item.series.label}<br>Location: ${x}<br>Water Level: ${y}`
+                );
+            }
+        } else {
+            $('#tooltip').remove();
+            previousPoint = null;
+        }
     });
 }
 
-function getModelColor(model) {
-    const colors = {
-        knn: '#4572A7',
-        linear_regression: '#AA4643',
-        decision_tree: '#89A54E',
-        random_forest: '#80699B',
-        svr: '#3D96AE'
-    };
-    return colors[model] || '#000000'; // Default color
+// Tooltip helper function (same as waterlevels.js)
+function showTooltip(x, y, contents) {
+    $('<div id="tooltip" style="position: absolute; display: none; border: 1px solid #ddd; padding: 8px; background-color: #f9f9f9; opacity: 0.9; border-radius: 4px; font-size: 12px; z-index: 1000;">' + contents + '</div>').css({
+        top: y - 50,
+        left: x + 10,
+    }).appendTo('body').fadeIn(200);
 }
