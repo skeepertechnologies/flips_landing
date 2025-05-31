@@ -6,7 +6,7 @@
 .use-case-card {
   border: none;
   border-radius: 10px;
-  box-shadow: 0 4px gerald15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Fixed typo: gerald15px → 15px */
   transition: transform 0.3s ease;
 }
 .use-case-card:hover {
@@ -33,7 +33,7 @@
 
 /* Notification Slider Styles */
 .notification-slider {
-  position: fixed; /* Changed from relative to fixed */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -59,10 +59,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 40px 0 20px; /* Extra padding-right for close button */
+  padding: 0 40px 0 20px;
   font-size: 0.9rem;
   text-align: center;
-  height: 50px; /* Match container height */
+  height: 50px;
 }
 .notification-slider .swiper-slide a {
   color: #fff;
@@ -95,26 +95,62 @@
   opacity: 1;
 }
 
-/* Header and Main Styles to Remove Gap */
-
+/* Header Styles */
 .header {
+  position: fixed; /* Ensure header stays at top */
+  top: 50px; /* Default to below slider height */
+  left: 0;
+  width: 100%;
+  background: #fff; /* Ensure background to prevent transparency */
+  z-index: 1000; /* Below slider (z-index: 2000) */
   margin-bottom: 0;
   padding-bottom: 0;
-  /* Removed top transition and related rules since header is not fixed */
-}
-/* Adjust header position when slider is visible */
-.header {
   transition: top 0.3s ease;
 }
 .notification-slider.hidden + .header {
-  top: 0;
+  top: 0; /* Move to top when slider is hidden */
 }
-.notification-slider:not(.hidden) + .header {
-  top: 100px;
+.header-container {
+  max-width: 90%; /* Wider than container-xl (1140px) */
+  width: 100%;
+  margin: 0 auto; /* Center the container */
+  padding-left: 15px;
+  padding-right: 15px;
 }
+@media (min-width: 1400px) {
+  .header-container {
+    max-width: 1400px; /* Cap width for very large screens */
+  }
+}
+@media (max-width: 991px) {
+  .header-container {
+    max-width: 100%; /* Full width on smaller screens */
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+.navmenu ul {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Space between nav items */
+}
+.navmenu a {
+  color: #333;
+  font-size: 1rem;
+  padding: 10px;
+}
+.navmenu a:hover,
+.navmenu a.active {
+  color: #7b4d11;
+}
+
+/* Main and Hero Adjustments */
 .main {
-  margin-top: 0;
+  margin-top: 80px; /* Space for fixed header (50px slider + 30px header height) */
   padding-top: 0;
+}
+.notification-slider.hidden ~ .main {
+  margin-top: 50px; /* Adjust when slider is hidden (30px header height) */
 }
 #hero {
   margin-top: 0;
