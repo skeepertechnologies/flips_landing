@@ -110,7 +110,7 @@
   top: 0;
 }
 .notification-slider:not(.hidden) + .header {
-  top: 50px;
+  top: 100px;
 }
 .main {
   margin-top: 0;
