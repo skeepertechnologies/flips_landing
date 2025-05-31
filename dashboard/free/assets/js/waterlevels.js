@@ -24,6 +24,7 @@ function initializeChart(chartType) {
     const token = sessionStorage.getItem('token'); // Changed from localStorage to sessionStorage
     if (!token) {
         console.error(`No authentication token found for ${chartType}. Redirecting to login.`);
+        // Optionally show an alert to the user
         alert('Your session has expired. Please sign in again.');
         window.location.href = '../login.html'; // Adjust the path to your login page
         return;
@@ -59,7 +60,7 @@ function initializeChart(chartType) {
         });
 }
 
-// Function to render the chart using Flot
+// Function to render the chart
 function renderChart(chartType, data) {
     const rigs = Object.keys(data.current_data);
     const chartConfig = {
@@ -81,85 +82,49 @@ function renderChart(chartType, data) {
     };
 
     const { title, yAxisTitle, dataKey } = chartConfig[chartType];
-    const plotData = rigs.map((rig) => ({
-        label: rig,
+    const seriesData = rigs.map((rig) => ({
+        name: rig,
         data: data.current_data[rig][dataKey].map((value, index) => [
             Date.parse(data.current_data[rig].timestamps[index]),
             value,
         ]),
     }));
 
-    // Clear previous chart
-    $('#dominantChart').empty();
-
-    // Render Flot chart
-    $.plot('#dominantChart', plotData, {
-        series: {
-            lines: {
-                show: true,
-                fill: true, // Mimic areaspline with filled area
-                fillColor: { colors: [{ opacity: 0.2 }, { opacity: 0.4 }] }, // Gradient fill
+    Highcharts.chart('dominantChart', {
+        chart: {
+            type: 'areaspline',
+            zoomType: 'x',
+        },
+        title: {
+            text: title,
+        },
+        xAxis: {
+            type: 'datetime',
+            title: {
+                text: 'Date',
             },
-            points: { show: false }, // No points, similar to Highcharts areaspline
         },
-        xaxis: {
-            mode: 'time',
-            timeformat: '%Y-%m-%d %H:%M', // Format for readability
-            timezone: 'browser', // Use browser timezone
-            axisLabel: 'Date',
-            axisLabelUseCanvas: true,
-            axisLabelFontSizePixels: 12,
-            axisLabelPadding: 10,
+        yAxis: {
+            title: {
+                text: yAxisTitle,
+            },
         },
-        yaxis: {
-            axisLabel: yAxisTitle,
-            axisLabelUseCanvas: true,
-            axisLabelFontSizePixels: 12,
-            axisLabelPadding: 10,
+        series: seriesData,
+        exporting: {
+            enabled: true,
+            buttons: {
+                contextButton: {
+                    menuItems: ['downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG'],
+                },
+            },
         },
-        grid: {
-            borderWidth: 1,
-            borderColor: '#ddd',
-            hoverable: true, // Enable tooltips
+        navigator: {
+            enabled: true,
         },
-        legend: {
-            show: true,
-            position: 'nw', // Top-left corner
+        scrollbar: {
+            enabled: true,
         },
-        colors: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'], // Color palette
     });
-
-    // Add tooltip functionality
-    let previousPoint = null;
-    $('#dominantChart').bind('plothover', function (event, pos, item) {
-        if (item) {
-            if (previousPoint !== item.dataIndex) {
-                previousPoint = item.dataIndex;
-                $('#tooltip').remove();
-                const x = new Date(item.datapoint[0]).toLocaleString();
-                const y = item.datapoint[1].toFixed(2);
-                showTooltip(
-                    item.pageX,
-                    item.pageY,
-                    `${item.series.label}<br>${x}<br>${yAxisTitle}: ${y}`
-                );
-            }
-        } else {
-            $('#tooltip').remove();
-            previousPoint = null;
-        }
-    });
-
-    // Update chart title
-    document.getElementById('chartTitle').textContent = title;
-}
-
-// Tooltip helper function
-function showTooltip(x, y, contents) {
-    $('<div id="tooltip" style="position: absolute; display: none; border: 1px solid #ddd; padding: 8px; background-color: #f9f9f9; opacity: 0.9; border-radius: 4px; font-size: 12px; z-index: 1000;">' + contents + '</div>').css({
-        top: y - 50,
-        left: x + 10,
-    }).appendTo('body').fadeIn(200);
 }
 
 // Function to switch the dominant chart
