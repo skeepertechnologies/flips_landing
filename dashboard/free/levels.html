@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css" rel="stylesheet" />
-    <!-- Highcharts CSS (if needed) -->
+    <!-- Custom CSS -->
     <style>
         body {
             background-color: #f0feff;
@@ -30,11 +30,13 @@
             padding: 10px;
         }
         .small-card {
-            width: 9.7rem;
+            width: 100%;
+            max-width: 9.7rem;
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             transition: transform 0.2s ease;
             cursor: pointer;
+            margin-bottom: 1rem;
         }
         .small-card:hover {
             transform: scale(1.05);
@@ -48,6 +50,27 @@
         }
         #dominantChart {
             min-height: 600px;
+        }
+        #statusCards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        #chartLoader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @media (max-width: 767px) {
+            #statusCards {
+                justify-content: center;
+                margin-top: 1rem;
+            }
         }
     </style>
 </head>
@@ -195,7 +218,7 @@
                     </a>
                     <div class="collapse" id="predictionSubmenu">
                         <ul class="nav flex-column ms-3">
-                            <li><a class="nav-link text-white" href="#"><i class="bi bi-bar-chart me-2"></i>Historical Data</a></li>
+                            <li><a class="nav-link text-white" href="#" onclick="showDrawnPerformanceValues()"><i class="bi bi-bar-chart me-2"></i>Performance Data</a></li>
                             <li><a class="nav-link text-white" href="#"><i class="bi bi-graph-up me-2"></i>Forecasting</a></li>
                         </ul>
                     </div>
@@ -224,7 +247,7 @@
     <!-- Main Content -->
     <main class="container-fluid p-4 flex-grow-1">
         <div class="row">
-            <div class="col-12">
+            <div class="col-md-8">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h2>Live Data - Water Levels, Temperature, and Humidity</h2>
                     <a href="index.html" class="btn btn-primary btn-sm">Back to Home</a>
@@ -245,6 +268,14 @@
                     <button class="btn btn-outline-primary" onclick="switchChart('waterLevelChart', 'Water Levels')">Water Levels</button>
                     <button class="btn btn-outline-primary" onclick="switchChart('humidityChart', 'Humidity')">Humidity</button>
                     <button class="btn btn-outline-primary" onclick="switchChart('temperatureChart', 'Temperature')">Temperature</button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h4 class="text-center">Current Status</h4>
+                        <div id="statusCards"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -268,7 +299,7 @@
         </div>
     </div>
 
-    <!-- Footer (Optional) -->
+    <!-- Footer -->
     <footer class="text-center py-3 mt-auto" style="background-color: #f0feff;">
         <div class="container">
             <span>© 2025 FLIPS, Inc.</span>
@@ -293,6 +324,6 @@
     <!-- Application Scripts -->
     <script src="assets/js/userinfo.js"></script>
     <script src="assets/js/waterlevels.js"></script>
-    <script src="assets/js/perfornamce.js"></script>
+    <script src="assets/js/performance.js"></script>
 </body>
 </html>

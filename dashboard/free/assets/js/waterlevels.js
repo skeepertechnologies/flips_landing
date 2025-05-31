@@ -21,12 +21,11 @@ function hideLoader() {
 
 // Function to initialize the dominant chart with live data
 function initializeChart(chartType) {
-    const token = sessionStorage.getItem('token'); // Changed from localStorage to sessionStorage
+    const token = sessionStorage.getItem('token');
     if (!token) {
         console.error(`No authentication token found for ${chartType}. Redirecting to login.`);
-        // Optionally show an alert to the user
         alert('Your session has expired. Please sign in again.');
-        window.location.href = '../login.html'; // Adjust the path to your login page
+        window.location.href = '../login/login.html'; // Standardized path
         return;
     }
 
@@ -53,11 +52,59 @@ function initializeChart(chartType) {
             if (error.response && error.response.status === 401) {
                 console.error('Unauthorized: Invalid or expired token. Redirecting to login.');
                 alert('Your session is invalid. Please sign in again.');
-                sessionStorage.clear(); // Clear sessionStorage to prevent further unauthorized requests
-                window.location.href = '../login.html'; // Adjust the path to your login page
+                sessionStorage.clear();
+                window.location.href = '../login/login.html';
             }
             hideLoader();
         });
+}
+
+// Function to render status cards for each rig
+function renderStatusCards(chartType, data) {
+    const rigs = Object.keys(data.current_data);
+    const chartConfig = {
+        waterLevelChart: {
+            dataKey: 'levels',
+            unit: 'ft',
+            label: 'Water Level',
+            icon: 'bi-water',
+        },
+        humidityChart: {
+            dataKey: 'humidities',
+            unit: '%',
+            label: 'Humidity',
+            icon: 'bi-droplet',
+        },
+        temperatureChart: {
+            dataKey: 'temperatures',
+            unit: '°C',
+            label: 'Temperature',
+            icon: 'bi-thermometer',
+        },
+    };
+
+    const { dataKey, unit, label, icon } = chartConfig[chartType];
+    const statusCards = document.getElementById('statusCards');
+    statusCards.innerHTML = ''; // Clear existing cards
+
+    rigs.forEach((rig) => {
+        const latestValue = data.current_data[rig][dataKey].slice(-1)[0] || 0;
+        const timestamp = data.current_data[rig].timestamps.slice(-1)[0] || 'N/A';
+        const formattedValue = latestValue.toFixed(2);
+        const time = timestamp !== 'N/A' ? new Date(timestamp).toLocaleTimeString() : 'N/A';
+
+        const card = document.createElement('div');
+        card.className = 'card small-card';
+        card.innerHTML = `
+            <div class="card-body text-center">
+                <i class="bi ${icon} mb-2" style="font-size: 1.5rem; color: #4caf50;"></i>
+                <h5 class="card-title">${rig}</h5>
+                <p class="card-text">${label}: ${formattedValue} ${unit}</p>
+                <p class="card-text text-muted" style="font-size: 0.8rem;">Updated: ${time}</p>
+            </div>
+        `;
+        statusCards.appendChild(card);
+    });
 }
 
 // Function to render the chart
@@ -125,13 +172,19 @@ function renderChart(chartType, data) {
             enabled: true,
         },
     });
+
+    // Update status cards
+    renderStatusCards(chartType, data);
+
+    // Update chart title
+    document.getElementById('chartTitle').textContent = title;
 }
 
 // Function to switch the dominant chart
 function switchChart(chartType, chartTitle) {
-    clearRefreshTimers(); // Clear existing timers
-    document.getElementById('chartTitle').textContent = chartTitle; // Update chart title
-    initializeChart(chartType); // Load the chart
+    clearRefreshTimers();
+    document.getElementById('chartTitle').textContent = chartTitle;
+    initializeChart(chartType);
     refreshTimers[chartType] = setInterval(() => initializeChart(chartType), 5000);
 }
 
