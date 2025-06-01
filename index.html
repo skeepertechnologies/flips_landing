@@ -1229,5 +1229,36 @@
     });
   });
   </script>
+
+  <!-- Madaraka Day Ad -->
+<div class="madaraka-ad" id="madarakaAd">
+  <button class="close-ad-btn" id="closeMadarakaAd">&times;</button>
+  <h4>Happy Madaraka Day! 🇰🇪</h4>
+  <p>Today, we celebrate Kenya's self-governance since June 1, 1963—a day of unity and resilience. At FLIPS, we honor this spirit by empowering communities with flood predictions to stay safe during national events.</p>
+  <p><a href="about-ai.html" class="learn-more">Learn How FLIPS Protects You</a></p>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const madarakaAd = document.getElementById('madarakaAd');
+    const closeMadarakaAdBtn = document.getElementById('closeMadarakaAd');
+
+    // Reset the closed state on page refresh to ensure the ad appears each time
+    // sessionStorage.setItem('madarakaAdClosed', 'false'); // Uncomment if you want to force reset on every refresh
+
+    // Check if the ad was previously closed in this session
+    if (sessionStorage.getItem('madarakaAdClosed') !== 'true') {
+      // Show the ad by adding the 'visible' class to trigger the slide-in animation
+      madarakaAd.classList.add('visible');
+    }
+
+    // Close the ad when the close button is clicked
+    closeMadarakaAdBtn.addEventListener('click', function() {
+      madarakaAd.classList.remove('visible'); // Slide out
+      // Store the closed state in sessionStorage
+      sessionStorage.setItem('madarakaAdClosed', 'true');
+    });
+  });
+</script>
 </body>
 </html>
