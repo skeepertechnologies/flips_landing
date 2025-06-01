@@ -270,13 +270,28 @@
   <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
   <!-- Main JS File -->
+  <script src="./assets/js/main.js"></script>
 
-  <!-- Highcharts Network Graph -->
+  <!-- Highcharts Network Graph with Debugging -->
   <script>
+    // Log to confirm Highcharts is loaded
+    console.log('Highcharts loaded:', typeof Highcharts !== 'undefined');
+
+    // Log to confirm container element exists
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('container');
+      console.log('Container element found:', !!container);
+      if (!container) {
+        console.error('Error: Container element with id "container" not found.');
+      }
+    });
+
+    // Add event for node customization with logging
     Highcharts.addEvent(
       Highcharts.Series,
       'afterSetOptions',
       function (e) {
+        console.log('afterSetOptions event triggered:', e.options.id);
         const colors = Highcharts.getOptions().colors,
               nodes = {};
         let i = 0;
@@ -285,7 +300,9 @@
           this instanceof Highcharts.Series.types.networkgraph &&
           e.options.id === 'flood-tree'
         ) {
-          e.options.data.forEach(function (link) {
+          console.log('Processing data for flood-tree:', e.options.data);
+          e.options.data.forEach(function (link, index) {
+            console.log(`Processing link ${index}:`, link);
             if (link[0] === 'Major Kenyan Floods') {
               nodes['Major Kenyan Floods'] = {
                 id: 'Major Kenyan Floods',
@@ -320,72 +337,82 @@
           e.options.nodes = Object.keys(nodes).map(function (id) {
             return nodes[id];
           });
+          console.log('Nodes generated:', e.options.nodes);
+        } else {
+          console.warn('Event not processed: Not a networkgraph or incorrect ID.');
         }
       }
     );
 
-    Highcharts.chart('container', {
-      chart: {
-        type: 'networkgraph',
-        height: '100%'
-      },
-      title: {
-        text: 'Major Kenyan Floods and FLIPS AI Technology',
-        align: 'left'
-      },
-      subtitle: {
-        text: 'A Network Graph Showing Kenyan Flood Events and FLIPS Contributions',
-        align: 'left'
-      },
-      plotOptions: {
-        networkgraph: {
-          keys: ['from', 'to'],
-          layoutAlgorithm: {
-            enableSimulation: true,
-            friction: -0.9,
-            gravitationalConstant: document.getElementById('container').scrollWidth < 500 ? 0.2 : 0.06
-          }
-        }
-      },
-      series: [{
-        accessibility: {
-          enabled: false
+    // Initialize Highcharts with error handling
+    try {
+      console.log('Attempting to initialize Highcharts chart...');
+      Highcharts.chart('container', {
+        chart: {
+          type: 'networkgraph',
+          height: '100%'
         },
-        dataLabels: {
-          enabled: true,
-          linkFormat: '',
-          style: {
-            fontSize: '0.8em',
-            fontWeight: 'normal'
+        title: {
+          text: 'Major Kenyan Floods and FLIPS AI Technology',
+          align: 'left'
+        },
+        subtitle: {
+          text: 'A Network Graph Showing Kenyan Flood Events and FLIPS Contributions',
+          align: 'left'
+        },
+        plotOptions: {
+          networkgraph: {
+            keys: ['from', 'to'],
+            layoutAlgorithm: {
+              enableSimulation: true,
+              friction: -0.9,
+              gravitationalConstant: document.getElementById('container').scrollWidth < 500 ? 0.2 : 0.06
+            }
           }
         },
-        id: 'flood-tree',
-        data: [
-          // Root node to major flood causes in Kenya
-          ['Major Kenyan Floods', 'Heavy Rainfall'],
-          ['Major Kenyan Floods', 'River Overflow'],
-          // Heavy Rainfall Floods in Kenya
-          ['Heavy Rainfall', '1997-98 El Niño Floods'],
-          ['Heavy Rainfall', '2018 Long Rains Floods'],
-          ['Heavy Rainfall', '2024 Nairobi Floods'],
-          // River Overflow Floods in Kenya
-          ['River Overflow', '2006 Tana River Floods'],
-          ['River Overflow', '2019 Nyando River Floods'],
-          ['River Overflow', '2020 Lake Victoria Basin Floods'],
-          // FLIPS AI Technologies
-          ['Major Kenyan Floods', 'FLIPS Predictive Models'],
-          ['Major Kenyan Floods', 'FLIPS Data Analytics'],
-          ['Major Kenyan Floods', 'FLIPS Real-Time Processing'],
-          // Connections to Specific Kenyan Floods
-          ['FLIPS Predictive Models', '2018 Long Rains Floods'],
-          ['FLIPS Predictive Models', '2024 Nairobi Floods'],
-          ['FLIPS Data Analytics', '1997-98 El Niño Floods'],
-          ['FLIPS Data Analytics', '2020 Lake Victoria Basin Floods'],
-          ['FLIPS Real-Time Processing', '2006 Tana River Floods'],
-          ['FLIPS Real-Time Processing', '2019 Nyando River Floods']
-        ]
-      }]
-    });
+        series: [{
+          accessibility: {
+            enabled: false
+          },
+          dataLabels: {
+            enabled: true,
+            linkFormat: '',
+            style: {
+              fontSize: '0.8em',
+              fontWeight: 'normal'
+            }
+          },
+          id: 'flood-tree',
+          data: [
+            // Root node to major flood causes in Kenya
+            ['Major Kenyan Floods', 'Heavy Rainfall'],
+            ['Major Kenyan Floods', 'River Overflow'],
+            // Heavy Rainfall Floods in Kenya
+            ['Heavy Rainfall', '1997-98 El Niño Floods'],
+            ['Heavy Rainfall', '2018 Long Rains Floods'],
+            ['Heavy Rainfall', '2024 Nairobi Floods'],
+            // River Overflow Floods in Kenya
+            ['River Overflow', '2006 Tana River Floods'],
+            ['River Overflow', '2019 Nyando River Floods'],
+            ['River Overflow', '2020 Lake Victoria Basin Floods'],
+            // FLIPS AI Technologies
+            ['Major Kenyan Floods', 'FLIPS Predictive Models'],
+            ['Major Kenyan Floods', 'FLIPS Data Analytics'],
+            ['Major Kenyan Floods', 'FLIPS Real-Time Processing'],
+            // Connections to Specific Kenyan Floods
+            ['FLIPS Predictive Models', '2018 Long Rains Floods'],
+            ['FLIPS Predictive Models', '2024 Nairobi Floods'],
+            ['FLIPS Data Analytics', '1997-98 El Niño Floods'],
+            ['FLIPS Data Analytics', '2020 Lake Victoria Basin Floods'],
+            ['FLIPS Real-Time Processing', '2006 Tana River Floods'],
+            ['FLIPS Real-Time Processing', '2019 Nyando River Floods']
+          ]
+        }]
+      });
+      console.log('Highcharts chart initialized successfully.');
+    } catch (error) {
+      console.error('Error initializing Highcharts chart:', error);
+    }
   </script>
 </body>
 </html>
