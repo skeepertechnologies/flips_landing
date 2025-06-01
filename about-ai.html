@@ -28,9 +28,9 @@
 
   <!-- Inline CSS for Chart and New Section -->
   <style>
-    #aiChart {
+    #container {
       max-width: 100%;
-      height: auto;
+      height: 400px;
       margin: 20px auto;
       display: block;
     }
@@ -192,9 +192,9 @@
           </div>
         </div>
         <div class="chart-container">
-          <h4 class="text-center mt-4">Proven Accuracy Over Time</h4>
-          <p class="text-center mb-4">Our AI models consistently improve, as shown by our flood prediction accuracy, reaching 95% in recent months.</p>
-          <canvas id="aiChart" width="400" height="200"></canvas>
+          <h4 class="text-center mt-4">Network of Major Kenyan Floods and FLIPS AI</h4>
+          <p class="text-center mb-4">Explore how FLIPS' AI technologies connect to significant flood events in Kenya, enhancing prediction and mitigation.</p>
+          <div id="container"></div>
         </div>
       </div>
     </section><!-- /AI Technology Section -->
@@ -264,42 +264,128 @@
   <script src="./assets/vendor/glightbox/js/glightbox.min.js"></script>
   <script src="./assets/vendor/swiper/swiper-bundle.min.js"></script>
   <script src="./assets/vendor/purecounter/purecounter_vanilla.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/modules/networkgraph.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
   <!-- Main JS File -->
   <script src="./assets/js/main.js"></script>
 
-  <!-- Chart.js Initialization -->
+  <!-- Highcharts Network Graph -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const ctx = document.getElementById('aiChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-          datasets: [{
-            label: 'Flood Prediction Accuracy',
-            data: [85, 88, 90, 92, 95],
-            borderColor: '#7b4d11',
-            fill: false,
-            tension: 0.1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100,
-              title: { display: true, text: 'Accuracy (%)' }
-            },
-            x: {
-              title: { display: true, text: 'Month' }
+    Highcharts.addEvent(
+      Highcharts.Series,
+      'afterSetOptions',
+      function (e) {
+        const colors = Highcharts.getOptions().colors,
+              nodes = {};
+        let i = 0;
+
+        if (
+          this instanceof Highcharts.Series.types.networkgraph &&
+          e.options.id === 'flood-tree'
+        ) {
+          e.options.data.forEach(function (link) {
+            if (link[0] === 'Major Kenyan Floods') {
+              nodes['Major Kenyan Floods'] = {
+                id: 'Major Kenyan Floods',
+                marker: { radius: 20 },
+                color: colors[0]
+              };
+              nodes[link[1]] = {
+                id: link[1],
+                marker: { radius: 10 },
+                color: colors[i++ % colors.length]
+              };
+            } else if (link[0].startsWith('FLIPS')) {
+              nodes[link[0]] = {
+                id: link[0],
+                marker: { radius: 15 },
+                color: '#7b4d11' // FLIPS brand color
+              };
+              nodes[link[1]] = {
+                id: link[1],
+                marker: { radius: 10 },
+                color: nodes[link[0]].color
+              };
+            } else if (nodes[link[0]] && nodes[link[0]].color) {
+              nodes[link[1]] = {
+                id: link[1],
+                marker: { radius: 10 },
+                color: nodes[link[0]].color
+              };
             }
+          });
+
+          e.options.nodes = Object.keys(nodes).map(function (id) {
+            return nodes[id];
+          });
+        }
+      }
+    );
+
+    Highcharts.chart('container', {
+      chart: {
+        type: 'networkgraph',
+        height: '100%'
+      },
+      title: {
+        text: 'Major Kenyan Floods and FLIPS AI Technology',
+        align: 'left'
+      },
+      subtitle: {
+        text: 'A Network Graph Showing Kenyan Flood Events and FLIPS Contributions',
+        align: 'left'
+      },
+      plotOptions: {
+        networkgraph: {
+          keys: ['from', 'to'],
+          layoutAlgorithm: {
+            enableSimulation: true,
+            friction: -0.9,
+            gravitationalConstant: document.getElementById('container').scrollWidth < 500 ? 0.2 : 0.06
           }
         }
-      });
+      },
+      series: [{
+        accessibility: {
+          enabled: false
+        },
+        dataLabels: {
+          enabled: true,
+          linkFormat: '',
+          style: {
+            fontSize: '0.8em',
+            fontWeight: 'normal'
+          }
+        },
+        id: 'flood-tree',
+        data: [
+          // Root node to major flood causes in Kenya
+          ['Major Kenyan Floods', 'Heavy Rainfall'],
+          ['Major Kenyan Floods', 'River Overflow'],
+          // Heavy Rainfall Floods in Kenya
+          ['Heavy Rainfall', '1997-98 El Niño Floods'],
+          ['Heavy Rainfall', '2018 Long Rains Floods'],
+          ['Heavy Rainfall', '2024 Nairobi Floods'],
+          // River Overflow Floods in Kenya
+          ['River Overflow', '2006 Tana River Floods'],
+          ['River Overflow', '2019 Nyando River Floods'],
+          ['River Overflow', '2020 Lake Victoria Basin Floods'],
+          // FLIPS AI Technologies
+          ['Major Kenyan Floods', 'FLIPS Predictive Models'],
+          ['Major Kenyan Floods', 'FLIPS Data Analytics'],
+          ['Major Kenyan Floods', 'FLIPS Real-Time Processing'],
+          // Connections to Specific Kenyan Floods
+          ['FLIPS Predictive Models', '2018 Long Rains Floods'],
+          ['FLIPS Predictive Models', '2024 Nairobi Floods'],
+          ['FLIPS Data Analytics', '1997-98 El Niño Floods'],
+          ['FLIPS Data Analytics', '2020 Lake Victoria Basin Floods'],
+          ['FLIPS Real-Time Processing', '2006 Tana River Floods'],
+          ['FLIPS Real-Time Processing', '2019 Nyando River Floods']
+        ]
+      }]
     });
   </script>
 </body>
