@@ -42,11 +42,11 @@
             z-index: 1000;
         }
         .cell {
-            height: 180px; /* Reduced height for smaller charts */
+            height: 180px;
             cursor: pointer;
         }
         .highcharts-tooltip {
-            font-size: 16px; /* Slightly smaller tooltip font */
+            font-size: 14px;
         }
         .highcharts-area {
             fill-opacity: 0.3;
@@ -71,7 +71,7 @@
         .small-chart-card {
             flex: 1;
             min-width: 0;
-            max-width: 48%; /* Ensures two cards fit side by side with gap */
+            max-width: 48%;
             transition: transform 0.3s;
         }
         .small-chart-card:hover {
@@ -79,6 +79,15 @@
         }
         .large-chart-card {
             width: 100%;
+        }
+        .highcharts-legend {
+            font-size: 12px;
+        }
+        .highcharts-legend-item text {
+            fill: #333 !important;
+        }
+        .chart-type-selector {
+            margin-bottom: 1rem;
         }
         @media (max-width: 767px) {
             .small-chart-container {
@@ -205,7 +214,7 @@
                     </div>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link-text-white d-flex align-items-center" data-bs-toggle="collapse" href="#addonMenu" aria-expanded="false">
+                    <a class="nav-link text-white d-flex align-items-center" data-bs-toggle="collapse" href="#addonMenu" aria-expanded="false">
                         <i class="bi bi-plus-circle me-2"></i>Add-ons<i class="bi bi-chevron-down ms-auto"></i>
                     </a>
                     <div class="collapse" id="addonMenu">
@@ -274,7 +283,15 @@
                     <!-- Large Chart Card -->
                     <div class="card shadow-sm large-chart-card">
                         <div class="card-body">
-                            <h3 id="chartTitle" class="text-center mb-3">Console</h3>
+                            <div class="d-flex justify-content-between align-items-center chart-type-selector">
+                                <h3 id="chartTitle" class="mb-0">Water Levels</h3>
+                                <select id="chartTypeSelect" class="form-select w-25">
+                                    <option value="line">Line</option>
+                                    <option value="column">Bar</option>
+                                    <option value="spline">Spline</option>
+                                    <option value="area">Area</option>
+                                </select>
+                            </div>
                             <div id="chartLoader" class="text-center d-none">
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Loading...</span>

@@ -4,6 +4,7 @@ let currentDashboard = null;
 let dashboardInitialized = false;
 let activeChartType = 'waterLevelChart';
 let smallChartTypes = ['humidityChart', 'temperatureChart'];
+let mainChartType = 'line'; // Default chart type for main chart
 
 // Function to show the loader
 function showLoader(loadingMessage) {
@@ -25,6 +26,34 @@ function hideLoader() {
         if (container) container.style.opacity = '1';
         isInitialLoad = false;
     }
+}
+
+// Function to filter data for the last 30 minutes
+function filterRecentData(data, minutes = 30) {
+    if (!data || !data.current_data) return data;
+
+    const now = Date.now();
+    const timeThreshold = now - minutes * 60 * 1000; // Convert minutes to milliseconds
+
+    const filteredData = { current_data: {} };
+    const rigs = Object.keys(data.current_data);
+
+    rigs.forEach(rig => {
+        const rigData = data.current_data[rig];
+        const filteredIndices = rigData.timestamps
+            .map((ts, i) => ({ ts: Date.parse(ts), index: i }))
+            .filter(item => item.ts >= timeThreshold)
+            .map(item => item.index);
+
+        filteredData.current_data[rig] = {
+            timestamps: filteredIndices.map(i => rigData.timestamps[i]),
+            levels: filteredIndices.map(i => rigData.levels[i]),
+            humidities: filteredIndices.map(i => rigData.humidities[i]),
+            temperatures: filteredIndices.map(i => rigData.temperatures[i]),
+        };
+    });
+
+    return filteredData;
 }
 
 // Function to format API data for Highcharts Dashboard
@@ -85,10 +114,11 @@ const chartConfig = {
         unit: 'ft',
         connectorId: 'Water-Levels',
         dataKey: 'levels',
-        subtitle: 'Live Water Level Data',
+        subtitle: 'Live Water Level Data (Last 30 Minutes)',
         accessibilityDesc: 'water level',
         cellId: 'dashboard-col-0',
         smallTitleId: null,
+        defaultChartType: 'line',
     },
     humidityChart: {
         title: 'Humidity',
@@ -96,10 +126,11 @@ const chartConfig = {
         unit: '%',
         connectorId: 'Humidity',
         dataKey: 'humidities',
-        subtitle: 'Live Humidity Data',
+        subtitle: 'Live Humidity Data (Last 30 Minutes)',
         accessibilityDesc: 'humidity',
         cellId: 'dashboard-col-1',
         smallTitleId: 'small-chart-title-1',
+        defaultChartType: 'line',
     },
     temperatureChart: {
         title: 'Temperature',
@@ -107,10 +138,11 @@ const chartConfig = {
         unit: '°C',
         connectorId: 'Temperature',
         dataKey: 'temperatures',
-        subtitle: 'Live Temperature Data',
+        subtitle: 'Live Temperature Data (Last 30 Minutes)',
         accessibilityDesc: 'temperature',
         cellId: 'dashboard-col-2',
         smallTitleId: 'small-chart-title-2',
+        defaultChartType: 'column',
     },
 };
 
@@ -133,7 +165,6 @@ async function initializeDashboard(data) {
     // Global Highcharts options
     Highcharts.setOptions({
         chart: {
-            type: 'area',
             spacingTop: 20,
             spacingBottom: 20,
             styledMode: true,
@@ -147,17 +178,24 @@ async function initializeDashboard(data) {
             enabled: false,
         },
         legend: {
-            enabled: false,
+            enabled: true,
+            align: 'center',
+            verticalAlign: 'bottom',
+            itemStyle: {
+                fontSize: '12px',
+            },
         },
         xAxis: {
             crosshair: true,
             type: 'datetime',
             labels: {
-                format: '{value:%Y-%m-%d %H:%M}',
+                format: '{value:%H:%M}',
             },
             accessibility: {
-                description: 'Date and time',
+                description: 'Time (Last 30 Minutes)',
             },
+            min: Date.now() - 30 * 60 * 1000,
+            max: Date.now(),
         },
         yAxis: {
             title: {
@@ -165,17 +203,9 @@ async function initializeDashboard(data) {
             },
         },
         tooltip: {
-            fixed: true,
-            position: {
-                align: 'right',
-                relativeTo: 'spacingBox',
-                y: -2,
-            },
-            padding: 2,
-            pointFormat: '{point.y}',
-            headerFormat: '',
-            shadow: false,
+            shared: true,
             valueDecimals: 1,
+            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> {series.options.tooltip.valueSuffix}<br/>',
         },
     });
 
@@ -205,11 +235,11 @@ async function initializeDashboard(data) {
                         cells: [{
                             id: 'dashboard-col-1',
                             width: '1/2',
-                            height: '220px',
+                            height: '180px',
                         }, {
                             id: 'dashboard-col-2',
                             width: '1/2',
-                            height: '220px',
+                            height: '180px',
                         }],
                     }],
                 }],
@@ -235,13 +265,13 @@ async function initializeDashboard(data) {
                     chartOptions: {
                         chart: {
                             animation: false,
-                            type: 'area',
+                            type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
                         },
                         title: {
-                            text: config.title,
+                            text: null,
                         },
                         subtitle: {
-                            text: config.cellId === 'dashboard-col-0' ? config.subtitle : null,
+                            text: config.subtitle,
                         },
                         yAxis: {
                             title: {
@@ -251,12 +281,11 @@ async function initializeDashboard(data) {
                         },
                         tooltip: {
                             valueSuffix: ` ${config.unit}`,
-                            valueDecimals: 1,
                         },
                         series: rigs.map(rig => ({
                             id: rig,
                             name: rig,
-                            type: 'area',
+                            type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
                         })),
                         exporting: {
                             enabled: config.cellId === 'dashboard-col-0',
@@ -268,7 +297,7 @@ async function initializeDashboard(data) {
                             enabled: config.cellId === 'dashboard-col-0',
                         },
                         accessibility: {
-                            description: `The chart displays live ${config.accessibilityDesc} data for multiple rigs over time.`,
+                            description: `The chart displays live ${config.accessibilityDesc} data for multiple rigs over the last 30 minutes.`,
                         },
                     },
                 };
@@ -291,11 +320,33 @@ async function initializeDashboard(data) {
             }
         });
 
+        // Add chart type change handler
+        const chartTypeSelect = document.getElementById('chartTypeSelect');
+        if (chartTypeSelect) {
+            chartTypeSelect.value = mainChartType;
+            chartTypeSelect.addEventListener('change', (e) => {
+                mainChartType = e.target.value;
+                updateMainChartType();
+            });
+        }
+
         console.log('Dashboard initialized successfully');
         dashboardInitialized = true;
     } catch (error) {
         console.error('Error initializing dashboard:', error);
         dashboardInitialized = false;
+    }
+}
+
+// Function to update main chart type
+function updateMainChartType() {
+    const component = currentDashboard.getComponentByCellId('dashboard-col-0');
+    if (component && component.chart) {
+        const chart = component.chart;
+        chart.series.forEach(series => {
+            series.update({ type: mainChartType }, false);
+        });
+        chart.redraw();
     }
 }
 
@@ -319,10 +370,12 @@ function updateDashboardData(data) {
                     const series = chart.series[index];
                     if (series) {
                         series.setData(
-                            formattedData.slice(1, -1).map(row => [row[0], row[index + 1]])
+                            formattedData.slice(1, -1).map(row => [row[0], row[index + 1]]),
+                            false
                         );
                     }
                 });
+                chart.redraw();
             }
         });
         return true;
@@ -360,6 +413,14 @@ function switchChart(chartType) {
         const config = Object.values(chartConfig).find(c => c.connectorId === component.connector.id);
         if (config) {
             component.cell = config.cellId;
+            if (component.chart) {
+                component.chart.series.forEach(series => {
+                    series.update({
+                        type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType
+                    }, false);
+                });
+                component.chart.redraw();
+            }
         }
     });
 
@@ -384,10 +445,11 @@ function fetchAndUpdateDashboard() {
         })
         .then((response) => {
             console.log('API response received:', response.data);
+            const filteredData = filterRecentData(response.data, 30); // Filter to last 30 minutes
             if (!dashboardInitialized) {
-                initializeDashboard(response.data);
+                initializeDashboard(filteredData);
             } else {
-                updateDashboardData(response.data);
+                updateDashboardData(filteredData);
             }
             hideLoader();
         })
