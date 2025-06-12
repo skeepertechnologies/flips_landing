@@ -11,7 +11,6 @@
     <!-- Highcharts Dashboards CSS -->
     <link rel="stylesheet" href="https://code.highcharts.com/css/highcharts.css">
     <link rel="stylesheet" href="https://code.highcharts.com/dashboards/css/dashboards.css">
-    <link rel="stylesheet" href="https://code.highcharts.com/dashboards/css/datagrid.css">
     <!-- Custom CSS -->
     <style>
         body {
@@ -25,10 +24,12 @@
             border: 1px solid #fff;
         }
         #dashboard-container {
+            width: 100%;
             min-height: 600px;
             position: relative;
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 1rem;
         }
         #chartLoader {
             display: flex;
@@ -40,19 +41,12 @@
             transform: translate(-50%, -50%);
             z-index: 1000;
         }
-        .highcharts-dashboards-component-grid {
-            font-size: 0.9rem;
-        }
-        .highcharts-dashboards-component-grid .highcharts-datagrid-cell {
-            padding: 8px;
-            text-align: center;
-        }
         .cell {
-            height: 220px;
+            height: 180px; /* Reduced height for smaller charts */
             cursor: pointer;
         }
         .highcharts-tooltip {
-            font-size: 20px;
+            font-size: 16px; /* Slightly smaller tooltip font */
         }
         .highcharts-area {
             fill-opacity: 0.3;
@@ -68,23 +62,30 @@
         .highcharts-description {
             margin: 0.3rem 10px;
         }
+        .small-chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            width: 100%;
+        }
         .small-chart-card {
+            flex: 1;
+            min-width: 0;
+            max-width: 48%; /* Ensures two cards fit side by side with gap */
             transition: transform 0.3s;
         }
         .small-chart-card:hover {
             transform: scale(1.02);
         }
-        @media (min-width: 768px) {
-            .small-chart-container {
-                display: flex;
-                gap: 1rem;
-            }
-            .small-chart-card {
-                flex: 1;
-            }
+        .large-chart-card {
+            width: 100%;
         }
         @media (max-width: 767px) {
+            .small-chart-container {
+                flex-direction: column;
+            }
             .small-chart-card {
+                max-width: 100%;
                 margin-bottom: 1rem;
             }
         }
@@ -174,7 +175,7 @@
     <div class="offcanvas offcanvas-start offcanvas-custom" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title text-white" id="sidebarLabel">Menu</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
             <ul class="nav flex-column">
@@ -204,7 +205,7 @@
                     </div>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white d-flex align-items-center" data-bs-toggle="collapse" href="#addonMenu" aria-expanded="false">
+                    <a class="nav-link-text-white d-flex align-items-center" data-bs-toggle="collapse" href="#addonMenu" aria-expanded="false">
                         <i class="bi bi-plus-circle me-2"></i>Add-ons<i class="bi bi-chevron-down ms-auto"></i>
                     </a>
                     <div class="collapse" id="addonMenu">
@@ -266,14 +267,14 @@
             <div class="col-md-12">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h2>Live Data - Water Levels, Temperature, and Humidity</h2>
-                    <a href="index.html" class="btn btn-primary btn-sm">Back to Home</a>
+                    <a href="index.html" class="btn btn-primary btn-sm">Back to Dashboard</a>
                 </div>
                 <!-- Dashboard Container -->
                 <div id="dashboard-container">
                     <!-- Large Chart Card -->
-                    <div class="card shadow-sm mb-3">
+                    <div class="card shadow-sm large-chart-card">
                         <div class="card-body">
-                            <h4 id="chartTitle" class="text-center">Water Levels</h4>
+                            <h3 id="chartTitle" class="text-center mb-3">Console</h3>
                             <div id="chartLoader" class="text-center d-none">
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Loading...</span>
@@ -304,17 +305,17 @@
     </main>
 
     <!-- Account Settings Modal -->
-    <div class="modal fade" id="accountSettingsModal" tabindex="-1" aria-labelledby="accountSettingsModalLabel" aria-hidden="true">
+    <div class="modal fade" id="accountSettingsModal" tabindex="-1" aria-labelledby="account-settings-label" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="accountSettingsModalLabel">Account Settings</h5>
+                    <h5 class="modal-title" id="account-settings-label">Account Settings</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <p><strong>Username:</strong> <span id="modalUsername"></span></p>
                     <p><strong>Email:</strong> <span id="modalEmail"></span></p>
-                    <p><strong>Subscription Level:</strong> <span id="modalSubscriptionLevel"></span></p>
+                    <p><strong>Subscription Level:</strong> <span id="modalSubtitleLevel"></span></p>
                     <p><strong>Billing Address:</strong> <span id="modalBillingAddress"></span></p>
                 </div>
             </div>
