@@ -48,9 +48,7 @@ function formatDataForDashboard(data, chartType) {
         rigs.forEach(rig => {
             const timestamp = data.current_data[rig].timestamps[i];
             const value = data.current_data[rig][dataKey][i];
-            if (i === 0 && timestamp) {
-                row[0] = Date.parse(timestamp);
-            }
+            row[0] = timestamp ? Date.parse(timestamp) : null;
             row.push(value != null ? value : null);
         });
         rows.push(row);
@@ -104,10 +102,14 @@ async function initializeDashboard(chartType, data) {
     const rigs = data.current_data ? Object.keys(data.current_data) : [];
 
     // Ensure dashboard-container exists
-    const container = document.getElementById('dashboard-container');
+    let container = document.getElementById('dashboard-container');
     if (!container) {
-        console.error('Dashboard container not found');
-        return;
+        console.error('Dashboard container not found, attempting to recreate');
+        container = document.createElement('div');
+        container.id = 'dashboard-container';
+        container.style.minHeight = '600px';
+        container.style.position = 'relative';
+        document.querySelector('.card-body').appendChild(container);
     }
 
     // Destroy existing dashboard if it exists
@@ -115,12 +117,6 @@ async function initializeDashboard(chartType, data) {
         try {
             console.log('Destroying previous dashboard');
             currentDashboard.destroy();
-            // Recreate the container if it was removed
-            const newContainer = document.createElement('div');
-            newContainer.id = 'dashboard-container';
-            newContainer.style.minHeight = '600px';
-            newContainer.style.position = 'relative';
-            container.parentNode.replaceChild(newContainer, container);
         } catch (e) {
             console.warn('Error destroying previous dashboard:', e);
         }
@@ -134,7 +130,6 @@ async function initializeDashboard(chartType, data) {
     });
 
     try {
-        // Create new dashboard with simplified configuration
         console.log('Creating new dashboard');
         currentDashboard = await Dashboards.board('dashboard-container', {
             dataPool: {
@@ -150,7 +145,6 @@ async function initializeDashboard(chartType, data) {
                 enabled: true,
                 layouts: [{
                     id: 'layout-1',
-                    rowClassName: 'custom-row',
                     rows: [{
                         cells: [{
                             id: 'dashboard-col-1',
@@ -163,25 +157,43 @@ async function initializeDashboard(chartType, data) {
                 }],
             },
             components: [{
-                cell: 'dashboard-col-1',
+                renderTo: 'dashboard-col-1',
                 type: 'Highcharts',
-                connector: { id: connectorId },
-                sync: { highlight: true },
+                connector: {
+                    id: connectorId,
+                    columnAssignment: rigs.map(rig => ({
+                        seriesId: rig,
+                        data: ['Timestamp', `${rig}_${dataKey}`],
+                    })),
+                },
+                sync: {
+                    highlight: true,
+                },
                 chartOptions: {
                     chart: {
                         animation: false,
                         type: 'areaspline',
                         zoomType: 'x',
                     },
-                    title: { text: title },
-                    subtitle: { text: subtitle },
+                    title: {
+                        text: title,
+                    },
+                    subtitle: {
+                        text: subtitle,
+                    },
                     xAxis: {
                         type: 'datetime',
-                        title: { text: 'Date' },
-                        accessibility: { description: 'Date and time' },
+                        title: {
+                            text: 'Date',
+                        },
+                        accessibility: {
+                            description: 'Date and time',
+                        },
                     },
                     yAxis: {
-                        title: { text: yAxisTitle },
+                        title: {
+                            text: yAxisTitle,
+                        },
                     },
                     tooltip: {
                         shared: true,
@@ -192,22 +204,33 @@ async function initializeDashboard(chartType, data) {
                     series: rigs.map(rig => ({
                         id: rig,
                         name: rig,
-                        data: formattedData.slice(1, -1).map(row => [row[0], row[rigs.indexOf(rig) + 1]]),
                     })),
-                    exporting: { enabled: true },
-                    navigator: { enabled: true },
-                    scrollbar: { enabled: true },
+                    exporting: {
+                        enabled: true,
+                    },
+                    navigator: {
+                        enabled: true,
+                    },
+                    scrollbar: {
+                        enabled: true,
+                    },
                     accessibility: {
                         description: `The chart displays live ${accessibilityDesc} data for multiple rigs over time.`,
                     },
                 },
             }, {
-                cell: 'dashboard-col-2',
+                renderTo: 'dashboard-col-2',
                 type: 'DataGrid',
-                connector: { id: connectorId },
-                sync: { highlight: true },
+                connector: {
+                    id: connectorId,
+                },
+                sync: {
+                    highlight: true,
+                },
                 dataGridOptions: {
-                    credits: { enabled: false },
+                    credits: {
+                        enabled: false,
+                    },
                     columns: [{
                         id: 'Timestamp',
                         cells: {
@@ -248,19 +271,33 @@ function updateDashboardData(chartType, data) {
         temperatureChart: { connectorId: 'Temperature', dataKey: 'temperatures' },
     };
 
-    const { connectorId } = chartConfig[chartType];
+    const { connectorId, dataKey } = chartConfig[chartType];
     const formattedData = formatDataForDashboard(data, chartType);
+    const rigs = data.current_data ? Object.keys(data.current_data) : [];
 
     try {
-        const connector = currentDashboard.dataPool.getConnector(connectorId);
-        if (connector) {
-            console.log('Updating dashboard data');
-            connector.table.setData(formattedData);
-            return true;
-        } else {
-            console.warn('Connector not found, reinitializing dashboard');
-            return initializeDashboard(chartType, data);
+        console.log('Updating dashboard data');
+        // Update Highcharts component
+        const chartComponent = currentDashboard.getComponentByCellId('dashboard-col-1');
+        if (chartComponent && chartComponent.chart) {
+            const chart = chartComponent.chart;
+            rigs.forEach((rig, index) => {
+                const series = chart.series[index];
+                if (series) {
+                    series.setData(
+                        formattedData.slice(1, -1).map(row => [row[0], row[index + 1]])
+                    );
+                }
+            });
         }
+
+        // Update DataGrid component
+        const gridComponent = currentDashboard.getComponentByCellId('dashboard-col-2');
+        if (gridComponent && gridComponent.dataGrid) {
+            gridComponent.dataGrid.setData(formattedData);
+        }
+
+        return true;
     } catch (error) {
         console.error('Error updating dashboard data:', error);
         return initializeDashboard(chartType, data);
