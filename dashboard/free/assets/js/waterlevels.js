@@ -2,6 +2,7 @@ let refreshTimers = {};
 let isInitialLoad = true;
 let currentDashboard = null;
 let currentChartType = 'waterLevelChart';
+let dashboardInitialized = false;
 
 // Function to show the loader
 function showLoader(loadingMessage) {
@@ -38,12 +39,10 @@ function formatDataForDashboard(data, chartType) {
     const headers = ['Timestamp', ...rigs.map(rig => `${rig}_${dataKey}`)];
     const rows = [];
 
-    // Get the maximum number of timestamps across all rigs
     const maxLength = Math.max(
         ...rigs.map(rig => (data.current_data[rig].timestamps || []).length)
     );
 
-    // Create rows by aligning timestamps
     for (let i = 0; i < maxLength; i++) {
         const row = [null];
         rigs.forEach(rig => {
@@ -57,7 +56,6 @@ function formatDataForDashboard(data, chartType) {
         rows.push(row);
     }
 
-    // Add latest values for the grid
     const latestRow = ['Latest'];
     rigs.forEach(rig => {
         const latestValue = data.current_data[rig][dataKey].slice(-1)[0] || null;
@@ -105,23 +103,29 @@ async function initializeDashboard(chartType, data) {
     const formattedData = formatDataForDashboard(data, chartType);
     const rigs = data.current_data ? Object.keys(data.current_data) : [];
 
-    // Destroy existing dashboard if it exists
-    if (currentDashboard && typeof currentDashboard.destroy === 'function') {
-        try {
-            console.log('Destroying previous dashboard');
-            currentDashboard.destroy();
-        } catch (e) {
-            console.warn('Error destroying previous dashboard:', e);
-        }
-    }
-    currentDashboard = null;
-
     // Ensure dashboard-container exists
     const container = document.getElementById('dashboard-container');
     if (!container) {
         console.error('Dashboard container not found');
         return;
     }
+
+    // Destroy existing dashboard if it exists
+    if (currentDashboard && typeof currentDashboard.destroy === 'function') {
+        try {
+            console.log('Destroying previous dashboard');
+            currentDashboard.destroy();
+            // Recreate the container if it was removed
+            const newContainer = document.createElement('div');
+            newContainer.id = 'dashboard-container';
+            newContainer.style.minHeight = '600px';
+            newContainer.style.position = 'relative';
+            container.parentNode.replaceChild(newContainer, container);
+        } catch (e) {
+            console.warn('Error destroying previous dashboard:', e);
+        }
+    }
+    currentDashboard = null;
 
     Highcharts.setOptions({
         chart: {
@@ -130,7 +134,7 @@ async function initializeDashboard(chartType, data) {
     });
 
     try {
-        // Create new dashboard
+        // Create new dashboard with simplified configuration
         console.log('Creating new dashboard');
         currentDashboard = await Dashboards.board('dashboard-container', {
             dataPool: {
@@ -143,15 +147,17 @@ async function initializeDashboard(chartType, data) {
                 }],
             },
             gui: {
+                enabled: true,
                 layouts: [{
                     id: 'layout-1',
+                    rowClassName: 'custom-row',
                     rows: [{
                         cells: [{
                             id: 'dashboard-col-1',
-                            width: '70%',
+                            width: '7/10',
                         }, {
                             id: 'dashboard-col-2',
-                            width: '30%',
+                            width: '3/10',
                         }],
                     }],
                 }],
@@ -159,41 +165,23 @@ async function initializeDashboard(chartType, data) {
             components: [{
                 cell: 'dashboard-col-1',
                 type: 'Highcharts',
-                connector: {
-                    id: connectorId,
-                    columnAssignment: rigs.map(rig => ({
-                        seriesId: rig,
-                        data: ['Timestamp', `${rig}_${dataKey}`],
-                    })),
-                },
-                sync: {
-                    highlight: true,
-                },
+                connector: { id: connectorId },
+                sync: { highlight: true },
                 chartOptions: {
                     chart: {
                         animation: false,
                         type: 'areaspline',
                         zoomType: 'x',
                     },
-                    title: {
-                        text: title,
-                    },
-                    subtitle: {
-                        text: subtitle,
-                    },
+                    title: { text: title },
+                    subtitle: { text: subtitle },
                     xAxis: {
                         type: 'datetime',
-                        title: {
-                            text: 'Date',
-                        },
-                        accessibility: {
-                            description: 'Date and time',
-                        },
+                        title: { text: 'Date' },
+                        accessibility: { description: 'Date and time' },
                     },
                     yAxis: {
-                        title: {
-                            text: yAxisTitle,
-                        },
+                        title: { text: yAxisTitle },
                     },
                     tooltip: {
                         shared: true,
@@ -204,21 +192,11 @@ async function initializeDashboard(chartType, data) {
                     series: rigs.map(rig => ({
                         id: rig,
                         name: rig,
+                        data: formattedData.slice(1, -1).map(row => [row[0], row[rigs.indexOf(rig) + 1]]),
                     })),
-                    exporting: {
-                        enabled: true,
-                        buttons: {
-                            contextButton: {
-                                menuItems: ['downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG'],
-                            },
-                        },
-                    },
-                    navigator: {
-                        enabled: true,
-                    },
-                    scrollbar: {
-                        enabled: true,
-                    },
+                    exporting: { enabled: true },
+                    navigator: { enabled: true },
+                    scrollbar: { enabled: true },
                     accessibility: {
                         description: `The chart displays live ${accessibilityDesc} data for multiple rigs over time.`,
                     },
@@ -226,16 +204,10 @@ async function initializeDashboard(chartType, data) {
             }, {
                 cell: 'dashboard-col-2',
                 type: 'DataGrid',
-                connector: {
-                    id: connectorId,
-                },
-                sync: {
-                    highlight: true,
-                },
+                connector: { id: connectorId },
+                sync: { highlight: true },
                 dataGridOptions: {
-                    credits: {
-                        enabled: false,
-                    },
+                    credits: { enabled: false },
                     columns: [{
                         id: 'Timestamp',
                         cells: {
@@ -256,8 +228,42 @@ async function initializeDashboard(chartType, data) {
         const titleElement = document.getElementById('chartTitle');
         if (titleElement) titleElement.textContent = title;
         console.log('Dashboard initialized successfully');
+        dashboardInitialized = true;
     } catch (error) {
         console.error('Error initializing dashboard:', error);
+        dashboardInitialized = false;
+    }
+}
+
+// Function to update dashboard data without reinitializing
+function updateDashboardData(chartType, data) {
+    if (!currentDashboard || !dashboardInitialized) {
+        console.log('Dashboard not initialized, initializing now');
+        return initializeDashboard(chartType, data);
+    }
+
+    const chartConfig = {
+        waterLevelChart: { connectorId: 'Water-Levels', dataKey: 'levels' },
+        humidityChart: { connectorId: 'Humidity', dataKey: 'humidities' },
+        temperatureChart: { connectorId: 'Temperature', dataKey: 'temperatures' },
+    };
+
+    const { connectorId } = chartConfig[chartType];
+    const formattedData = formatDataForDashboard(data, chartType);
+
+    try {
+        const connector = currentDashboard.dataPool.getConnector(connectorId);
+        if (connector) {
+            console.log('Updating dashboard data');
+            connector.table.setData(formattedData);
+            return true;
+        } else {
+            console.warn('Connector not found, reinitializing dashboard');
+            return initializeDashboard(chartType, data);
+        }
+    } catch (error) {
+        console.error('Error updating dashboard data:', error);
+        return initializeDashboard(chartType, data);
     }
 }
 
@@ -281,13 +287,19 @@ function fetchAndUpdateDashboard(chartType) {
 
     axios
         .get('https://api.flipsintel.org/monitor/graph-data/', {
-            headers: {
-                Authorization: `Token ${token}`,
-            },
+            headers: { Authorization: `Token ${token}` },
         })
         .then((response) => {
             console.log('API response received:', response.data);
-            initializeDashboard(chartType, response.data);
+            const container = document.getElementById('dashboard-container');
+            if (!container) {
+                console.error('Dashboard container not found during refresh, reinitializing');
+                initializeDashboard(chartType, response.data);
+            } else if (dashboardInitialized) {
+                updateDashboardData(chartType, response.data);
+            } else {
+                initializeDashboard(chartType, response.data);
+            }
             hideLoader();
         })
         .catch((error) => {
