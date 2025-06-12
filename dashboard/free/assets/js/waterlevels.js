@@ -7,7 +7,7 @@ let currentChartType = 'waterLevelChart';
 function showLoader(loadingMessage) {
     const loader = document.getElementById('chartLoader');
     if (loader && isInitialLoad) {
-        loader.style.display = 'flex';
+        loader.classList.remove('d-none');
         document.getElementById('loaderText').textContent = loadingMessage;
         const container = document.getElementById('dashboard-container');
         if (container) container.style.opacity = '0.5';
@@ -18,7 +18,7 @@ function showLoader(loadingMessage) {
 function hideLoader() {
     const loader = document.getElementById('chartLoader');
     if (loader && isInitialLoad) {
-        loader.style.display = 'none';
+        loader.classList.add('d-none');
         const container = document.getElementById('dashboard-container');
         if (container) container.style.opacity = '1';
         isInitialLoad = false;
@@ -27,7 +27,10 @@ function hideLoader() {
 
 // Function to format API data for Highcharts Dashboard
 function formatDataForDashboard(data, chartType) {
-    if (!data || !data.current_data) return [['Timestamp'], ['Latest']];
+    if (!data || !data.current_data) {
+        console.warn('No valid data received from API');
+        return [['Timestamp'], ['Latest']];
+    }
 
     const rigs = Object.keys(data.current_data);
     const dataKey = chartType === 'waterLevelChart' ? 'levels' :
@@ -67,6 +70,7 @@ function formatDataForDashboard(data, chartType) {
 
 // Function to initialize the dashboard
 async function initializeDashboard(chartType, data) {
+    console.log('Initializing dashboard for:', chartType);
     const chartConfig = {
         waterLevelChart: {
             title: 'Water Levels Over Time',
@@ -104,6 +108,7 @@ async function initializeDashboard(chartType, data) {
     // Destroy existing dashboard if it exists
     if (currentDashboard && typeof currentDashboard.destroy === 'function') {
         try {
+            console.log('Destroying previous dashboard');
             currentDashboard.destroy();
         } catch (e) {
             console.warn('Error destroying previous dashboard:', e);
@@ -126,6 +131,7 @@ async function initializeDashboard(chartType, data) {
 
     try {
         // Create new dashboard
+        console.log('Creating new dashboard');
         currentDashboard = await Dashboards.board('dashboard-container', {
             dataPool: {
                 connectors: [{
@@ -151,7 +157,7 @@ async function initializeDashboard(chartType, data) {
                 }],
             },
             components: [{
-                cell: 'dashboard-col-1', // Use 'cell' instead of 'renderTo'
+                cell: 'dashboard-col-1',
                 type: 'Highcharts',
                 connector: {
                     id: connectorId,
@@ -218,7 +224,7 @@ async function initializeDashboard(chartType, data) {
                     },
                 },
             }, {
-                cell: 'dashboard-col-2', // Use 'cell' instead of 'renderTo'
+                cell: 'dashboard-col-2',
                 type: 'DataGrid',
                 connector: {
                     id: connectorId,
@@ -249,6 +255,7 @@ async function initializeDashboard(chartType, data) {
         // Update chart title
         const titleElement = document.getElementById('chartTitle');
         if (titleElement) titleElement.textContent = title;
+        console.log('Dashboard initialized successfully');
     } catch (error) {
         console.error('Error initializing dashboard:', error);
     }
@@ -279,6 +286,7 @@ function fetchAndUpdateDashboard(chartType) {
             },
         })
         .then((response) => {
+            console.log('API response received:', response.data);
             initializeDashboard(chartType, response.data);
             hideLoader();
         })
@@ -296,6 +304,7 @@ function fetchAndUpdateDashboard(chartType) {
 
 // Function to switch the dashboard
 function switchChart(chartType, chartTitle) {
+    console.log('Switching chart to:', chartType);
     clearRefreshTimers();
     currentChartType = chartType;
     const titleElement = document.getElementById('chartTitle');
@@ -312,12 +321,25 @@ function clearRefreshTimers() {
     refreshTimers = {};
 }
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    // Ensure dashboard-container exists before initializing
-    if (!document.getElementById('dashboard-container')) {
-        console.error('Dashboard container not found on page load');
+// Initialize on page load with retry mechanism
+function initializeWithRetry(attempts = 3, delay = 100) {
+    if (attempts === 0) {
+        console.error('Failed to initialize dashboard after retries');
         return;
     }
+
+    const container = document.getElementById('dashboard-container');
+    if (!container) {
+        console.warn(`Dashboard container not found, retrying in ${delay}ms (${attempts} attempts left)`);
+        setTimeout(() => initializeWithRetry(attempts - 1, delay * 2), delay);
+        return;
+    }
+
+    console.log('Dashboard container found, starting initialization');
     switchChart('waterLevelChart', 'Water Levels');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM content loaded, starting initialization');
+    initializeWithRetry();
 });
