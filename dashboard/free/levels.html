@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FLIPS Portal | Live Data</title>
-    <!-- Bootstrap 5 -->
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Highcharts Dashboards CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/@highcharts/dashboards@2.5.0/css/dashboards.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@highcharts@11.4.8/css/highcharts.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@highcharts@11.4.8/css/datagrid.css" rel="stylesheet">-->
+    <link rel="stylesheet" href="https://code.highcharts.com/css/highcharts.css">
+    <link rel="stylesheet" href="https://code.highcharts.com/dashboards/css/dashboards.css">
+    <link rel="stylesheet" href="https://code.highcharts.com/dashboards/css/datagrid.css">
     <!-- Custom CSS -->
     <style>
         body {
@@ -20,13 +20,15 @@
         .navbar-custom {
             background-color: #1d0979;
         }
-        .offcanvas {
+        .offcanvas-custom {
             background-color: #1d0979;
-            color: white;
+            border: 1px solid #fff;
         }
         #dashboard-container {
             min-height: 600px;
             position: relative;
+            display: flex;
+            flex-wrap: wrap;
         }
         #chartLoader {
             display: flex;
@@ -38,24 +40,28 @@
             transform: translate(-50%, -50%);
             z-index: 1000;
         }
-        /* Responsive layout adjustments */
-        #dashboard-col-1, #dashboard-col-2 {
-            flex: 1 1 100%;
-        }
-        @media (min-width: 768px) {
-            #dashboard-col-1 {
-                flex: 0 0 70%;
-            }
-            #dashboard-col-2 {
-                flex: 0 0 30%;
-            }
-        }
         .highcharts-dashboards-component-grid {
             font-size: 0.9rem;
         }
         .highcharts-dashboards-component-grid .highcharts-datagrid-cell {
             padding: 8px;
             text-align: center;
+        }
+        @media (min-width: 768px) {
+            #dashboard-col-1 {
+                flex: 0 0 70%;
+                max-width: 70%;
+            }
+            #dashboard-col-2 {
+                flex: 0 0 30%;
+                max-width: 30%;
+            }
+        }
+        @media (max-width: 767px) {
+            #dashboard-col-1, #dashboard-col-2 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -140,7 +146,7 @@
     </nav>
 
     <!-- Sidebar -->
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+    <div class="offcanvas offcanvas-start offcanvas-custom" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title text-white" id="sidebarLabel">Menu</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -287,16 +293,16 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     <!-- Highcharts and Dashboards -->
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/highcharts-more.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-    <script src="https://code.highcharts.com/modules/draggable-points.js"></script>
-    <script src="https://code.highcharts.com/dashboards/dashboards.js"></script>
-    <script src="https://code.highcharts.com/dashboards/modules/layout.js"></script>
-    <script src="https://code.highcharts.com/dashboards/modules/math-modifier.js"></script>
-    <script src="https://code.highcharts.com/dashboards/modules/data-grid.js"></script>
+    <script src="https://code.highcharts.com/11.4.8/highcharts.js"></script>
+    <script src="https://code.highcharts.com/11.4.8/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/11.4.8/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/11.4.8/modules/offline-exporting.js"></script>
+    <script src="https://code.highcharts.com/11.4.8/modules/accessibility.js"></script>
+    <script src="https://code.highcharts.com/11.4.8/modules/draggable-points.js"></script>
+    <script src="https://code.highcharts.com/11.4.8/dashboards/modules/data-grid.js"></script>
+    <script src="https://code.highcharts.com/11.4.8/dashboards/dashboards.js"></script>
+    <script src="https://code.highcharts.com/11.4.8/dashboards/modules/layout.js"></script>
+    <script src="https://code.highcharts.com/11.4.8/dashboards/modules/math-modifier.js"></script>
     <!-- Application Scripts -->
     <script src="assets/js/userinfo.js"></script>
     <script src="assets/js/waterlevels.js"></script>
