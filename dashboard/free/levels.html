@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css" rel="stylesheet" />
+    <!-- Highcharts Dashboards CSS -->
+    <link rel="stylesheet" href="https://code.highcharts.com/dashboards/css/dashboards.css">
     <!-- Custom CSS -->
     <style>
         body {
@@ -24,38 +26,9 @@
             background-color: #1d0979;
             border: 1px solid #fff;
         }
-        .card-img-top {
-            height: 120px;
-            object-fit: contain;
-            padding: 10px;
-        }
-        .small-card {
-            width: 100%;
-            max-width: 9.7rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s ease;
-            cursor: pointer;
-            margin-bottom: 1rem;
-        }
-        .small-card:hover {
-            transform: scale(1.05);
-        }
-        .small-card .card-title {
-            font-size: 1rem;
-            color: #4caf50;
-        }
-        .small-card .card-text {
-            font-size: 0.9rem;
-        }
-        #dominantChart {
+        #dashboard-container {
             min-height: 600px;
-        }
-        #statusCards {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: center;
+            position: relative;
         }
         #chartLoader {
             display: flex;
@@ -65,11 +38,18 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+        .highcharts-dashboards-component-grid {
+            font-size: 0.9rem;
+        }
+        .highcharts-dashboards-component-grid .highcharts-datagrid-cell {
+            padding: 8px;
+            text-align: center;
         }
         @media (max-width: 767px) {
-            #statusCards {
-                justify-content: center;
-                margin-top: 1rem;
+            #dashboard-container {
+                min-height: 400px;
             }
         }
     </style>
@@ -137,15 +117,17 @@
                                 <div class="collapse" id="feedbackSection">
                                     <a class="dropdown-item" href="#"><i class="bi bi-chat-dots me-2"></i>Send Feedback</a>
                                 </div>
-                            </li>
-                            <li>
-                                <h6 class="dropdown-header" data-bs-toggle="collapse" data-bs-target="#followUsSection" aria-expanded="false">Follow Us <i class="bi bi-chevron-down"></i></h6>
+                            </div>
+                            <div>
+                                <h6 class="dropdown-header" data-bs-toggle="collapse" data-bs-target="#followUsSection" aria-expanded="false">Follow Us <i class="bi bi-chevron-down"></i>
+                                <div class="bi bi-chevron-down"></i>
                                 <div class="collapse" id="followUsSection">
-                                    <a class="dropdown-item" href="#"><i class="bi bi-facebook me-2"></i>Facebook</a>
-                                    <a class="dropdown-item" href="#"><i class="bi bi-twitter me-2"></i>Twitter</a>
-                                    <a class="dropdown-item" href="#"><i class="bi bi-linkedin me-2"></i>LinkedIn</a>
+                                    <a class="dropdown-item" href="#"><i class="bi bi-facebook me-2"></i>
+                                    <i class="bi bi-facebook"></i>Facebook</a>
+                                    <a class="dropdown-item" href="#""><i class="bi bi-twitter me-2"></i>Twitter</a>
+                                    <a class="dropdown-item" href="#"> class="bi bi-linkedin me-2"></i class="bi bi-linkedin me-2"></i>LinkedIn</a>
                                 </div>
-                            </li>
+                            </div>
                             <li><button class="btn w-100 mt-2 text-white" style="background-color: #1d0979;" onclick="handleLogout()">Logout</button></li>
                         </ul>
                     </li>
@@ -154,16 +136,16 @@
         </div>
     </nav>
 
-    <!-- Sidebar (Offcanvas) -->
+    <!-- Sidebar -->
     <div class="offcanvas offcanvas-start offcanvas-custom" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title text-white" id="sidebarLabel">Menu</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <button type="btn-close btn-close-white" type="button" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link text-white d-flex align-items-center" data-bs-toggle="collapse" href="#rigsSubmenu" aria-expanded="false">
+                    <a href="#" class="nav-link text-white d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#rigsSubmenu" aria-expanded="false">
                         <i class="bi bi-list me-2"></i>Rigs<i class="bi bi-chevron-down ms-auto"></i>
                     </a>
                     <div class="collapse" id="rigsSubmenu">
@@ -244,11 +226,12 @@
         </div>
     </div>
 
-     <main class="container-fluid p-4 flex-grow-1">
+    <!-- Main Content -->
+    <main class="container-fluid p-4 flex-grow-1">
         <div class="row">
             <div class="col-md-12">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2>Live Data - Water Levels and Humidity</h2>
+                    <h2>Live Data - Water Levels, Temperature, and Humidity</h2>
                     <a href="index.html" class="btn btn-primary btn-sm">Back to Home</a>
                 </div>
                 <div class="card shadow-sm">
@@ -267,7 +250,6 @@
                     <button class="btn btn-outline-primary" onclick="switchChart('waterLevelChart', 'Water Levels')">Water Levels</button>
                     <button class="btn btn-outline-primary" onclick="switchChart('humidityChart', 'Humidity')">Humidity</button>
                     <button class="btn btn-outline-primary" onclick="switchChart('temperatureChart', 'Temperature')">Temperature</button>
-
                 </div>
             </div>
         </div>
@@ -301,16 +283,16 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-    <!-- Highcharts Dashboards -->
-    <script src="https://code.highcharts.com/dashboards/dashboards.js"></script>
-    <script src="https://code.highcharts.com/dashboards/modules/dashboards-plugin.js"></script>
-    <script src="https://code.highcharts.com/dashboards/modules/data-grid.js"></script>
+    <!-- Highcharts and Dashboards -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-more.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-    <!-- Leaflet and Mapbox (unchanged) -->
+    <script src="https://code.highcharts.com/dashboards/dashboards.js"></script>
+    <script src="https://code.highcharts.com/dashboards/modules/dashboards-plugin.js"></script>
+    <script src="https://code.highcharts.com/dashboards/modules/data-grid.js"></script>
+    <!-- Leaflet and Mapbox -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/georaster"></script>
     <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>

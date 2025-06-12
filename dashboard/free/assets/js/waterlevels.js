@@ -5,26 +5,30 @@ let currentChartType = 'waterLevelChart';
 
 // Function to show the loader
 function showLoader(loadingMessage) {
-    if (isInitialLoad) {
-        const loader = document.getElementById('chartLoader');
+    const loader = document.getElementById('chartLoader');
+    if (loader && isInitialLoad) {
         loader.style.display = 'flex';
         document.getElementById('loaderText').textContent = loadingMessage;
-        document.getElementById('dashboard-container').style.opacity = '0.5';
+        const container = document.getElementById('dashboard-container');
+        if (container) container.style.opacity = '0.5';
     }
 }
 
 // Function to hide the loader
 function hideLoader() {
-    if (isInitialLoad) {
-        const loader = document.getElementById('chartLoader');
+    const loader = document.getElementById('chartLoader');
+    if (loader && isInitialLoad) {
         loader.style.display = 'none';
-        document.getElementById('dashboard-container').style.opacity = '1';
+        const container = document.getElementById('dashboard-container');
+        if (container) container.style.opacity = '1';
         isInitialLoad = false;
     }
 }
 
 // Function to format API data for Highcharts Dashboard
 function formatDataForDashboard(data, chartType) {
+    if (!data || !data.current_data) return [['Timestamp'], ['Latest']];
+
     const rigs = Object.keys(data.current_data);
     const dataKey = chartType === 'waterLevelChart' ? 'levels' :
                     chartType === 'humidityChart' ? 'humidities' : 'temperatures';
@@ -33,7 +37,7 @@ function formatDataForDashboard(data, chartType) {
 
     // Get the maximum number of timestamps across all rigs
     const maxLength = Math.max(
-        ...rigs.map(rig => data.current_data[rig].timestamps.length)
+        ...rigs.map(rig => (data.current_data[rig].timestamps || []).length)
     );
 
     // Create rows by aligning timestamps
@@ -42,8 +46,8 @@ function formatDataForDashboard(data, chartType) {
         rigs.forEach(rig => {
             const timestamp = data.current_data[rig].timestamps[i];
             const value = data.current_data[rig][dataKey][i];
-            if (i === 0) {
-                row[0] = timestamp ? Date.parse(timestamp) : null;
+            if (i === 0 && timestamp) {
+                row[0] = Date.parse(timestamp);
             }
             row.push(value != null ? value : null);
         });
@@ -54,7 +58,7 @@ function formatDataForDashboard(data, chartType) {
     const latestRow = ['Latest'];
     rigs.forEach(rig => {
         const latestValue = data.current_data[rig][dataKey].slice(-1)[0] || null;
-        latestRow.push(latestValue != null ? latestValue.toFixed(2) : 'N/A');
+        latestRow.push(latestValue != null ? Number(latestValue).toFixed(2) : 'N/A');
     });
     rows.push(latestRow);
 
@@ -95,11 +99,23 @@ async function initializeDashboard(chartType, data) {
 
     const { title, yAxisTitle, unit, connectorId, dataKey, subtitle, accessibilityDesc } = chartConfig[chartType];
     const formattedData = formatDataForDashboard(data, chartType);
-    const rigs = Object.keys(data.current_data);
+    const rigs = data.current_data ? Object.keys(data.current_data) : [];
 
     // Destroy existing dashboard if it exists
-    if (currentDashboard) {
-        currentDashboard.destroy();
+    if (currentDashboard && typeof currentDashboard.destroy === 'function') {
+        try {
+            currentDashboard.destroy();
+        } catch (e) {
+            console.warn('Error destroying previous dashboard:', e);
+        }
+    }
+    currentDashboard = null;
+
+    // Ensure dashboard-container exists
+    const container = document.getElementById('dashboard-container');
+    if (!container) {
+        console.error('Dashboard container not found');
+        return;
     }
 
     Highcharts.setOptions({
@@ -108,129 +124,134 @@ async function initializeDashboard(chartType, data) {
         },
     });
 
-    // Create new dashboard
-    currentDashboard = await Dashboards.board('dashboard-container', {
-        dataPool: {
-            connectors: [{
-                id: connectorId,
-                type: 'JSON',
-                options: {
-                    data: formattedData,
-                },
-            }],
-        },
-        gui: {
-            layouts: [{
-                id: 'layout-1',
-                rows: [{
-                    cells: [{
-                        id: 'dashboard-col-1',
-                        width: '70%',
-                    }, {
-                        id: 'dashboard-col-2',
-                        width: '30%',
+    try {
+        // Create new dashboard
+        currentDashboard = await Dashboards.board('dashboard-container', {
+            dataPool: {
+                connectors: [{
+                    id: connectorId,
+                    type: 'JSON',
+                    options: {
+                        data: formattedData,
+                    },
+                }],
+            },
+            gui: {
+                layouts: [{
+                    id: 'layout-1',
+                    rows: [{
+                        cells: [{
+                            id: 'dashboard-col-1',
+                            width: '70%',
+                        }, {
+                            id: 'dashboard-col-2',
+                            width: '30%',
+                        }],
                     }],
                 }],
-            }],
-        },
-        components: [{
-            renderTo: 'dashboard-col-1',
-            type: 'Highcharts',
-            connector: {
-                id: connectorId,
-                columnAssignment: rigs.map(rig => ({
-                    seriesId: rig,
-                    data: ['Timestamp', `${rig}_${dataKey}`],
-                })),
             },
-            sync: {
-                highlight: true,
-            },
-            chartOptions: {
-                chart: {
-                    animation: false,
-                    type: 'areaspline',
-                    zoomType: 'x',
+            components: [{
+                cell: 'dashboard-col-1', // Use 'cell' instead of 'renderTo'
+                type: 'Highcharts',
+                connector: {
+                    id: connectorId,
+                    columnAssignment: rigs.map(rig => ({
+                        seriesId: rig,
+                        data: ['Timestamp', `${rig}_${dataKey}`],
+                    })),
                 },
-                title: {
-                    text: title,
+                sync: {
+                    highlight: true,
                 },
-                subtitle: {
-                    text: subtitle,
-                },
-                xAxis: {
-                    type: 'datetime',
+                chartOptions: {
+                    chart: {
+                        animation: false,
+                        type: 'areaspline',
+                        zoomType: 'x',
+                    },
                     title: {
-                        text: 'Date',
+                        text: title,
+                    },
+                    subtitle: {
+                        text: subtitle,
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        title: {
+                            text: 'Date',
+                        },
+                        accessibility: {
+                            description: 'Date and time',
+                        },
+                    },
+                    yAxis: {
+                        title: {
+                            text: yAxisTitle,
+                        },
+                    },
+                    tooltip: {
+                        shared: true,
+                        split: true,
+                        stickOnContact: true,
+                        valueSuffix: ` ${unit}`,
+                    },
+                    series: rigs.map(rig => ({
+                        id: rig,
+                        name: rig,
+                    })),
+                    exporting: {
+                        enabled: true,
+                        buttons: {
+                            contextButton: {
+                                menuItems: ['downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG'],
+                            },
+                        },
+                    },
+                    navigator: {
+                        enabled: true,
+                    },
+                    scrollbar: {
+                        enabled: true,
                     },
                     accessibility: {
-                        description: 'Date and time',
+                        description: `The chart displays live ${accessibilityDesc} data for multiple rigs over time.`,
                     },
                 },
-                yAxis: {
-                    title: {
-                        text: yAxisTitle,
+            }, {
+                cell: 'dashboard-col-2', // Use 'cell' instead of 'renderTo'
+                type: 'DataGrid',
+                connector: {
+                    id: connectorId,
+                },
+                sync: {
+                    highlight: true,
+                },
+                dataGridOptions: {
+                    credits: {
+                        enabled: false,
                     },
-                },
-                tooltip: {
-                    shared: true,
-                    split: true,
-                    stickOnContact: true,
-                    valueSuffix: ` ${unit}`,
-                },
-                series: rigs.map(rig => ({
-                    id: rig,
-                    name: rig,
-                })),
-                exporting: {
-                    enabled: true,
-                    buttons: {
-                        contextButton: {
-                            menuItems: ['downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG'],
+                    columns: [{
+                        id: 'Timestamp',
+                        cells: {
+                            formatter: function () {
+                                if (this.value === 'Latest') return this.value;
+                                return new Date(this.value).toLocaleString();
+                            },
                         },
-                    },
+                    }, ...rigs.map(rig => ({
+                        id: `${rig}_${dataKey}`,
+                        header: rig,
+                    }))],
                 },
-                navigator: {
-                    enabled: true,
-                },
-                scrollbar: {
-                    enabled: true,
-                },
-                accessibility: {
-                    description: `The chart displays live ${accessibilityDesc} data for multiple rigs over time.`,
-                },
-            },
-        }, {
-            renderTo: 'dashboard-col-2',
-            type: 'Grid',
-            connector: {
-                id: connectorId,
-            },
-            sync: {
-                highlight: true,
-            },
-            gridOptions: {
-                credits: {
-                    enabled: false,
-                },
-                columns: [{
-                    id: 'Timestamp',
-                    cells: {
-                        formatter: function () {
-                            if (this.value === 'Latest') return this.value;
-                            return new Date(this.value).toLocaleString();
-                        },
-                    },
-                }, ...rigs.map(rig => ({
-                    id: `${rig}_${dataKey}`,
-                    header: rig,
-                }))],
-            },
-        }],
-    });
+            }],
+        });
 
-    // Update chart title
-    document.getElementById('chartTitle').textContent = title;
+        // Update chart title
+        const titleElement = document.getElementById('chartTitle');
+        if (titleElement) titleElement.textContent = title;
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+    }
 }
 
 // Function to fetch and update dashboard data
@@ -277,7 +298,8 @@ function fetchAndUpdateDashboard(chartType) {
 function switchChart(chartType, chartTitle) {
     clearRefreshTimers();
     currentChartType = chartType;
-    document.getElementById('chartTitle').textContent = chartTitle;
+    const titleElement = document.getElementById('chartTitle');
+    if (titleElement) titleElement.textContent = chartTitle;
     fetchAndUpdateDashboard(chartType);
     refreshTimers[chartType] = setInterval(() => fetchAndUpdateDashboard(chartType), 5000);
 }
@@ -292,5 +314,10 @@ function clearRefreshTimers() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    // Ensure dashboard-container exists before initializing
+    if (!document.getElementById('dashboard-container')) {
+        console.error('Dashboard container not found on page load');
+        return;
+    }
     switchChart('waterLevelChart', 'Water Levels');
 });
