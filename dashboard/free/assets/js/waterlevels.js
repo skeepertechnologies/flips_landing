@@ -130,7 +130,7 @@ async function initializeDashboard(data) {
     }
     currentDashboard = null;
 
-    // Global Highcharts options (adapted from example)
+    // Global Highcharts options
     Highcharts.setOptions({
         chart: {
             type: 'area',
@@ -192,12 +192,32 @@ async function initializeDashboard(data) {
                 })),
             },
             gui: {
-                enabled: false, // Managed manually via HTML
+                enabled: true,
+                layouts: [{
+                    id: 'layout-1',
+                    rows: [{
+                        cells: [{
+                            id: 'dashboard-col-0',
+                            width: '100%',
+                            height: '400px',
+                        }],
+                    }, {
+                        cells: [{
+                            id: 'dashboard-col-1',
+                            width: '1/2',
+                            height: '220px',
+                        }, {
+                            id: 'dashboard-col-2',
+                            width: '1/2',
+                            height: '220px',
+                        }],
+                    }],
+                }],
             },
             components: Object.keys(chartConfig).map(key => {
                 const config = chartConfig[key];
                 return {
-                    renderTo: config.cellId,
+                    cell: config.cellId,
                     type: 'Highcharts',
                     connector: {
                         id: config.connectorId,
@@ -207,7 +227,10 @@ async function initializeDashboard(data) {
                         })),
                     },
                     sync: {
-                        highlight: true,
+                        highlight: {
+                            enabled: true,
+                            type: 'highlight',
+                        },
                     },
                     chartOptions: {
                         chart: {
@@ -314,13 +337,12 @@ function switchChart(chartType) {
     if (chartType === activeChartType) return;
     console.log('Switching chart to:', chartType);
 
-    // Update active and small chart types
     const oldActive = activeChartType;
     activeChartType = chartType;
     const index = smallChartTypes.indexOf(chartType);
     smallChartTypes[index] = oldActive;
 
-    // Update cell assignments
+    // Update cell assignments in chartConfig
     chartConfig[chartType].cellId = 'dashboard-col-0';
     chartConfig[oldActive].cellId = `dashboard-col-${index + 1}`;
 
@@ -330,8 +352,18 @@ function switchChart(chartType) {
     const smallTitle = document.getElementById(`small-chart-title-${index + 1}`);
     if (smallTitle) smallTitle.textContent = chartConfig[oldActive].title;
 
-    // Reinitialize dashboard to apply new layout
-    fetchAndUpdateDashboard();
+    // Update dashboard layout
+    const layout = currentDashboard.layouts[0];
+    const components = currentDashboard.components;
+
+    components.forEach(component => {
+        const config = Object.values(chartConfig).find(c => c.connectorId === component.connector.id);
+        if (config) {
+            component.cell = config.cellId;
+        }
+    });
+
+    layout.redraw();
 }
 
 // Function to fetch and update dashboard data
@@ -386,7 +418,7 @@ function initializeWithRetry(attempts = 3, delay = 100) {
         return;
     }
 
-    const container = document.getElementById('dashboard-col-0');
+    const container = document.getElementById('dashboard-container');
     if (!container) {
         console.warn(`Dashboard container not found, retrying in ${delay}ms (${attempts} attempts left)`);
         setTimeout(() => initializeWithRetry(attempts - 1, delay * 2), delay);

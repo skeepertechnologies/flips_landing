@@ -268,31 +268,34 @@
                     <h2>Live Data - Water Levels, Temperature, and Humidity</h2>
                     <a href="index.html" class="btn btn-primary btn-sm">Back to Home</a>
                 </div>
-                <!-- Large Chart Card -->
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body">
-                        <h4 id="chartTitle" class="text-center">Water Levels</h4>
-                        <div id="chartLoader" class="text-center d-none">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                <!-- Dashboard Container -->
+                <div id="dashboard-container">
+                    <!-- Large Chart Card -->
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body">
+                            <h4 id="chartTitle" class="text-center">Water Levels</h4>
+                            <div id="chartLoader" class="text-center d-none">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p id="loaderText" class="mt-2"></p>
                             </div>
-                            <p id="loaderText" class="mt-2"></p>
-                        </div>
-                        <div id="dashboard-col-0" style="height: 400px;"></div>
-                    </div>
-                </div>
-                <!-- Small Charts Container -->
-                <div class="small-chart-container">
-                    <div class="card shadow-sm small-chart-card">
-                        <div class="card-body">
-                            <h5 class="card-title text-center" id="small-chart-title-1">Humidity</h5>
-                            <div id="dashboard-col-1" class="cell"></div>
+                            <div id="dashboard-col-0" style="height: 400px;"></div>
                         </div>
                     </div>
-                    <div class="card shadow-sm small-chart-card">
-                        <div class="card-body">
-                            <h5 class="card-title text-center" id="small-chart-title-2">Temperature</h5>
-                            <div id="dashboard-col-2" class="cell"></div>
+                    <!-- Small Charts Container -->
+                    <div class="small-chart-container">
+                        <div class="card shadow-sm small-chart-card">
+                            <div class="card-body">
+                                <h5 class="card-title text-center" id="small-chart-title-1">Humidity</h5>
+                                <div id="dashboard-col-1" class="cell"></div>
+                            </div>
+                        </div>
+                        <div class="card shadow-sm small-chart-card">
+                            <div class="card-body">
+                                <h5 class="card-title text-center" id="small-chart-title-2">Temperature</h5>
+                                <div id="dashboard-col-2" class="cell"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
