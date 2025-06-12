@@ -47,20 +47,45 @@
             padding: 8px;
             text-align: center;
         }
+        .cell {
+            height: 220px;
+            cursor: pointer;
+        }
+        .highcharts-tooltip {
+            font-size: 20px;
+        }
+        .highcharts-area {
+            fill-opacity: 0.3;
+        }
+        #dashboard-col-1 .highcharts-color-0 {
+            fill: var(--highcharts-color-1);
+            stroke: var(--highcharts-color-1);
+        }
+        #dashboard-col-2 .highcharts-color-0 {
+            fill: var(--highcharts-color-2);
+            stroke: var(--highcharts-color-2);
+        }
+        .highcharts-description {
+            margin: 0.3rem 10px;
+        }
+        .small-chart-card {
+            transition: transform 0.3s;
+        }
+        .small-chart-card:hover {
+            transform: scale(1.02);
+        }
         @media (min-width: 768px) {
-            #dashboard-col-1 {
-                flex: 0 0 70%;
-                max-width: 70%;
+            .small-chart-container {
+                display: flex;
+                gap: 1rem;
             }
-            #dashboard-col-2 {
-                flex: 0 0 30%;
-                max-width: 30%;
+            .small-chart-card {
+                flex: 1;
             }
         }
         @media (max-width: 767px) {
-            #dashboard-col-1, #dashboard-col-2 {
-                flex: 0 0 100%;
-                max-width: 100%;
+            .small-chart-card {
+                margin-bottom: 1rem;
             }
         }
     </style>
@@ -243,7 +268,8 @@
                     <h2>Live Data - Water Levels, Temperature, and Humidity</h2>
                     <a href="index.html" class="btn btn-primary btn-sm">Back to Home</a>
                 </div>
-                <div class="card shadow-sm">
+                <!-- Large Chart Card -->
+                <div class="card shadow-sm mb-3">
                     <div class="card-body">
                         <h4 id="chartTitle" class="text-center">Water Levels</h4>
                         <div id="chartLoader" class="text-center d-none">
@@ -252,13 +278,23 @@
                             </div>
                             <p id="loaderText" class="mt-2"></p>
                         </div>
-                        <div id="dashboard-container"></div>
+                        <div id="dashboard-col-0" style="height: 400px;"></div>
                     </div>
                 </div>
-                <div class="d-flex justify-content-center mt-3 gap-2">
-                    <button class="btn btn-outline-primary" onclick="switchChart('waterLevelChart', 'Water Levels')">Water Levels</button>
-                    <button class="btn btn-outline-primary" onclick="switchChart('humidityChart', 'Humidity')">Humidity</button>
-                    <button class="btn btn-outline-primary" onclick="switchChart('temperatureChart', 'Temperature')">Temperature</button>
+                <!-- Small Charts Container -->
+                <div class="small-chart-container">
+                    <div class="card shadow-sm small-chart-card">
+                        <div class="card-body">
+                            <h5 class="card-title text-center" id="small-chart-title-1">Humidity</h5>
+                            <div id="dashboard-col-1" class="cell"></div>
+                        </div>
+                    </div>
+                    <div class="card shadow-sm small-chart-card">
+                        <div class="card-body">
+                            <h5 class="card-title text-center" id="small-chart-title-2">Temperature</h5>
+                            <div id="dashboard-col-2" class="cell"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
