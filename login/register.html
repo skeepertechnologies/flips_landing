@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.12.1/font/bootstrap-icons.min.css">
   <!-- Include intl-tel-input CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
   <link rel="stylesheet" href="assets/css/style.css">
   <style>
     /* Custom styles (unchanged) */
@@ -164,7 +165,15 @@
 
         <input type="text" class="form-control form-control-underline mt-4 mb-3" id="usernameInput" placeholder="Choose a username" required>
         <div id="usernameFeedback" class="error-message d-none"></div>
-        <input type="password" class="form-control form-control-underline mb-3" id="passwordInput" placeholder="Enter password" required>
+
+        <div class="position-relative">
+            <span class="btn-show-pass" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;">
+                <i class="fa fa-eye" style="color: #7b4d11;"></i>
+            </span>
+            <input type="password" class="form-control form-control-underline mb-3" id="passwordInput" placeholder="Enter password" required>
+            <span class="focus-input100" data-placeholder="&#xf191;"></span>
+        </div>
+
         <div id="passwordFeedback" class="error-message d-none"></div>
         <input type="tel" class="form-control form-control-underline mb-3" id="phoneInput" placeholder="Phone number" required>
         <div id="phoneFeedback" class="error-message d-none"></div>
@@ -208,6 +217,20 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+  <script>
+    $('.btn-show-pass').on('click', function() {
+        var $icon = $(this).find('i');
+        var $input = $(this).next('input');
+
+        if ($input.attr('type') === 'password') {
+            $input.attr('type', 'text');
+            $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            $input.attr('type', 'password');
+            $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        }
+    });
+  </script>
   <script>
     const BASE_URL = 'https://api.flipsintel.org';
 
@@ -474,17 +497,17 @@
   </script>
 
   <!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/68259970d4ac681917c378cc/1ir9duoj5';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
+  <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+      (function(){
+      var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+      s1.async=true;
+      s1.src='https://embed.tawk.to/68259970d4ac681917c378cc/1ir9duoj5';
+      s1.charset='UTF-8';
+      s1.setAttribute('crossorigin','*');
+      s0.parentNode.insertBefore(s1,s0);
+    })();
+  </script>
 <!--End of Tawk.to Script-->
 </body>
 </html>

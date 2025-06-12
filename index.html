@@ -29,7 +29,7 @@
   <!-- Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
   <link href="assets/css/sty.css" rel="stylesheet">
-  <link href="assets/css/madaraka.css" rel="stylesheet">
+<!--  <link href="assets/css/madaraka.css" rel="stylesheet">-->
 
 
   <!-- Custom CSS for New Sections -->
@@ -86,8 +86,8 @@
       <div class="container" data-aos="fade-up" data-aos-delay="100">
         <div class="row align-items-center">
           <div class="col-lg-6">
-            <div class="hero-content" data-aos="fade-up" data-aos-delay="200">
-              <div class="company-badge mb-4">
+            <div class="hero-content mt-5" data-aos="fade-up" data-aos-delay="200">
+              <div class="company-badge mb-4 mt-5">
                 <i class="bi bi-gear-fill me-2"></i>
                 Protecting Businesses and Homes
               </div>
@@ -241,7 +241,7 @@
             </div>
             <div class="info-wrapper">
               <div class="row gy-4">
-                <div class="col-lg-5">
+                <!-- <div class="col-lg-5">
                   <div class="profile d-flex align-items-center gap-3">
                     <img src="assets/img/team/sam.jpg.jpg" alt="CEO Profile" class="profile-image">
                     <div>
@@ -249,7 +249,7 @@
                       <p class="profile-position">CEO & Founder</p>
                     </div>
                   </div>
-                </div>
+                </div> -->
                 <div class="col-lg-7">
                   <div class="contact-info d-flex align-items-center gap-2">
                     <i class="bi bi-telephone-fill"></i>
@@ -1160,7 +1160,7 @@
     userStatus.innerHTML = '<a class="btn-getstarted fw-bold" href="login/login.html">Get Started</a>';
   }
 });
- 
+
 
 
 
@@ -1232,34 +1232,34 @@
   </script>
 
   <!-- Madaraka Day Ad -->
-<div class="madaraka-ad" id="madarakaAd">
+<!-- <div class="madaraka-ad" id="madarakaAd">
   <button class="close-ad-btn" id="closeMadarakaAd">&times;</button>
   <h4>Happy Madaraka Day! 🇰🇪</h4>
   <p>Today, we celebrate Kenya's self-governance since June 1, 1963—a day of unity and resilience. At FLIPS, we honor this spirit by empowering communities with flood predictions to stay safe during national events.</p>
   <p><a href="about-ai.html" class="learn-more">Learn How FLIPS Protects You</a></p>
-</div>
+</div> -->
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const madarakaAd = document.getElementById('madarakaAd');
-    const closeMadarakaAdBtn = document.getElementById('closeMadarakaAd');
+<!--<script>-->
+<!--  document.addEventListener('DOMContentLoaded', function() {-->
+<!--    const madarakaAd = document.getElementById('madarakaAd');-->
+<!--    const closeMadarakaAdBtn = document.getElementById('closeMadarakaAd');-->
 
-    // Reset the closed state on page refresh to ensure the ad appears each time
-    // sessionStorage.setItem('madarakaAdClosed', 'false'); // Uncomment if you want to force reset on every refresh
+<!--    // Reset the closed state on page refresh to ensure the ad appears each time-->
+<!--    // sessionStorage.setItem('madarakaAdClosed', 'false'); // Uncomment if you want to force reset on every refresh-->
 
-    // Check if the ad was previously closed in this session
-    if (sessionStorage.getItem('madarakaAdClosed') !== 'true') {
-      // Show the ad by adding the 'visible' class to trigger the slide-in animation
-      madarakaAd.classList.add('visible');
-    }
+<!--    // Check if the ad was previously closed in this session-->
+<!--    if (sessionStorage.getItem('madarakaAdClosed') !== 'true') {-->
+<!--      // Show the ad by adding the 'visible' class to trigger the slide-in animation-->
+<!--      madarakaAd.classList.add('visible');-->
+<!--    }-->
 
-    // Close the ad when the close button is clicked
-    closeMadarakaAdBtn.addEventListener('click', function() {
-      madarakaAd.classList.remove('visible'); // Slide out
-      // Store the closed state in sessionStorage
-      sessionStorage.setItem('madarakaAdClosed', 'true');
-    });
-  });
-</script>
+<!--    // Close the ad when the close button is clicked-->
+<!--    closeMadarakaAdBtn.addEventListener('click', function() {-->
+<!--      madarakaAd.classList.remove('visible'); // Slide out-->
+<!--      // Store the closed state in sessionStorage-->
+<!--      sessionStorage.setItem('madarakaAdClosed', 'true');-->
+<!--    });-->
+<!--  });-->
+<!--</script>-->
 </body>
 </html>
