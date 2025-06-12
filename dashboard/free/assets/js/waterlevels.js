@@ -37,23 +37,35 @@ function formatDataForDashboard(data, chartType) {
     const dataKey = chartType === 'waterLevelChart' ? 'levels' :
                     chartType === 'humidityChart' ? 'humidities' : 'temperatures';
     const headers = ['Timestamp', ...rigs.map(rig => `${rig}_${dataKey}`)];
-    const rows = [];
 
-    const maxLength = Math.max(
-        ...rigs.map(rig => (data.current_data[rig].timestamps || []).length)
-    );
-
-    for (let i = 0; i < maxLength; i++) {
-        const row = [null];
-        rigs.forEach(rig => {
-            const timestamp = data.current_data[rig].timestamps[i];
-            const value = data.current_data[rig][dataKey][i];
-            row[0] = timestamp ? Date.parse(timestamp) : null;
-            row.push(value != null ? value : null);
+    // Collect all data points with timestamps
+    const allDataPoints = [];
+    rigs.forEach(rig => {
+        const rigData = data.current_data[rig];
+        rigData.timestamps.forEach((timestamp, i) => {
+            allDataPoints.push({
+                timestamp: Date.parse(timestamp),
+                rig,
+                value: rigData[dataKey][i],
+            });
         });
-        rows.push(row);
-    }
+    });
 
+    // Sort by timestamp in ascending order
+    allDataPoints.sort((a, b) => a.timestamp - b.timestamp);
+
+    // Group by unique timestamps
+    const uniqueTimestamps = [...new Set(allDataPoints.map(p => p.timestamp))];
+    const rows = uniqueTimestamps.map(ts => {
+        const row = [ts];
+        rigs.forEach(rig => {
+            const point = allDataPoints.find(p => p.timestamp === ts && p.rig === rig);
+            row.push(point && point.value != null ? point.value : null);
+        });
+        return row;
+    });
+
+    // Add latest row
     const latestRow = ['Latest'];
     rigs.forEach(rig => {
         const latestValue = data.current_data[rig][dataKey].slice(-1)[0] || null;
@@ -189,11 +201,15 @@ async function initializeDashboard(chartType, data) {
                         accessibility: {
                             description: 'Date and time',
                         },
+                        labels: {
+                            format: '{value:%Y-%m-%d %H:%M:%S}',
+                        },
                     },
                     yAxis: {
                         title: {
                             text: yAxisTitle,
                         },
+                        min: 0, // Ensure positive values for water levels
                     },
                     tooltip: {
                         shared: true,
@@ -233,6 +249,7 @@ async function initializeDashboard(chartType, data) {
                     },
                     columns: [{
                         id: 'Timestamp',
+                        header: 'Time',
                         cells: {
                             formatter: function () {
                                 if (this.value === 'Latest') return this.value;
@@ -255,6 +272,101 @@ async function initializeDashboard(chartType, data) {
     } catch (error) {
         console.error('Error initializing dashboard:', error);
         dashboardInitialized = false;
+        // Fallback: Render only the chart if DataGrid fails
+        if (error.message.includes('DataGrid')) {
+            console.warn('DataGrid component failed, rendering chart only');
+            currentDashboard = await Dashboards.board('dashboard-container', {
+                dataPool: {
+                    connectors: [{
+                        id: connectorId,
+                        type: 'JSON',
+                        options: {
+                            data: formattedData,
+                        },
+                    }],
+                },
+                gui: {
+                    enabled: true,
+                    layouts: [{
+                        id: 'layout-1',
+                        rows: [{
+                            cells: [{
+                                id: 'dashboard-col-1',
+                                width: '100%',
+                            }],
+                        }],
+                    }],
+                },
+                components: [{
+                    renderTo: 'dashboard-col-1',
+                    type: 'Highcharts',
+                    connector: {
+                        id: connectorId,
+                        columnAssignment: rigs.map(rig => ({
+                            seriesId: rig,
+                            data: ['Timestamp', `${rig}_${dataKey}`],
+                        })),
+                    },
+                    sync: {
+                        highlight: true,
+                    },
+                    chartOptions: {
+                        chart: {
+                            animation: false,
+                            type: 'areaspline',
+                            zoomType: 'x',
+                        },
+                        title: {
+                            text: title,
+                        },
+                        subtitle: {
+                            text: subtitle,
+                        },
+                        xAxis: {
+                            type: 'datetime',
+                            title: {
+                                text: 'Date',
+                            },
+                            accessibility: {
+                                description: 'Date and time',
+                            },
+                            labels: {
+                                format: '{value:%Y-%m-%d %H:%M:%S}',
+                            },
+                        },
+                        yAxis: {
+                            title: {
+                                text: yAxisTitle,
+                            },
+                            min: 0,
+                        },
+                        tooltip: {
+                            shared: true,
+                            split: true,
+                            stickOnContact: true,
+                            valueSuffix: ` ${unit}`,
+                        },
+                        series: rigs.map(rig => ({
+                            id: rig,
+                            name: rig,
+                        })),
+                        exporting: {
+                            enabled: true,
+                        },
+                        navigator: {
+                            enabled: true,
+                        },
+                        scrollbar: {
+                            enabled: true,
+                        },
+                        accessibility: {
+                            description: `The chart displays live ${accessibilityDesc} data for multiple rigs over time.`,
+                        },
+                    },
+                }],
+            });
+            dashboardInitialized = true;
+        }
     }
 }
 
@@ -291,10 +403,12 @@ function updateDashboardData(chartType, data) {
             });
         }
 
-        // Update DataGrid component
+        // Update DataGrid component if it exists
         const gridComponent = currentDashboard.getComponentByCellId('dashboard-col-2');
         if (gridComponent && gridComponent.dataGrid) {
             gridComponent.dataGrid.setData(formattedData);
+        } else {
+            console.warn('DataGrid component not found, skipping update');
         }
 
         return true;
