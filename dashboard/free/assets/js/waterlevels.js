@@ -4,7 +4,8 @@ let currentDashboard = null;
 let dashboardInitialized = false;
 let activeChartType = 'waterLevelChart';
 let smallChartTypes = ['humidityChart', 'temperatureChart'];
-let mainChartType = 'line'; // Default chart type for main chart
+let mainChartType = 'line';
+let isUpdating = false; // Prevent concurrent updates
 
 // Function to show the loader
 function showLoader(loadingMessage) {
@@ -30,10 +31,10 @@ function hideLoader() {
 
 // Function to filter data for the last 30 minutes
 function filterRecentData(data, minutes = 30) {
-    if (!data || !data.current_data) return data;
+    if (!data || !data.current_data) return { current_data: {} };
 
     const now = Date.now();
-    const timeThreshold = now - minutes * 60 * 1000; // Convert minutes to milliseconds
+    const timeThreshold = now - minutes * 60 * 1000;
 
     const filteredData = { current_data: {} };
     const rigs = Object.keys(data.current_data);
@@ -46,10 +47,10 @@ function filterRecentData(data, minutes = 30) {
             .map(item => item.index);
 
         filteredData.current_data[rig] = {
-            timestamps: filteredIndices.map(i => rigData.timestamps[i]),
-            levels: filteredIndices.map(i => rigData.levels[i]),
-            humidities: filteredIndices.map(i => rigData.humidities[i]),
-            temperatures: filteredIndices.map(i => rigData.temperatures[i]),
+            timestamps: filteredIndices.map(i => rigData.timestamps[i] || null),
+            levels: filteredIndices.map(i => rigData.levels[i] || null),
+            humidities: filteredIndices.map(i => rigData.humidities[i] || null),
+            temperatures: filteredIndices.map(i => rigData.temperatures[i] || null),
         };
     });
 
@@ -58,8 +59,8 @@ function filterRecentData(data, minutes = 30) {
 
 // Function to format API data for Highcharts Dashboard
 function formatDataForDashboard(data, chartType) {
-    if (!data || !data.current_data) {
-        console.warn('No valid data received from API');
+    if (!data || !data.current_data || !Object.keys(data.current_data).length) {
+        console.warn('No valid data received for', chartType);
         return [['Timestamp'], ['Latest']];
     }
 
@@ -68,23 +69,22 @@ function formatDataForDashboard(data, chartType) {
                     chartType === 'humidityChart' ? 'humidities' : 'temperatures';
     const headers = ['Timestamp', ...rigs.map(rig => `${rig}_${dataKey}`)];
 
-    // Collect all data points with timestamps
     const allDataPoints = [];
     rigs.forEach(rig => {
         const rigData = data.current_data[rig];
         rigData.timestamps.forEach((timestamp, i) => {
-            allDataPoints.push({
-                timestamp: Date.parse(timestamp),
-                rig,
-                value: rigData[dataKey][i],
-            });
+            if (timestamp && rigData[dataKey][i] != null) {
+                allDataPoints.push({
+                    timestamp: Date.parse(timestamp),
+                    rig,
+                    value: rigData[dataKey][i],
+                });
+            }
         });
     });
 
-    // Sort by timestamp in ascending order
     allDataPoints.sort((a, b) => a.timestamp - b.timestamp);
 
-    // Group by unique timestamps
     const uniqueTimestamps = [...new Set(allDataPoints.map(p => p.timestamp))];
     const rows = uniqueTimestamps.map(ts => {
         const row = [ts];
@@ -95,7 +95,6 @@ function formatDataForDashboard(data, chartType) {
         return row;
     });
 
-    // Add latest row
     const latestRow = ['Latest'];
     rigs.forEach(rig => {
         const latestValue = data.current_data[rig][dataKey].slice(-1)[0] || null;
@@ -151,16 +150,16 @@ async function initializeDashboard(data) {
     console.log('Initializing dashboard');
     const rigs = data.current_data ? Object.keys(data.current_data) : [];
 
-    // Destroy existing dashboard if it exists
+    // Destroy existing dashboard
     if (currentDashboard && typeof currentDashboard.destroy === 'function') {
         try {
             console.log('Destroying previous dashboard');
             currentDashboard.destroy();
+            currentDashboard = null;
         } catch (e) {
             console.warn('Error destroying previous dashboard:', e);
         }
     }
-    currentDashboard = null;
 
     // Global Highcharts options
     Highcharts.setOptions({
@@ -250,11 +249,11 @@ async function initializeDashboard(data) {
                     cell: config.cellId,
                     type: 'Highcharts',
                     connector: {
-                        id: config.connectorId,
-                        columnAssignment: rigs.map(rig => ({
+                        id: chartConfig[key].connectorId,
+                        columnAssignment: rigs.length ? rigs.map(rig => ({
                             seriesId: rig,
                             data: ['Timestamp', `${rig}_${config.dataKey}`],
-                        })),
+                        })) : [],
                     },
                     sync: {
                         highlight: {
@@ -282,11 +281,11 @@ async function initializeDashboard(data) {
                         tooltip: {
                             valueSuffix: ` ${config.unit}`,
                         },
-                        series: rigs.map(rig => ({
+                        series: rigs.length ? rigs.map(rig => ({
                             id: rig,
                             name: rig,
                             type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
-                        })),
+                        })) : [{ id: 'empty', name: 'No Data', data: [] }],
                         exporting: {
                             enabled: config.cellId === 'dashboard-col-0',
                         },
@@ -344,7 +343,9 @@ function updateMainChartType() {
     if (component && component.chart) {
         const chart = component.chart;
         chart.series.forEach(series => {
-            series.update({ type: mainChartType }, false);
+            if (series) {
+                series.update({ type: mainChartType }, false);
+            }
         });
         chart.redraw();
     }
@@ -352,42 +353,67 @@ function updateMainChartType() {
 
 // Function to update dashboard data
 function updateDashboardData(data) {
-    if (!currentDashboard || !dashboardInitialized) {
-        console.log('Dashboard not initialized, initializing now');
+    if (!currentDashboard || !dashboardInitialized || isUpdating) {
+        console.log('Dashboard not initialized or update in progress, initializing now');
         return initializeDashboard(data);
     }
 
+    isUpdating = true;
+
     try {
         console.log('Updating dashboard data');
+        const rigs = data.current_data ? Object.keys(data.current_data) : [];
+
         Object.keys(chartConfig).forEach(key => {
             const config = chartConfig[key];
             const formattedData = formatDataForDashboard(data, key);
-            const rigs = data.current_data ? Object.keys(data.current_data) : [];
             const component = currentDashboard.getComponentByCellId(config.cellId);
             if (component && component.chart) {
                 const chart = component.chart;
+
+                // Update existing series or add new ones
                 rigs.forEach((rig, index) => {
-                    const series = chart.series[index];
+                    let series = chart.series.find(s => s.options.id === rig);
+                    if (!series && formattedData[0][index + 1]) {
+                        chart.addSeries({
+                            id: rig,
+                            name: rig,
+                            type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
+                            data: [],
+                        }, false);
+                        series = chart.series[chart.series.length - 1];
+                    }
                     if (series) {
-                        series.setData(
-                            formattedData.slice(1, -1).map(row => [row[0], row[index + 1]]),
-                            false
-                        );
+                        const seriesData = formattedData.slice(1, -1)
+                            .map(row => [row[0], row[index + 1]])
+                            .filter(d => d[0] != null && d[1] != null);
+                        series.setData(seriesData, false);
                     }
                 });
+
+                // Remove series for rigs no longer present
+                chart.series.slice().forEach(series => {
+                    if (series.options.id !== 'empty' && !rigs.includes(series.options.id)) {
+                        series.remove(false);
+                    }
+                });
+
                 chart.redraw();
             }
         });
+
+        isUpdating = false;
         return true;
     } catch (error) {
         console.error('Error updating dashboard data:', error);
+        isUpdating = false;
         return initializeDashboard(data);
     }
 }
 
 // Function to switch charts
 function switchChart(chartType) {
-    if (chartType === activeChartType) return;
+    if (chartType === activeChartType || isUpdating) return;
     console.log('Switching chart to:', chartType);
 
     const oldActive = activeChartType;
@@ -415,9 +441,11 @@ function switchChart(chartType) {
             component.cell = config.cellId;
             if (component.chart) {
                 component.chart.series.forEach(series => {
-                    series.update({
-                        type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType
-                    }, false);
+                    if (series) {
+                        series.update({
+                            type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType
+                        }, false);
+                    }
                 });
                 component.chart.redraw();
             }
@@ -429,6 +457,11 @@ function switchChart(chartType) {
 
 // Function to fetch and update dashboard data
 function fetchAndUpdateDashboard() {
+    if (isUpdating) {
+        console.log('Update already in progress, skipping');
+        return;
+    }
+
     const token = sessionStorage.getItem('token');
     if (!token) {
         console.error('No authentication token found. Redirecting to login.');
@@ -445,7 +478,7 @@ function fetchAndUpdateDashboard() {
         })
         .then((response) => {
             console.log('API response received:', response.data);
-            const filteredData = filterRecentData(response.data, 30); // Filter to last 30 minutes
+            const filteredData = filterRecentData(response.data, 30);
             if (!dashboardInitialized) {
                 initializeDashboard(filteredData);
             } else {
@@ -481,13 +514,16 @@ function initializeWithRetry(attempts = 3, delay = 100) {
     }
 
     const container = document.getElementById('dashboard-container');
-    if (!container) {
-        console.warn(`Dashboard container not found, retrying in ${delay}ms (${attempts} attempts left)`);
+    const col0 = document.getElementById('dashboard-col-0');
+    const col1 = document.getElementById('dashboard-col-1');
+    const col2 = document.getElementById('dashboard-col-2');
+    if (!container || !col0 || !col1 || !col2) {
+        console.warn(`Required DOM elements not found, retrying in ${delay}ms (${attempts} attempts left)`);
         setTimeout(() => initializeWithRetry(attempts - 1, delay * 2), delay);
         return;
     }
 
-    console.log('Dashboard container found, starting initialization');
+    console.log('Dashboard containers found, starting initialization');
     fetchAndUpdateDashboard();
     refreshTimers['dashboard'] = setInterval(() => fetchAndUpdateDashboard(), 5000);
 }
