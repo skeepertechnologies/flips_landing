@@ -244,12 +244,11 @@
         </div>
     </div>
 
-    <!-- Main Content -->
-    <main class="container-fluid p-4 flex-grow-1">
+     <main class="container-fluid p-4 flex-grow-1">
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-12">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2>Live Data - Water Levels, Temperature, and Humidity</h2>
+                    <h2>Live Data - Water Levels and Humidity</h2>
                     <a href="index.html" class="btn btn-primary btn-sm">Back to Home</a>
                 </div>
                 <div class="card shadow-sm">
@@ -261,21 +260,14 @@
                             </div>
                             <p id="loaderText" class="mt-2"></p>
                         </div>
-                        <div id="dominantChart" style="min-height: 600px;"></div>
+                        <div id="dashboard-container"></div>
                     </div>
                 </div>
                 <div class="d-flex justify-content-center mt-3 gap-2">
                     <button class="btn btn-outline-primary" onclick="switchChart('waterLevelChart', 'Water Levels')">Water Levels</button>
                     <button class="btn btn-outline-primary" onclick="switchChart('humidityChart', 'Humidity')">Humidity</button>
                     <button class="btn btn-outline-primary" onclick="switchChart('temperatureChart', 'Temperature')">Temperature</button>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h4 class="text-center">Current Status</h4>
-                        <div id="statusCards"></div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -309,13 +301,16 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-    <!-- Highcharts -->
+    <!-- Highcharts Dashboards -->
+    <script src="https://code.highcharts.com/dashboards/dashboards.js"></script>
+    <script src="https://code.highcharts.com/dashboards/modules/dashboards-plugin.js"></script>
+    <script src="https://code.highcharts.com/dashboards/modules/data-grid.js"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-more.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-    <!-- Leaflet and Mapbox -->
+    <!-- Leaflet and Mapbox (unchanged) -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/georaster"></script>
     <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
