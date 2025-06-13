@@ -26,6 +26,13 @@
   <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
   <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 
+   <!-- Add Highcharts scripts -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/networkgraph.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+
   <!-- Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
   <link href="assets/css/sty.css" rel="stylesheet">
@@ -34,7 +41,22 @@
 
   <!-- Custom CSS for New Sections -->
   <style>
+/* Minimal styling for the network graph */
+#network-graph-container {
+  background: transparent !important;
+}
 
+.highcharts-container {
+  background: transparent !important;
+}
+
+.highcharts-root {
+  font-family: inherit; /* Use your site's font */
+}
+
+.highcharts-data-label text {
+  fill: #333 !important; /* Dark text for better visibility */
+}
   </style>
 </head>
 
@@ -77,6 +99,7 @@
       <div id="user-status">
         <a class="btn-getstarted fw-bold" href="login/login.html">Get Started</a>
       </div>
+      
     </div>
   </header>
 
@@ -110,18 +133,9 @@
           </div>
           <div class="col-lg-6">
             <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-              <img src="assets/img/product/chanel_subbasin-removebg-preview.png" alt="Hero Image" class="img-fluid">
-              <div class="customers-badge">
-                <div class="customer-avatars">
-                  <img src="assets/img/1.png" alt="Customer 1" class="avatar">
-                  <img src="assets/img/2.png" alt="Customer 2" class="avatar">
-                  <img src="assets/img/3.png" alt="Customer 3" class="avatar">
-                  <img src="assets/img/values-1.png" alt="Customer 4" class="avatar">
-                  <img src="assets/img/values-2.png" alt="Customer 5" class="avatar">
-                  <span class="avatar more">12+</span>
-                </div>
-                <p class="mb-0 mt-2">12,000+ businesses and individuals trust FLIPS for safety and planning.</p>
-              </div>
+              <!-- Replace the image with Highcharts container -->
+              <div id="network-graph-container" style="width: 100%; height: 400px;"></div>
+             
             </div>
           </div>
         </div>
@@ -173,7 +187,6 @@
         </div>
       </div>
     </section><!-- /Hero Section -->
-
     <!-- Use Case Section -->
     <section id="use-cases" class="use-case-section">
       <div class="container section-title" data-aos="fade-up">
@@ -1261,5 +1274,273 @@
 <!--    });-->
 <!--  });-->
 <!--</script>-->
+
+<script>
+ // Debugging function to log with timestamp
+function debugLog(message, data = null) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] DEBUG: ${message}`);
+  if (data) {
+    console.log('Debug data:', data);
+  }
+}
+
+// Function to create network graph from processed data
+function createNetworkGraph(nodes, links) {
+  debugLog('Creating network graph', { nodesCount: nodes.length, linksCount: links.length });
+  
+  try {
+    Highcharts.chart('network-graph-container', {
+      chart: {
+        type: 'networkgraph',
+        backgroundColor: 'transparent',
+        height: '100%',
+        plotBackgroundColor: 'transparent',
+        plotBorderWidth: 0
+      },
+      title: {
+        text: null
+      },
+      legend: {
+        enabled: false
+      },
+      credits: {
+        enabled: false
+      },
+      plotOptions: {
+        networkgraph: {
+          keys: ['from', 'to'],
+          layoutAlgorithm: {
+            enableSimulation: true,
+            friction: -0.9,
+            gravitationalConstant: 0.06
+          },
+          marker: {
+            lineWidth: 2
+          }
+        }
+      },
+      tooltip: {
+        formatter: function() {
+          const node = this.point;
+          return `<b>${node.name}</b><br>
+                  Avg Level: ${node.value.toFixed(2)}<br>
+                  Avg Temp: ${node.colorValue.toFixed(2)}°C<br>
+                  Humidity: ${(node.marker.radius - 10) * 10}%`;
+        }
+      },
+      series: [{
+        color: '#7b4d11',
+        dataLabels: {
+          enabled: true,
+          linkFormat: '',
+          style: {
+            fontSize: '0.8em',
+            fontWeight: 'normal',
+            color: '#333',
+            textOutline: 'none'
+          }
+        },
+        nodes: nodes,
+        data: links
+      }]
+    });
+    debugLog('Network graph created successfully');
+  } catch (chartError) {
+    console.error('Failed to create chart:', chartError);
+  }
+}
+
+// Function to load and process CSV data
+function loadCSVData() {
+  debugLog('Starting CSV load process');
+  
+  const csvPath = 'data/excel_network.csv';
+  debugLog(`Attempting to load CSV from: ${csvPath}`);
+  
+  // Verify file protocol
+  debugLog(`Current protocol: ${window.location.protocol}`);
+  
+  fetchCSV(csvPath)
+    .then(data => {
+      debugLog('CSV loaded successfully', { sampleRow: data[0] });
+      processData(data);
+    })
+    .catch(error => {
+      console.error("Error loading CSV:", error);
+      debugLog('Falling back to sample data');
+      
+      const sampleData = [
+        {Rig: "Tana Lower", Level: 5.21, Temperature: 23.64, Humidity: 51.01},
+        {Rig: "Tana Upper", Level: 7.56, Temperature: 24.55, Humidity: 53.43},
+        {Rig: "Tana Center", Level: 7.61, Temperature: 24.98, Humidity: 65.33}
+      ];
+      processData(sampleData);
+    });
+}
+
+// Helper function to fetch CSV with enhanced debugging
+function fetchCSV(url) {
+  debugLog(`Starting CSV fetch for: ${url}`);
+  
+  return new Promise((resolve, reject) => {
+    if (window.location.protocol === 'file:') {
+      debugLog('Running locally - checking for file access workarounds');
+      
+      // Try alternative methods for local file access
+      if (typeof window.FileReader !== 'undefined') {
+        debugLog('Attempting FileReader API for local file access');
+        
+        // This would require file input from user
+        reject("Local file access requires user interaction");
+        return;
+      }
+      
+      reject("Running locally - using sample data");
+      return;
+    }
+    
+    debugLog('Attempting standard fetch with Papa Parse');
+    
+    Papa.parse(url, {
+      download: true,
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      before: function() {
+        debugLog('PapaParse starting download');
+      },
+      complete: (results) => {
+        debugLog('PapaParse completed', { 
+          dataLength: results.data.length,
+          meta: results.meta,
+          errors: results.errors 
+        });
+        
+        if (results.errors.length > 0) {
+          debugLog('Parsing errors encountered', results.errors);
+        }
+        
+        if (!results.data || results.data.length === 0) {
+          reject("No data found in CSV");
+          return;
+        }
+        
+        resolve(results.data);
+      },
+      error: (error) => {
+        debugLog('PapaParse error', error);
+        reject(error);
+      },
+      transform: function(value, field) {
+        // Debug problematic fields
+        if (field === 'Level' && isNaN(parseFloat(value))) {
+          debugLog(`Invalid Level value: ${value}`);
+        }
+        return value;
+      }
+    });
+  });
+}
+
+// Process data and create graph with validation
+function processData(data) {
+  debugLog('Processing data', { dataSample: data.slice(0, 3) });
+  
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    console.error('Invalid data provided to processData');
+    return;
+  }
+
+  const rigs = {};
+  const links = [];
+  const validationErrors = [];
+  
+  data.forEach((row, index) => {
+    // Validate required fields
+    if (!row.Rig) {
+      validationErrors.push(`Row ${index} missing Rig field`);
+      return;
+    }
+    
+    if (isNaN(parseFloat(row.Level))) {
+      validationErrors.push(`Row ${index} has invalid Level: ${row.Level}`);
+    }
+    
+    if (!rigs[row.Rig]) {
+      rigs[row.Rig] = {
+        count: 0,
+        totalLevel: 0,
+        totalTemp: 0,
+        totalHumidity: 0
+      };
+    }
+    
+    rigs[row.Rig].count++;
+    rigs[row.Rig].totalLevel += parseFloat(row.Level) || 0;
+    rigs[row.Rig].totalTemp += parseFloat(row.Temperature) || 0;
+    rigs[row.Rig].totalHumidity += parseFloat(row.Humidity) || 0;
+  });
+  
+  if (validationErrors.length > 0) {
+    debugLog('Data validation errors', validationErrors);
+  }
+  
+  const nodes = Object.keys(rigs).map(rigName => {
+    const rigData = rigs[rigName];
+    const avgHumidity = rigData.totalHumidity / rigData.count;
+    
+    return {
+      id: rigName,
+      name: rigName,
+      value: rigData.totalLevel / rigData.count,
+      colorValue: rigData.totalTemp / rigData.count,
+      marker: {
+        radius: 10 + (avgHumidity / 10),
+        fillColor: Highcharts.getOptions().colors[0]
+      }
+    };
+  });
+  
+  debugLog('Created nodes', { sampleNode: nodes[0] });
+  
+  // Create links between nodes
+  for (let i = 0; i < nodes.length - 1; i++) {
+    links.push([nodes[i].id, nodes[i+1].id]);
+  }
+  
+  debugLog('Created links', { sampleLink: links[0] });
+  
+  createNetworkGraph(nodes, links);
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  debugLog('DOM fully loaded, starting initialization');
+  
+  // Verify container exists
+  const container = document.getElementById('network-graph-container');
+  if (!container) {
+    console.error('Could not find network-graph-container element');
+    return;
+  }
+  
+  debugLog('Container element found, loading data');
+  loadCSVData();
+});
+
+// Add debug info to window for troubleshooting
+window.debugFLIPS = {
+  reloadData: loadCSVData,
+  showSampleData: () => {
+    const sampleData = [
+      {Rig: "Tana Lower", Level: 5.21, Temperature: 23.64, Humidity: 51.01},
+      {Rig: "Tana Upper", Level: 7.56, Temperature: 24.55, Humidity: 53.43},
+      {Rig: "Tana Center", Level: 7.61, Temperature: 24.98, Humidity: 65.33}
+    ];
+    processData(sampleData);
+  }
+};
+    </script>
 </body>
 </html>
