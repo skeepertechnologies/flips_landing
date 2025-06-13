@@ -1,967 +1,951 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
-        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="assets/css/styles.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
-    <!-- Axios Script and Event Listeners -->
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
-    <!-- Bootstrap CSS -->
-     <script src="assets/js/userinfo.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-<!-- Bootstrap JavaScript Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-
-
-    <title>FLIPS Portal | Enterprise | </title>
-    <style>
-/* body {
-    background-color: white;
-} */
-
-
-/* Zoom in on hover */
-
-.card {
-    transition: transform 0.3s ease;
-}
-
-.card:hover {
-    transform: scale(1.05);
-    /* Slight zoom effect */
-}
-
-.card .card-img-top {
-    height: 120px;
-    object-fit: contain;
-    /* filter: invert(100%) grayscale(100%); */
-    /* Inverts color to white and applies grayscale */
-}
-
-.navbar {
-    height: 50px;
-    background-color: #349beb;
-    color: #fff;
-}
-
-.navbar .nav-item,
-.navbar .form-inline {
-    display: flex;
-    align-items: left;
-}
-
-.navbar .mx-auto {
-    width: 60%;
-}
-
-.navbar .form-control {
-    width: 80%;
-}
-
-.navbar-brand img {
-    height: 30px;
-}
-
-
-/* Hamburger Menu */
-
-.hamburger-menu {
-    font-size: 20px;
-    cursor: pointer;
-}
-
-.sidebar {
-    position: fixed;
-    top: 39px;
-    left: -250px;
-    bottom: 100%;
-    width: 250px;
-    height: 100vh;
-    background-color: #262926;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-    transition: 0.3s ease-in-out;
-    overflow-y: auto;
-    z-index: 1000;
-}
-
-
-/* Sidebar Links */
-
-.sidebar a {
-    display: block;
-    color: white;
-    padding: 5px;
-    text-decoration: none;
-    font-size: 12px;
-    margin-bottom: 5px;
-}
-
-
-/* Sidebar Link Hover Effect */
-
-.sidebar a:hover {
-    background-color: black;
-}
-
-
-/* Sidebar Active State */
-
-.sidebar.active {
-    left: 0;
-}
-
-.search-container {
-    width: 65%;
-    margin: 0 auto;
-    background-color: transparent;
-}
-
-.search-input::placeholder {
-    text-align: center;
-}
-
-.sidebar {
-    width: 250px;
-    height: 100vh;
-    background: #262926;
-    padding: 15px;
-    position: fixed;
-}
-
-.sidebar a {
-    display: block;
-    padding: 10px;
-    font-size: 14px;
-    color: #1c5aaa;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.sidebar a:hover {
-    background: green;
-}
-
-.submenu a {
-    padding-left: 35px;
-    font-size: 13px;
-    color: white;
-}
-
-
-/* Main content */
-
-.content {
-    transition: margin-left 0.3s;
-    margin-left: 0;
-}
-
-
-/* Adjust margin of content when sidebar is active */
-
-.sidebar.active~.content {
-    margin-left: 250px;
-}
-
-.custom-container {
-    width: 80%;
-    justify-content: center;
-    padding: 20px;
-    margin: 0 auto;
-}
-
-
-/* Additional styles to ensure centering */
-
-.navbar {
-    position: relative;
-}
-
-.search-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.nav-link,
-.navbar-brand {
-    color: white;
-}
-
-
-/* Sidebar Styles */
-
-#sidebar {
-    height: 100vh;
-    width: 250px;
-    position: fixed;
-    top: 0;
-    left: -250px;
-    /* Hide the sidebar initially */
-    background-color: #343a40;
-    transition: all 0.3s ease;
-}
-
-#sidebar.active {
-    left: 0;
-    /* Show the sidebar */
-}
-
-#sidebar ul {
-    padding: 0;
-    margin: 0;
-    list-style: none;
-}
-
-#sidebar ul li {
-    padding: 10px;
-    text-align: center;
-}
-
-#sidebar ul li a {
-    color: #fff;
-    text-decoration: none;
-    display: block;
-}
-
-
-/* Main content styles */
-
-#main-content {
-    transition: all 0.3s ease;
-    width: 100%;
-}
-
-#main-content.active {
-    width: 75%;
-    /* Reduce width when sidebar is visible */
-    margin-left: 250px;
-}
-
-
-/* Toggle button */
-
-#toggle-btn {
-    position: fixed;
-    top: 20px;
-    left: 10px;
-    z-index: 1000;
-    font-size: 24px;
-    cursor: pointer;
-    color: #343a40;
-}
-
-
-/* Parent Container */
-
-.card-container {
-    display: flex;
-    /* Use Flexbox for layout */
-    justify-content: center;
-    /* Center items horizontally */
-    flex-wrap: wrap;
-    /* Allow items to wrap to the next line */
-    gap: 20px;
-    /* Space between cards */
-    padding: 20px;
-    /* Padding around the container */
-}
-
-
-/* Smaller Card CSS */
-
-.small-card {
-    width: 9.7rem;
-    /* Smaller width */
-    background-color: none;
-    /* No background color */
-    color: rgb(65, 40, 40);
-    /* Text color */
-    margin: 0;
-    /* Remove margin from cards for better spacing control */
-    border-radius: 10px;
-    /* Slightly rounded corners */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    /* Subtle shadow for depth */
-    overflow: hidden;
-    /* Ensure content doesn't overflow */
-    text-align: center;
-    /* Center text */
-    cursor: pointer;
-    /* Makes it clear the card is clickable */
-    transition: transform 0.2s ease;
-    /* Optional: add hover effect */
-}
-
-.small-card:hover {
-    transform: scale(1.05);
-    /* Optional: slight zoom on hover */
-}
-
-.small-card img {
-    width: 80%;
-    /* Make image fit the card width */
-    height: 70px;
-    /* Set height */
-    object-fit: contain;
-    /* Maintain aspect ratio */
-    border-bottom: 1px solid #201c1c;
-    /* Border under the image */
-    padding: 10px;
-    /* Padding around the image */
-}
-
-.small-card .card-body {
-    padding: 10px;
-    /* Padding inside the card */
-}
-
-.small-card .card-title {
-    font-size: 1rem;
-    /* Smaller title font */
-    margin-bottom: 5px;
-    /* Reduce space below title */
-    color: #4caf50;
-    /* Green color for title */
-}
-
-.small-card .card-text {
-    font-size: 0.9rem;
-    /* Smaller text */
-    margin-bottom: 5px;
-    /* Reduce space below text */
-}
-
-
-/* Overlay styles (unchanged) */
-
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 1000;
-}
-
-.overlay-content {
-    position: relative;
-    margin: 5% auto;
-    padding: 20px;
-    background-color: #393535;
-    width: 80%;
-    max-height: 80%;
-    overflow-y: auto;
-    border-radius: 10px;
-}
-
-.closebtn {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 40px;
-    color: #333;
-    cursor: pointer;
-}
-
-
-
-  /* Modal styling */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(152, 147, 147, 0.8);
-    z-index: 9999;
-    padding-top: 20px;
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: auto;
-    padding: 20px;
-    width: 100%;
-    max-width: 1000px;
-    border-radius: 8px;
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-#subscriptionDetails {
-    margin: 20px 0;
-}
-
-#upgradeButton {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 16px;
-}
-
-#upgradeButton:hover {
-    background-color: #45a049;
-}
-
-
-    </style>
-
-</head>
-
-<body>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+                integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <link rel="stylesheet" href="assets/css/styles.css">
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+         <script src="assets/js/userinfo.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <title>FLIPS</title>
+        <style>
+                .card {
+                    transition: transform 0.3s ease;
+                }
+
+                .card:hover {
+                    transform: scale(1.05);
+                }
+
+                .card .card-img-top {
+                    object-fit: contain;
+                    height: 120px;
+                }
+
+                .navbar {
+                    background-color: #7b4d11;
+                    justify-content: center;
+                    align-items: center;
+                    color: #ecddcb;
+                    height: 35px;
+                }
+
+                .navbar .nav-item,
+                .navbar .form-inline {
+                    display: flex;
+                    align-items: left;
+                }
+
+                .navbar .mx-auto {
+                    width: 60%;
+                }
+
+                .navbar .form-control {
+                    border-radius: 0;
+                    outline: none;
+                    height: 24px;
+                    border: none;
+                    width: 80%;
+                }
+
+                .navbar-brand img {
+                    height: 30px;
+                }
+
+                .hamburger-menu {
+                    margin-left: 20px;
+                    font-size: 20px;
+                    cursor: pointer;
+                }
+
+                .sidebar {
+                    background-color: #fff;
+                    transition: left 0.3s;
+                    padding-top: 60px;
+                    overflow-y: auto;
+                    position: fixed;
+                    height: 100vh;
+                    z-index: 1050;
+                    left: -250px;
+                    width: 250px;
+                    top: 0;
+                }
+
+                .sidebar.active {
+                    left: 0;
+                }
+
+                .sidebar a {
+                    text-decoration: none;
+                    margin-bottom: 5px;
+                    font-size: 12px;
+                    display: block;
+                    color: white;
+                    padding: 5px;
+                }
+
+                .sidebar a:hover {
+                    background: #f0eeed;
+                }
+
+                .submenu a {
+                    padding-left: 35px;
+                    font-size: 13px;
+                    color: white;
+                }
+
+                .sidebar.active.content {
+                    margin-left: 250px;
+                }
+
+                .content {
+                    transition: margin-left 0.3s;
+                    margin-left: 0;
+                }
+
+                .search-container {
+                    margin: 0 auto;
+                    width: 65%;
+                }
+
+                .search-input {
+                    background-color: #cac1b5;
+                    box-shadow: none;
+                    outline: none;
+                }
+
+                .search-input:focus {
+                    border: 1px solid black;
+                    box-shadow: none;
+                    outline: none;
+                }
+
+                .search-input::placeholder {
+                    font-size: smaller;
+                    text-align: start;
+                    color: #664e2e;
+                }
+
+                .search-icon {
+                    transform: translateY(-50%);
+                    pointer-events: none;
+                    color: #7b4d11;
+                    left: 15px;
+                    top: 60%;
+                }
+
+
+                .custom-container {
+                    width: 80%;
+                    justify-content: center;
+                    padding: 20px;
+                    margin: 0 auto;
+                }
+
+                .navbar {
+                    position: relative;
+                }
+
+                .search-container {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                }
+
+                .nav-link,
+                .navbar-brand {
+                    color: white;
+                }
+                #sidebar {
+                    height: 100vh;
+                    width: 250px;
+                    position: fixed;
+                    top: 0;
+                    left: -250px;
+                    background-color: #343a40;
+                    transition: all 0.3s ease;
+                }
+
+                #sidebar.active {
+                    left: 0;
+                }
+
+                #sidebar ul {
+                    padding: 0;
+                    margin: 0;
+                    list-style: none;
+                }
+
+                #sidebar ul li {
+                    padding: 10px;
+                    text-align: center;
+                }
+
+                #sidebar ul li a {
+                    color: #fff;
+                    text-decoration: none;
+                    display: block;
+                }
+
+                #main-content {
+                    transition: all 0.3s ease;
+                    width: 100%;
+                }
+
+                #main-content.active {
+                    width: 75%;
+                    margin-left: 250px;
+                }
+
+                #toggle-btn {
+                    position: fixed;
+                    top: 20px;
+                    left: 10px;
+                    z-index: 1000;
+                    font-size: 24px;
+                    cursor: pointer;
+                    color: #343a40;
+                }
+
+                .card-container {
+                    display: flex;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                    gap: 20px;
+                    padding: 20px;
+                }
+
+                .small-card {
+                    width: 9.7rem;
+                    background-color: none;
+                    color: rgb(65, 40, 40);
+                    margin: 0;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                    overflow: hidden;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: transform 0.2s ease;
+                }
+
+                .small-card:hover {
+                    transform: scale(1.05);
+                }
+
+                .small-card img {
+                    width: 80%;
+                    height: 70px;
+                    object-fit: contain;
+                    border-bottom: 1px solid #201c1c;
+                    padding: 10px;
+                }
+
+                .small-card .card-body {
+                    padding: 10px;
+                }
+
+                .small-card .card-title {
+                    font-size: 1rem;
+                    margin-bottom: 5px;
+                    color: #4caf50;
+                }
+
+                .small-card .card-text {
+                    font-size: 0.9rem;
+                    margin-bottom: 5px;
+                }
+
+                .overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.8);
+                    z-index: 1000;
+                }
+
+                .hover-shadow {
+                    transition: box-shadow 0.3s ease, transform 0.3s ease;
+                    background-color: #fff;
+                    min-height: 150px;
+                    width: 120px;
+                }
+
+                .hover-shadow:hover {
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                    transform: translateY(-2px);
+                }
+
+                .overlay-content {
+                    position: relative;
+                    margin: 5% auto;
+                    padding: 20px;
+                    background-color: #393535;
+                    width: 80%;
+                    max-height: 80%;
+                    overflow-y: auto;
+                    border-radius: 10px;
+                }
+
+                .closebtn {
+                    position: absolute;
+                    top: 10px;
+                    right: 20px;
+                    font-size: 40px;
+                    color: #333;
+                    cursor: pointer;
+                }
+
+                .modal {
+                    display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    overflow: auto;
+                    background-color: rgba(152, 147, 147, 0.8);
+                    z-index: 9999;
+                    padding-top: 20px;
+                }
+
+                .modal-content {
+                    background-color: #fefefe;
+                    margin: auto;
+                    padding: 20px;
+                    width: 100%;
+                    max-width: 1000px;
+                    border-radius: 8px;
+                }
+
+                .btn-upgrade:focus{
+                    box-shadow: none;
+                    outline: none;
+                    border: none;
+                }
+
+                #subscriptionDetails {
+                    margin: 20px 0;
+                }
+
+                .form-control, .form-select {
+                    height: 40px;
+                    border: 1px solid #1E2D45;
+                }
+
+                .form-control:focus, .form-select:focus {
+                    border-color: #7b4d11;
+                    box-shadow: none !important;
+                }
+
+                ::placeholder {
+                    font-size: 0.95rem;
+                }
+
+                .modal-footer {
+                    border-top: none !important;
+                }
+            </style>
+
+    </head>
+
+    <body>
          <!-- Add this to your existing HTML -->
          <div id="spinner" class="spinner" style="display: none;">
-            <div class="loader"></div> <!-- Create your loader here -->
+            <div class="loader"></div>
             <p>Loading...</p>
-        </div>
-    <nav class="navbar navbar-expand-lg" style="background: #1d0979;">
-        <div class="hamburger-menu" onclick="toggleSidebar()">&#9776;</div>
-        <a class="navbar-brand" href="#">
-            <li class="nav-item active">
-                <a class="nav-link" href=""><strong>FLIPS</strong> <span class="sr-only">(current)</span></a>
-            </li>
-        </a>
-        <div class="search-container">
-            <input class="form-control search-input" type="search" placeholder="Start typing to search..."
-                style="background-color: #fff; max-height: 34px; outline: none; border: none" />
-        </div>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent"
-            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarContent">
-            <ul class="navbar-nav ml-auto align-items-center">
-                <li class="nav-item">
-                    <a class="nav-link" href="#" title="Settings">
-                        <i class="fas fa-cog"></i>
-                    </a>
+         </div>
+
+        <nav class="navbar navbar-expand-lg">
+            <div class="hamburger" id="toggleSidebar">
+                <i class="fas fa-bars text-white fw-bold" style="font-size: 20px; cursor: pointer; margin-left: 20px;"></i>
+            </div>
+            <a class="navbar-brand" href="#">
+                <li class="nav-item active">
+                    <a class="nav-link small" href=""><strong>FLIPS Intel</strong> <span class="sr-only">(current)</span></a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" title="Notifications">
-                        <i class="fas fa-bell"></i>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" title="Feedback">
-                        <i class="fas fa-comment-dots"></i>
-                    </a>
-                </li>
-                <li class="nav-item dropdown">
-                   <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown"
-    role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    <img src="assets/images.png" alt="Profile Image" class="rounded-circle"
-        style="height: 20px; width: 20px" />
-    <span class="ml-2" style="color: #fff; font-size: small; font-weight: bold;"
-        id="username">Loading..</span>
-</a>
-                    <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="profileDropdown"
-                        style="width: 320px">
-                        <div class="row">
-                            <!-- Column 1 - Profile Dropdown Menu -->
-                            <div class="col-12 d-flex flex-column">
-                                <!-- Settings Dropdown -->
-                                <div class="mb-2">
-                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
-                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
-                                        data-toggle="collapse" data-target="#settingsSection" aria-expanded="false"
-                                        aria-controls="settingsSection">
-                                        Settings <i class="fas fa-chevron-down"></i>
-                                    </h6>
-                                    <div class="collapse" id="settingsSection">
-                                        <a class="dropdown-item" id="accountSettingsLink" data-toggle="modal" data-target="#subscriptionModal"><i
-                                                class="fas fa-user-cog mr-2"></i> Account Settings</a>
-                                        <a class="dropdown-item" href="#"><i class="fas fa-cog mr-2"></i> General
-                                            Settings</a>
-                                    </div>
-                                </div>
+            </a>
+            <div class="search-container position-relative">
+                <input
+                    class="form-control search-input ps-5"
+                    type="search"
+                    placeholder="Search FLIPS resource & services" />
+                <i class="bi bi-search position-absolute search-icon"></i>
+            </div>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav ml-auto align-items-center">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link d-flex align-items-center text-white me-3" data-bs-toggle="offcanvas" href="#notificationPanel" role="button" aria-controls="notificationPanel">
+                            <i class="bi bi-bell"></i>
+                        </a>
+                        <a class="nav-link d-flex align-items-center text-white me-3" data-bs-toggle="offcanvas" href="#settingPanel" role="button" aria-controls="settingPanel">
+                            <i class="bi bi-gear"></i>
+                        </a>
+                        <a class="nav-link dropdown-toggle d-flex align-items-center text-white" href="#" id="profileDropdown"
+                            role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i>
+                            <span class="ml-2 text-white small fw-bold"
+                                id="username">Loading..
+                            </span>
+                        </a>
+                        <div class="dropdown-menu p-3 shadow" aria-labelledby="profileDropdown"
+                            style="width: 320px; right: 0; left: auto;" data-bs-auto-close="outside">
 
-                                <!-- Notifications Section -->
-                                <div class="mb-2">
-                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
-                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
-                                        data-toggle="collapse" data-target="#notificationsSection" aria-expanded="false"
-                                        aria-controls="notificationsSection">
-                                        Notifications <i class="fas fa-chevron-down"></i>
-                                    </h6>
-                                    <div class="collapse" id="notificationsSection">
-                                        <a class="dropdown-item" href="#"><i class="fas fa-bell mr-2"></i> View
-                                            Notifications</a>
-                                    </div>
-                                </div>
+                            <!-- Logo and Sign out -->
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <img src=".../assets/img/logo.png" alt="FLIPS" style="height: 20px;">
+                                <a href="#" onclick="handleLogout()" class="text-decoration-underline text-black fw-bold small">Sign out</a>
+                            </div>
+                            <hr class="my-1">
 
-                                <!-- Subscription Section -->
-                                <div class="mb-2">
-                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
-                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
-                                        data-toggle="collapse" data-target="#subscriptionSection" aria-expanded="false"
-                                        aria-controls="subscriptionSection">
-                                        Subscription <i class="fas fa-chevron-down"></i>
-                                    </h6>
-                                    <div class="collapse" id="subscriptionSection">
-                                        <a class="dropdown-item" href="#"><i class="fas fa-star mr-2"></i>
-                                            Tier/Subscription Plan</a>
-                                    </div>
-                                </div>
+                            <!-- Profile Section -->
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="position-relative me-2">
+                                    <!-- Profile Image or Default Icon -->
+                                    <div class="rounded-circle d-flex justify-content-center align-items-center"
+                                        style="cursor: pointer;"
+                                        id="profile-picture"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        title="Add or change your picture">
 
-                                <!-- Feedback Section -->
-                                <div class="mb-2">
-                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
-                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
-                                        data-toggle="collapse" data-target="#feedbackSection" aria-expanded="false"
-                                        aria-controls="feedbackSection">
-                                        Feedback <i class="fas fa-chevron-down"></i>
-                                    </h6>
-                                    <div class="collapse" id="feedbackSection">
-                                        <a class="dropdown-item" href="#"><i class="fas fa-comment-dots mr-2"></i> Send
-                                            Feedback</a>
-                                    </div>
-                                </div>
+                                        <!-- Default icon (user icon if no image) -->
+                                        <i class="bi bi-person-circle text-secondary" style="font-size: 78px;"></i>
 
-                                <!-- Follow Us Section -->
-                                <div class="mb-2">
-                                    <h6 class="dropdown-header d-flex justify-content-between align-items-center"
-                                        style="cursor: pointer; color: #1d0979; font-weight: bold;"
-                                        data-toggle="collapse" data-target="#followUsSection" aria-expanded="false"
-                                        aria-controls="followUsSection">
-                                        Follow Us <i class="fas fa-chevron-down"></i>
-                                    </h6>
-                                    <div class="collapse" id="followUsSection">
-                                        <a class="dropdown-item" href="#"><i class="fab fa-facebook mr-2"></i>
-                                            Facebook</a>
-                                        <a class="dropdown-item" href="#"><i class="fab fa-twitter mr-2"></i>
-                                            Twitter</a>
-                                        <a class="dropdown-item" href="#"><i class="fab fa-linkedin mr-2"></i>
-                                            LinkedIn</a>
+                                        <!-- Hover Overlay -->
+                                        <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-dark bg-opacity-50 text-white fw-bold opacity-0 hover-overlay transition"
+                                            style="border-radius: 50%;">
+                                            <i class="bi bi-camera mb-1"></i>
+                                            <small>Add or change<br>your picture</small>
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- Logout Button -->
-                                <button class="btn w-100 mt-2" onclick="handleLogout()"
-                                    style="background: #1d0979; color: #fff; border-radius: 5px;">
-                                    Logout
-                                </button>
+                                <div>
+                                    <strong id="account-name">Loading...</strong><br>
+                                    <span class="text-muted small" id="account-email">Loading...</span>
+                                </div>
+                            </div>
+
+                            <!-- Subscription Collapsible -->
+                            <div class="mb-2">
+                                <h6 class="dropdown-header d-flex justify-content-between align-items-center"
+                                    style="cursor: pointer; color: #7b4d11; font-weight: bold;"
+                                    data-bs-toggle="collapse" data-bs-target="#subscriptionSection"
+                                    aria-expanded="false" aria-controls="subscriptionSection">
+                                    Subscription <i class="fas fa-chevron-down"></i>
+                                </h6>
+                                <div class="collapse" id="subscriptionSection">
+                                    <p class="text-muted small mt-2">You're on the free plan.</p>
+                                </div>
+                            </div>
+
+                            <hr class="my-2">
+
+                            <!-- Extra Links -->
+                            <div class="mb-2">
+                                <a href="#" class="d-block small">My FLIPS account</a>
                             </div>
                         </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
 
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </nav>
+        <div id="sidebar" class="sidebar" style="background-color: #fff; box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);">
+             <div>
+                <a href="#" data-toggle="collapse" aria-expanded="false"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="bi bi-house-check-fill ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Home
+                </a>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <label class="ml-2 mt-3" style="color: #000; font-size: 14px; display: flex; align-items: center; font-weight: bold;">
+                    Core Services
+                </label>
+                <hr style="flex-grow: 1; margin-left: 10px; border: none; border-top: 1px solid #000;" />
+            </div>
 
-    <div id="sidebar" class="sidebar" style="background: #1d0979; border: 1px solid #fff;">
-        <div>
-            <a href="#rigsSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="rigsSubmenu"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;">
-                <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>Rigs
-                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
-            </a>
-            <div id="rigsSubmenu" class="collapse submenu">
-                <a href="#" onclick="checkTokenAndFetchData()"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>All
-                    Rigs</a>
-                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Active Rigs</a>
-                <a href="#"><i class="fa fa-paint-brush mr-2" aria-hidden="true"></i>Maintenance</a>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="bi bi-bell-fill ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Flood Alerts
+                </a>
+            </div>
+
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="bi bi-pin-map-fill ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Risk Zone Maps
+                </a>
+            </div>
+
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-satellite-dish ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Live Sensor Feeds
+                </a>
+            </div>
+
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-cloud-showers-water ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Rainfall & River data
+                </a>
+            </div>
+
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-brain ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>AI Flood Prediction
+                </a>
+            </div>
+
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-volume-off ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Evacuation planning
+                </a>
+            </div>
+
+            <div style="display: flex; align-items: center;">
+                <label class="ml-2 mt-3" style="color: #000; font-size: 14px; display: flex; align-items: center; font-weight: bold;">
+                    Analytics & Forecasting
+                </label>
+                <hr style="flex-grow: 1; margin-left: 10px; border: none; border-top: 1px solid #000;" />
+            </div>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-chart-simple ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Flood Impact Forecast
+                </a>
+            </div>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-chart-column ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Damage Estimation
+                </a>
+            </div>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="bi bi-calendar-week ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Historical Flood Data
+                </a>
+            </div>
+             <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-satellite ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Satellite Imgery Viewer
+                </a>
+            </div>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-location-crosshairs ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Hotsopt Analysis(GIS)
+                </a>
+            </div>
+
+            <div style="display: flex; align-items: center;">
+                <label class="ml-2 mt-3" style="color: #000; font-size: 14px; display: flex; align-items: center; font-weight: bold;">
+                    Community Tools
+                </label>
+                <hr style="flex-grow: 1; margin-left: 10px; border: none; border-top: 1px solid #000;" />
+            </div>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-comment-sms ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>SMS Alerts
+                </a>
+            </div>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-chart-column ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Safe Route Finder
+                </a>
+            </div>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-triangle-exclamation ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Local Awareness Maps
+                </a>
+            </div>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-location-dot ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>My Area Risk Viewer
+                </a>
+            </div>
+            <hr>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-money-check ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Billing + Cost Management
+                </a>
+            </div>
+            <div>
+                <a href="#"
+                    style="color: #000; font-size: 14px; display: flex; align-items: center;">
+                    <i class="fa-solid fa-headset ml-3 me-2" style="font-size: 20px; color: rgb(80, 80, 131);"></i>Help + Support
+                </a>
             </div>
         </div>
 
-        <div>
-            <a href="#rigMenu" data-toggle="collapse" aria-expanded="false" aria-controls="rigMenu"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;">
-                <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>GIS
-                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
-            </a>
-            <div id="rigMenu" class="collapse submenu">
-                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Latitude</a>
-                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Longitude</a>
-                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Demographics</a>
-                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Topography</a>
+        <div class="container-fluid">
+            <div class="row mt-4 p-3">
+                <div class="col-md-6">
+                    <label class="fw-bold large ml-5" style="color: #7b4d11;">Models</label>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="btn text-white fw-bold rounded-0 mr-5" data-bs-toggle="modal" data-bs-target="#createModelModal"
+                        style="background-color: #7b4d11;">
+                        Create Model
+                    </button>
+                </div>
             </div>
-        </div>
+            <hr />
 
-        <div>
-            <a href="#addonMenu" data-toggle="collapse" aria-expanded="false" aria-controls="addonMenu"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;">
-                <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>Add-ons
-                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
-            </a>
-            <div id="addonMenu" class="collapse submenu">
-                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Custom report</a>
-                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Additional rigs</a>
-                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>AI Insights</a>
-                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>API Access</a>
-            </div>
-        </div>
-
-        <div>
-            <a href="#weatherMenu" data-toggle="collapse" aria-expanded="false" aria-controls="weatherMenu"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;">
-                <i class="fa fa-align-right mr-2 fw-bold" aria-hidden="true"></i>Weather
-                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
-            </a>
-            <div id="weatherMenu" class="collapse submenu">
-                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Temperature</a>
-                <a href="#"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Humidity</a>
-                <a href="#"><i class="fa fa-cogs mr-2" aria-hidden="true"></i>Rainfall</a>
-            </div>
-        </div>
-
-        <div>
-            <a href="#predictionSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="predictionSubmenu"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;">
-                <i class="bi bi-sliders mr-2"></i>Prediction
-                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
-            </a>
-            <div id="predictionSubmenu" class="collapse submenu">
-                <a href="#"><i class="bi bi-bar-chart-steps mr-2"></i>Historical Data</a>
-                <a href="#"><i class="bi bi-graph-down-arrow mr-2"></i>Forecasting</a>
-            </div>
-        </div>
-
-        <div>
-            <a href="#waterLevelsSubmenu" data-toggle="collapse" aria-expanded="false"
-                style="color: #fff; display: flex; align-items: center; padding: 10px;"
-                aria-controls="waterLevelsSubmenu">
-                <i class="bi bi-moisture mr-2"></i>Water Levels
-                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
-            </a>
-            <div id="waterLevelsSubmenu" class="collapse submenu">
-                <a href="#"><i class="bi bi-water mr-2"></i>Current Levels</a>
-                <a href="#"><i class="bi bi-clock-history mr-2"></i>Historical Data</a>
-            </div>
-        </div>
-
-        <div>
-            <a href="#" class="mb-5" style="color: #fff; padding: 10px;"><i
-                    class="bi bi-gear-wide-connected mr-2"></i>Settings</a>
-        </div>
-
-        <div>
-            <a href="#" class="mt-5" style="color: #fff; padding: 10px;" onclick="handleLogout()"><i
-                    class="bi bi-box-arrow-right mr-2"></i>Logout</a>
-        </div>
-    </div>
-
-    <div class="container-fluid mb-5">
-    <div class="row">
-        <!-- Form Section -->
-        <div class="col-md-4">
             <div class="row">
-    <div class="col-md-12 d-flex ">
-        <h3 class="text-center mb-0">Create your own Customized Model</h3>
-        <a href="index.html" class="btn btn-primary btn-sm" style="float: right;">
-            Back to Home
-        </a>
-    </div>
-</div>
-
-            <form id="modelForm" class="p-4 border rounded shadow-sm">
-                <div class="mb-3">
-                    <label for="modelName" class="form-label">Model Name</label>
-                    <input type="text" class="form-control" id="modelName" placeholder="Enter model name" required>
+                <div class="col-12">
+                    <div id="userModelsContainer" class="p-4">
+                        <!-- This section will be populated dynamically -->
+                        <div id="modelsTable">
+                            <label class="fw-bold large ml-5">Your Models</label>
+                            <p class="text-muted ml-5">No models created yet.</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="modelDescription" class="form-label">Description</label>
-                    <textarea class="form-control" id="modelDescription" placeholder="Enter model description"></textarea>
-                </div>
-                <div class="mb-3">
-                    <label for="rigSelect" class="form-label">Select Rig</label>
-                    <select class="form-select" id="rigSelect" required>
-                        <option value="" disabled selected>Select a rig</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="attributesSelect" class="form-label">Select Attributes</label>
-                    <select class="form-select" id="attributesSelect" multiple>
-                        <option value="Water Level">Water Level</option>
-                        <option value="Temperature">Temperature</option>
-                        <option value="Humidity">Humidity</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="mlModelSelect" class="form-label">Select ML Model</label>
-                    <select class="form-select" id="mlModelSelect" required>
-                        <option value="" disabled selected>Select an ML model</option>
-                        <option value="SVM">Support Vector Machine</option>
-                        <option value="Random Forest">Random Forest</option>
-                        <option value="Neural Network">Neural Network</option>
-                        <option value="KNN">K-Nearest Neighbors</option>
-                        <option value="Linear Regression">Linear Regression</option>
-                        <option value="Decision Tree">Decision Tree</option>
-                    </select>
-                </div>
-                <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary" id="saveModelBtn">Save Model</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Table Section -->
-        <div class="col-md-8">
-            <div id="userModelsContainer" class="border rounded shadow-sm p-4">
-                <h3 class="mb-4">Your Models</h3>
-                <!-- The user models table will be dynamically rendered here -->
             </div>
-        </div>
-    </div>
-</div>
 
+            <div class="modal fade" id="createModelModal" tabindex="-1" aria-labelledby="createModelModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <form id="modelForm">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="createModelModalLabel">Create Customized Model</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
 
-<script>
-    // Add event listener to the "Save Model" button
-document.getElementById('saveModelBtn').addEventListener('click', saveModel);
+                            <div class="modal-body mt-2">
+                                <div class="mb-3">
+                                    <input type="text" class="form-control form-control-sm rounded-0"
+                                        id="modelName" placeholder="Enter model name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <textarea class="form-control form-control-sm rounded-0"
+                                            id="modelDescription" placeholder="Enter model description"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <select class="form-select form-select-sm rounded-0" id="rigSelect" required>
+                                        <option value="" disabled selected>Select a rig</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <select name="attributes" class="form-control rounded-0" id="attributesSelect" multiple>
+                                        <option value="Water Level">Water Level</option>
+                                        <option value="Temperature">Temperature</option>
+                                        <option value="Humidity">Humidity</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <select class="form-select form-select-sm rounded-0" id="mlModelSelect" required>
+                                        <option value="" disabled selected>Select an ML model</option>
+                                        <option value="SVM">Support Vector Machine</option>
+                                        <option value="Random Forest">Random Forest</option>
+                                        <option value="Neural Network">Neural Network</option>
+                                        <option value="KNN">K-Nearest Neighbors</option>
+                                        <option value="Linear Regression">Linear Regression</option>
+                                        <option value="Decision Tree">Decision Tree</option>
+                                    </select>
+                                </div>
+                            </div>
 
-function saveModel(event) {
-    event.preventDefault(); // Prevent form submission
-
-    // Retrieve form values
-    const name = document.getElementById('modelName').value.trim();
-    const description = document.getElementById('modelDescription').value.trim();
-    const sensorId = document.getElementById('rigSelect').value; // Use sensor_id
-    const attributes = Array.from(document.getElementById('attributesSelect').selectedOptions).map(option => option.value);
-    const mlModel = document.getElementById('mlModelSelect').value;
-    const token = localStorage.getItem('token');
-    const backendBaseUrl = 'http://flipsintel.org:8000';
-
-    // Validate inputs
-    if (!name || !sensorId || attributes.length === 0 || !mlModel) {
-        alert('All fields are required.');
-        console.log('Validation failed: Missing input fields.');
-        return;
-    }
-
-    console.log('Sending model creation request:', { name, description, sensorId, attributes, mlModel });
-
-    // Send POST request to create a new model
-    axios.post(`${backendBaseUrl}/modelbuilder/create/`, {
-        name,
-        description,
-        rig_id: sensorId, // Send sensor_id as rig_id
-        attributes,
-        ml_model: mlModel
-    }, {
-        headers: { Authorization: `Token ${token}` }
-    })
-    .then(response => {
-        console.log('Model creation successful:', response.data);
-        alert('Model created successfully!');
-        document.getElementById('modelForm').reset(); // Reset the form
-        fetchUserModels(); // Refresh the user models list
-    })
-    .catch(error => {
-        console.error('Error creating model:', error);
-        alert('Failed to create model.');
-    });
-}
-
-function fetchRigs() {
-    const token = localStorage.getItem('token');
-    const backendBaseUrl = 'https://api.flipsintel.org';
-
-    console.log('Fetching rigs...');
-    axios.get(`${backendBaseUrl}/monitor/rigs/`, {
-        headers: { Authorization: `Token ${token}` }
-    })
-    .then(response => {
-        console.log('Rigs fetched successfully:', response.data);
-        const rigs = response.data;
-        const rigSelect = document.getElementById('rigSelect');
-        rigSelect.innerHTML = '<option value="" disabled selected>Select a rig</option>';
-        rigs.forEach(rig => {
-            const option = document.createElement('option');
-            option.value = rig.sensor_id; // Use sensor_id
-            option.textContent = `${rig.sensor_id} (${rig.location})`;
-            rigSelect.appendChild(option);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching rigs:', error);
-        alert('Failed to fetch rigs.');
-    });
-}
-
-function fetchUserModels() {
-    const token = localStorage.getItem('token');
-    const backendBaseUrl = 'https://api.flipsintel.org';
-
-    console.log('Fetching user models...');
-    axios.get(`${backendBaseUrl}/modelbuilder/user-models/`, {
-        headers: { Authorization: `Token ${token}` }
-    })
-    .then(response => {
-        console.log('User models fetched successfully:', response.data);
-        renderUserModels(response.data);
-    })
-    .catch(error => {
-        console.error('Error fetching user models:', error);
-        alert('Failed to fetch user models.');
-    });
-}
-
-function renderUserModels(models) {
-    const container = document.getElementById('userModelsContainer');
-    container.innerHTML = '<h3>Your Models</h3>';
-
-    if (models.length === 0) {
-        container.innerHTML += '<p>No models available.</p>';
-        console.log('No models to display.');
-        return;
-    }
-
-    const table = document.createElement('table');
-    table.className = 'table table-striped';
-
-    // Create table header
-    const thead = document.createElement('thead');
-    thead.innerHTML = `
-        <tr>
-            <th>Model Name</th>
-            <th>Description</th>
-            <th>Rig</th>
-            <th>ML Model</th>
-            <th>Created At</th>
-            <th>Actions</th>
-        </tr>
-    `;
-    table.appendChild(thead);
-
-    // Create table body
-    const tbody = document.createElement('tbody');
-    models.forEach(model => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${model.name}</td>
-            <td>${model.description}</td>
-            <td>${model.rig_name}</td>
-            <td>${model.ml_model}</td>
-            <td>${new Date(model.created_at).toLocaleString()}</td>
-            <td>
-                <button class="btn btn-primary btn-sm" onclick="viewReport(${model.id})">View Report</button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-    table.appendChild(tbody);
-
-    container.appendChild(table);
-}
-
-function viewReport(modelId) {
-    console.log('Starting report generation for model:', modelId);
-
-    // Show the modal
-    const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
-    reportModal.show();
-
-    const backendBaseUrl = 'http://flipsintel.org:8000';
-    const token = localStorage.getItem('token');
-
-    // Reset modal content
-    const progressSpinner = document.getElementById('progressSpinner');
-    const reportStatus = document.getElementById('reportStatus');
-    const downloadReportLink = document.getElementById('downloadReportLink');
-
-    progressSpinner.classList.remove('d-none');
-    reportStatus.innerText = "Please wait while the report is being generated...";
-    downloadReportLink.classList.add('d-none');
-
-    // Generate the report
-    axios.post(`${backendBaseUrl}/modelbuilder/report/${modelId}/`, {}, {
-        headers: { Authorization: `Token ${token}` },
-        responseType: 'blob', // Important for file downloads
-    })
-    .then(response => {
-        console.log('Report generated successfully.');
-
-        // Create a downloadable link for the PDF
-        const blob = new Blob([response.data], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        downloadReportLink.href = url;
-        downloadReportLink.download = `Model_${modelId}_Report.pdf`;
-
-        // Update modal content
-        progressSpinner.classList.add('d-none');
-        reportStatus.innerText = "Report generated successfully!";
-        downloadReportLink.classList.remove('d-none');
-    })
-    .catch(error => {
-        console.error('Error generating report:', error);
-        progressSpinner.classList.add('d-none');
-        reportStatus.innerText = "Failed to generate the report. Please try again.";
-    });
-}
-
-
-// Fetch rigs when the page loads
-fetchRigs();
-
-// Fetch and display user models when the page loads
-fetchUserModels();
-</script>
-
-
-<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="reportModalLabel">Generating Report</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <div id="progressSpinner" class="spinner-border text-primary mb-3" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p id="reportStatus">Please wait while the report is being generated...</p>
-                <a id="downloadReportLink" class="btn btn-primary d-none mt-3" href="#" download>Download Report</a>
-            </div>
-        </div>
-    </div>
-</div>
-
- <!-- Account Settings Modal -->
-    <div class="modal" id="accountSettingsModal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Account Settings</h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Username:</strong> <span id="modalUsername"></span></p>
-                    <p><strong>Email:</strong> <span id="modalEmail"></span></p>
-                    <p><strong>Subscription Level:</strong> <span id="modalSubscriptionLevel"></span></p>
-                    <p><strong>Billing Address:</strong> <span id="modalBillingAddress"></span></p>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn text-white fw-bold rounded-0" id="saveModelBtn"
+                                    style="background-color: #7b4d11; outline: none; border: none;">
+                                    Save Model
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+
+        <script>
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+
+            // Open or close the sidebar
+            toggleBtn.addEventListener('click', function (event) {
+                event.stopPropagation();
+                sidebar.classList.toggle('active');
+            });
+
+            // Close sidebar only when clicking outside of it
+            document.addEventListener('click', function (event) {
+                // Check if the click target is not the sidebar or its descendants
+                if (!sidebar.contains(event.target) && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            });
+
+            // Add event listener to the "Save Model" button
+            document.getElementById('saveModelBtn').addEventListener('click', saveModel);
+
+            function saveModel(event) {
+                event.preventDefault(); // Prevent form submission
+
+                // Retrieve form values
+                const name = document.getElementById('modelName').value.trim();
+                const description = document.getElementById('modelDescription').value.trim();
+                const sensorId = document.getElementById('rigSelect').value; // Use sensor_id
+                const attributes = Array.from(document.getElementById('attributesSelect').selectedOptions).map(option => option.value);
+                const mlModel = document.getElementById('mlModelSelect').value;
+                const token = localStorage.getItem('token');
+                const backendBaseUrl = 'http://flipsintel.org:8000';
+
+                // Validate inputs
+                if (!name || !sensorId || attributes.length === 0 || !mlModel) {
+                    alert('All fields are required.');
+                    console.log('Validation failed: Missing input fields.');
+                    return;
+                }
+
+                console.log('Sending model creation request:', { name, description, sensorId, attributes, mlModel });
+
+                // Send POST request to create a new model
+                axios.post(`${backendBaseUrl}/modelbuilder/create/`, {
+                    name,
+                    description,
+                    rig_id: sensorId, // Send sensor_id as rig_id
+                    attributes,
+                    ml_model: mlModel
+                }, {
+                    headers: { Authorization: `Token ${token}` }
+                })
+                .then(response => {
+                    console.log('Model creation successful:', response.data);
+                    alert('Model created successfully!');
+                    document.getElementById('modelForm').reset(); // Reset the form
+                    fetchUserModels(); // Refresh the user models list
+                })
+                .catch(error => {
+                    console.error('Error creating model:', error);
+                    alert('Failed to create model.');
+                });
+            }
+
+            function fetchRigs() {
+                const token = localStorage.getItem('token');
+                const backendBaseUrl = 'https://api.flipsintel.org';
+
+                console.log('Fetching rigs...');
+                axios.get(`${backendBaseUrl}/monitor/rigs/`, {
+                    headers: { Authorization: `Token ${token}` }
+                })
+                .then(response => {
+                    console.log('Rigs fetched successfully:', response.data);
+                    const rigs = response.data;
+                    const rigSelect = document.getElementById('rigSelect');
+                    rigSelect.innerHTML = '<option value="" disabled selected>Select a rig</option>';
+                    rigs.forEach(rig => {
+                        const option = document.createElement('option');
+                        option.value = rig.sensor_id; // Use sensor_id
+                        option.textContent = `${rig.sensor_id} (${rig.location})`;
+                        rigSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching rigs:', error);
+                    alert('Failed to fetch rigs.');
+                });
+            }
+
+            function fetchUserModels() {
+                const token = localStorage.getItem('token');
+                const backendBaseUrl = 'https://api.flipsintel.org';
+
+                console.log('Fetching user models...');
+                axios.get(`${backendBaseUrl}/modelbuilder/user-models/`, {
+                    headers: { Authorization: `Token ${token}` }
+                })
+                .then(response => {
+                    console.log('User models fetched successfully:', response.data);
+                    renderUserModels(response.data);
+                })
+                .catch(error => {
+                    console.error('Error fetching user models:', error);
+                    alert('Failed to fetch user models.');
+                });
+            }
+
+            function renderUserModels(models) {
+                const container = document.getElementById('userModelsContainer');
+                container.innerHTML = '<h3>Your Models</h3>';
+
+                if (models.length === 0) {
+                    container.innerHTML += '<p>No models available.</p>';
+                    console.log('No models to display.');
+                    return;
+                }
+
+                const table = document.createElement('table');
+                table.className = 'table table-striped';
+
+                // Create table header
+                const thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>Model Name</th>
+                        <th>Description</th>
+                        <th>Rig</th>
+                        <th>ML Model</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                `;
+                table.appendChild(thead);
+
+                // Create table body
+                const tbody = document.createElement('tbody');
+                models.forEach(model => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${model.name}</td>
+                        <td>${model.description}</td>
+                        <td>${model.rig_name}</td>
+                        <td>${model.ml_model}</td>
+                        <td>${new Date(model.created_at).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="viewReport(${model.id})">View Report</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+
+                container.appendChild(table);
+            }
+
+            function viewReport(modelId) {
+                console.log('Starting report generation for model:', modelId);
+
+                // Show the modal
+                const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+                reportModal.show();
+
+                const backendBaseUrl = 'http://flipsintel.org:8000';
+                const token = localStorage.getItem('token');
+
+                // Reset modal content
+                const progressSpinner = document.getElementById('progressSpinner');
+                const reportStatus = document.getElementById('reportStatus');
+                const downloadReportLink = document.getElementById('downloadReportLink');
+
+                progressSpinner.classList.remove('d-none');
+                reportStatus.innerText = "Please wait while the report is being generated...";
+                downloadReportLink.classList.add('d-none');
+
+                // Generate the report
+                axios.post(`${backendBaseUrl}/modelbuilder/report/${modelId}/`, {}, {
+                    headers: { Authorization: `Token ${token}` },
+                    responseType: 'blob', // Important for file downloads
+                })
+                .then(response => {
+                    console.log('Report generated successfully.');
+
+                    // Create a downloadable link for the PDF
+                    const blob = new Blob([response.data], { type: 'application/pdf' });
+                    const url = window.URL.createObjectURL(blob);
+                    downloadReportLink.href = url;
+                    downloadReportLink.download = `Model_${modelId}_Report.pdf`;
+
+                    // Update modal content
+                    progressSpinner.classList.add('d-none');
+                    reportStatus.innerText = "Report generated successfully!";
+                    downloadReportLink.classList.remove('d-none');
+                })
+                .catch(error => {
+                    console.error('Error generating report:', error);
+                    progressSpinner.classList.add('d-none');
+                    reportStatus.innerText = "Failed to generate the report. Please try again.";
+                });
+            }
+
+            // Fetch rigs when the page loads
+            fetchRigs();
+
+            // Fetch and display user models when the page loads
+            fetchUserModels();
+        </script>
+
+
+        <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="reportModalLabel">Generating Report</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div id="progressSpinner" class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p id="reportStatus">Please wait while the report is being generated...</p>
+                        <a id="downloadReportLink" class="btn btn-primary d-none mt-3" href="#" download>Download Report</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Settings Modal -->
+        <div class="modal" id="accountSettingsModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Account Settings</h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Username:</strong> <span id="modalUsername"></span></p>
+                        <p><strong>Email:</strong> <span id="modalEmail"></span></p>
+                        <p><strong>Subscription Level:</strong> <span id="modalSubscriptionLevel"></span></p>
+                        <p><strong>Billing Address:</strong> <span id="modalBillingAddress"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification canvas -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="notificationPanel" aria-labelledby="notificationPanelLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="notificationPanelLabel">Notifications</h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body text-center">
+                <i class="bi bi-bell-slash" style="font-size: 4rem; color: #ccc;"></i>
+                <p class="mt-3 fw-bold">No new notifications from this session</p>
+            </div>
+        </div>
+
+        <!-- Settings canvas -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="settingPanel" aria-labelledby="settingPanelLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="settingPanelLabel">Settings</h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body text-center">
+                <p class="mt-3 fw-bold">All settings will be here!</p>
+            </div>
+        </div>
+    </body>
+</html>
