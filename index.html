@@ -1362,7 +1362,7 @@ function processData(data) {
   
   // Aggregate data by Rig
   data.forEach(row => {
-    if (!row.Rig || isNaN(row.Level) {
+    if (!row.Rig || isNaN(row.Level)) {
       debugLog('Skipping invalid row:', row);
       return;
     }
