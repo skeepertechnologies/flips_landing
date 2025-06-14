@@ -41,22 +41,33 @@
 
   <!-- Custom CSS for New Sections -->
   <style>
-/* Minimal styling for the network graph */
-#network-graph-container {
-  background: transparent !important;
-}
+  /* Network Graph Container Styles */
+  #network-graph-container {
+    width: 100%;
+    height: 500px;
+    min-height: 500px;
+    background: transparent;
+    margin: 0 auto;
+    border-radius: 8px;
+  }
 
-.highcharts-container {
-  background: transparent !important;
-}
+  .highcharts-container {
+    width: 100% !important;
+    height: 100% !important;
+  }
 
-.highcharts-root {
-  font-family: inherit; /* Use your site's font */
-}
+  .highcharts-root {
+    font-family: 'Roboto', sans-serif !important;
+  }
 
-.highcharts-data-label text {
-  fill: #333 !important; /* Dark text for better visibility */
-}
+  .highcharts-data-label text {
+    fill: #333 !important;
+    font-weight: 500 !important;
+  }
+
+  .highcharts-background {
+    fill: transparent !important;
+  }
   </style>
 </head>
 
@@ -1286,29 +1297,27 @@ function debugLog(message, data = null) {
 function createNetworkGraph(nodes, links) {
   debugLog('Creating graph with nodes:', nodes.length);
   
-  // Ensure container exists and is visible
-  const container = document.getElementById('network-graph-container');
-  if (!container) {
-    console.error('Container element not found');
-    return null;
-  }
-  
-  // Make sure container has proper dimensions
-  container.style.width = '100%';
-  container.style.height = '500px'; // Set a fixed height
-  container.style.backgroundColor = 'transparent';
-  
   try {
+    // Ensure container exists and is visible
+    const container = document.getElementById('network-graph-container');
+    if (!container) {
+      console.error('Network graph container not found');
+      return;
+    }
+    
+    // Make container visible (debugging)
+    container.style.border = '1px solid #eee';
+    
     const chart = Highcharts.chart(container, {
       chart: {
         type: 'networkgraph',
         backgroundColor: 'transparent',
         height: '100%',
-        renderTo: container
+        plotBackgroundColor: 'transparent',
+        animation: true
       },
-      title: { 
-        text: 'Sensor Network',
-        style: { color: '#333' }
+      title: {
+        text: null
       },
       plotOptions: {
         networkgraph: {
@@ -1316,9 +1325,12 @@ function createNetworkGraph(nodes, links) {
           layoutAlgorithm: {
             enableSimulation: true,
             friction: -0.9,
-            gravitationalConstant: 0.06,
-            integration: 'verlet',
+            gravitationalConstant: 0.05,
             maxIterations: 1000
+          },
+          marker: {
+            lineWidth: 2,
+            lineColor: '#7b4d11'
           }
         }
       },
@@ -1327,13 +1339,12 @@ function createNetworkGraph(nodes, links) {
         formatter: function() {
           const node = this.point;
           return `
-            <div style="min-width: 200px">
-              <h4 style="margin: 0 0 5px 0; color: #7b4d11">${node.name}</h4>
+            <div style="min-width: 200px; padding: 10px">
+              <h4 style="margin: 0 0 10px 0; color: #7b4d11">${node.name}</h4>
               <table style="width: 100%">
                 <tr><td>Water Level:</td><td style="text-align: right"><b>${node.value.toFixed(2)}</b></td></tr>
                 <tr><td>Temperature:</td><td style="text-align: right"><b>${node.temp.toFixed(2)}°C</b></td></tr>
                 <tr><td>Humidity:</td><td style="text-align: right"><b>${node.humidity.toFixed(2)}%</b></td></tr>
-                <tr><td>Readings:</td><td style="text-align: right"><b>${node.readings}</b></td></tr>
               </table>
             </div>
           `;
@@ -1344,8 +1355,9 @@ function createNetworkGraph(nodes, links) {
         dataLabels: {
           enabled: true,
           format: '{point.name}',
-          style: { 
-            fontSize: '0.8em',
+          style: {
+            fontSize: '12px',
+            fontWeight: 'normal',
             color: '#333',
             textOutline: 'none'
           }
@@ -1354,17 +1366,16 @@ function createNetworkGraph(nodes, links) {
         data: links,
         marker: {
           radius: function(node) {
-            return 10 + (node.humidity / 10); // Size based on humidity
+            // Ensure minimum size of 15px and scale with humidity
+            return 15 + (node.humidity / 5);
           },
           fillColor: {
             radialGradient: { cx: 0.4, cy: 0.3, r: 0.5 },
             stops: [
-              [0, 'rgba(255,255,255,0.5)'],
+              [0, 'rgba(255,255,255,0.8)'],
               [1, Highcharts.color('#7b4d11').setOpacity(0.7).get('rgba')]
             ]
-          },
-          lineWidth: 2,
-          lineColor: '#7b4d11'
+          }
         }
       }]
     });
@@ -1476,11 +1487,20 @@ async function loadAndDisplayData() {
   }
 }
 
-// Initialize when ready
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize when ready - MODIFIED to ensure Highcharts is loaded
+function initNetworkGraph() {
+  if (typeof Highcharts === 'undefined') {
+    console.log('Highcharts not loaded yet, retrying...');
+    setTimeout(initNetworkGraph, 100);
+    return;
+  }
+  
   debugLog('Initializing application');
   loadAndDisplayData();
-});
+}
+
+// Start initialization
+document.addEventListener('DOMContentLoaded', initNetworkGraph);
 </script>
 </body>
 </html>
