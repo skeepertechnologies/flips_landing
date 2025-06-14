@@ -1498,6 +1498,12 @@ function initNetworkGraph() {
   debugLog('Initializing application');
   loadAndDisplayData();
 }
+// Temporary debug code - add at the end of your script
+setTimeout(() => {
+  const container = document.getElementById('network-graph-container');
+  console.log('Container dimensions:', container.offsetWidth, container.offsetHeight);
+  console.log('Highcharts loaded:', typeof Highcharts);
+}, 2000);
 
 // Start initialization
 document.addEventListener('DOMContentLoaded', initNetworkGraph);
