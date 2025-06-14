@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+.highcharts-figure,
+.highcharts-data-table table {
+  min-width: 320px;
+  max-width: 900px; /* Increased for better node spread */
+  margin: 1em auto;
+}
+
+.highcharts-data-table table {
+  font-family: Verdana, sans-serif;
+  border-collapse: collapse;
+  border: 1px solid #ebebeb;
+  margin: 10px auto;
+  text-align: center;
+  width: 100%;
+  max-width: 500px;
+}
+
+.highcharts-data-table caption {
+  padding: 1em 0;
+  font-size: 1.2em;
+  color: #555;
+}
+
+.highcharts-data-table th {
+  font-weight: 600;
+  padding: 0.5em;
+}
+
+.highcharts-data-table td,
+.highcharts-data-table th,
+.highcharts-data-table caption {
+  padding: 0.5em;
+}
+
+.highcharts-data-table thead tr,
+.highcharts-data-table tr:nth-child(even) {
+  background: #f8f8f8;
+}
+
+.highcharts-data-table tr:hover {
+  background: #f1f7ff;
+}
+
+.highcharts-description {
+  margin: 0.3em 10px;
+}
+    </style>
+</head>
+<body>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/networkgraph.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+    <figure class="highcharts-figure">
+        <div id="container"></div>
+        <p class="highcharts-description">
+            This force-directed graph shows a network of flood monitoring rigs along the Tana River.
+            The central hub connects to each rig, which in turn connects to its water level, temperature,
+            and humidity readings. Nodes can be dragged around and will reposition dynamically.
+        </p>
+    </figure>
+
+    <script>
+        // Debugging function
+        function debugLog(message, data = null) {
+            console.log(`DEBUG: ${message}`);
+            if (data) console.log('Debug data:', data);
+        }
+
+        // Hardcoded data (abridged; include full dataset in practice)
+        const rawData = [
+            {Rig: "Tana Lower", Level: 5.21, Temperature: 23.64, Humidity: 51.01, Timestamp: "2025-06-13 18:14:19.807174+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Lower", Level: 5.29, Temperature: 25.9, Humidity: 64.01, Timestamp: "2025-06-13 18:14:16.691557+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Lower", Level: 6.38, Temperature: 29.72, Humidity: 58.64, Timestamp: "2025-06-13 18:14:13.575883+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Lower", Level: 9.19, Temperature: 21.9, Humidity: 54.12, Timestamp: "2025-06-13 18:14:10.452459+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Upper", Level: 7.56, Temperature: 24.55, Humidity: 53.43, Timestamp: "2025-06-13 18:14:07.323925+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Center", Level: 7.61, Temperature: 24.98, Humidity: 65.33, Timestamp: "2025-06-13 18:14:04.162909+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Center", Level: 7.24, Temperature: 27.55, Humidity: 50.99, Timestamp: "2025-06-13 18:14:01.048371+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Center", Level: 8.65, Temperature: 27.4, Humidity: 67.64, Timestamp: "2025-06-13 18:13:57.935676+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Upper", Level: 6.01, Temperature: 23.35, Humidity: 58.84, Timestamp: "2025-06-13 18:13:54.784120+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Upper", Level: 6.6, Temperature: 28.38, Humidity: 60.15, Timestamp: "2025-06-13 18:13:51.660856+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Upper", Level: 8.54, Temperature: 21.11, Humidity: 55.59, Timestamp: "2025-06-13 18:13:48.361890+00:00", Latitude: 0, Longitude: 0},
+            {Rig: "Tana Lower", Level: 6.9, Temperature: 21, Humidity: 63.3, Timestamp: "2025-06-13 18:13:43.275567+00:00", Latitude: 0, Longitude: 0},
+        ];
+
+        // Filter to latest 2 readings per rig to reduce node density
+        const filteredData = [];
+        const rigsData = {};
+        rawData.forEach(row => {
+            rigsData[row.Rig] = rigsData[row.Rig] || [];
+            rigsData[row.Rig].push(row);
+        });
+        Object.values(rigsData).forEach(rows => {
+            filteredData.push(...rows.slice(-2)); // Latest 2 readings per rig
+        });
+        debugLog('Filtered data:', filteredData);
+
+        // Store node data separately
+        const nodeData = [];
+
+        // Process filteredData to create links and node data
+        const links = (function() {
+            const links = [];
+            const rigs = new Set();
+
+            // Central hub to rigs
+            filteredData.forEach(row => {
+                if (row.Rig) rigs.add(row.Rig);
+            });
+            rigs.forEach(rig => {
+                links.push(['Central Hub', rig]);
+            });
+
+            // Rigs to measurement nodes
+            filteredData.forEach((row, index) => {
+                if (!row.Rig || isNaN(row.Level) || isNaN(row.Temperature) || isNaN(row.Humidity)) {
+                    debugLog('Skipping invalid row:', row);
+                    return;
+                }
+                const rig = row.Rig;
+                const levelId = `${rig}-Level-${index}`;
+                const tempId = `${rig}-Temp-${index}`;
+                const humidityId = `${rig}-Humidity-${index}`;
+
+                // Add links
+                links.push([rig, levelId]);
+                links.push([rig, tempId]);
+                links.push([rig, humidityId]);
+
+                // Store node data with explicit labels
+                nodeData.push({
+                    id: levelId,
+                    name: `${row.Level.toFixed(2)} m`,
+                    value: parseFloat(row.Level),
+                    timestamp: row.Timestamp,
+                    type: 'level'
+                });
+                nodeData.push({
+                    id: tempId,
+                    name: `${row.Temperature.toFixed(2)}°C`,
+                    value: parseFloat(row.Temperature),
+                    timestamp: row.Timestamp,
+                    type: 'temp'
+                });
+                nodeData.push({
+                    id: humidityId,
+                    name: `${row.Humidity.toFixed(2)}%`,
+                    value: parseFloat(row.Humidity),
+                    timestamp: row.Timestamp,
+                    type: 'humidity'
+                });
+            });
+
+            debugLog('Generated links:', links);
+            debugLog('Generated node data:', nodeData);
+            return links;
+        })();
+
+        // Add nodes dynamically with coloring logic
+        Highcharts.addEvent(
+            Highcharts.Series,
+            'afterSetOptions',
+            function (e) {
+                const colors = Highcharts.getOptions().colors,
+                      nodes = {};
+                let colorIndex = 0;
+
+                if (
+                    this instanceof Highcharts.Series.types.networkgraph &&
+                    e.options.id === 'flood-tree'
+                ) {
+                    // Create central and rig nodes
+                    e.options.data.forEach(function (link) {
+                        if (link[0] === 'Central Hub') {
+                            nodes['Central Hub'] = {
+                                id: 'Central Hub',
+                                name: 'Central Hub',
+                                type: 'center',
+                                marker: { radius: 20 },
+                                color: colors[0]
+                            };
+                            nodes[link[1]] = {
+                                id: link[1],
+                                name: link[1],
+                                type: 'rig',
+                                marker: { radius: 15 },
+                                color: colors[++colorIndex % colors.length]
+                            };
+                        }
+                    });
+
+                    // Create measurement nodes and merge with nodeData
+                    e.options.data.forEach(function (link) {
+                        if (nodes[link[0]] && nodes[link[0]].color && link[0].startsWith('Tana')) {
+                            const nodeType = link[1].includes('Level') ? 'level' : link[1].includes('Temp') ? 'temp' : 'humidity';
+                            const data = nodeData.find(d => d.id === link[1]);
+                            if (data) {
+                                nodes[link[1]] = {
+                                    id: link[1],
+                                    name: data.name,
+                                    type: nodeType,
+                                    value: data.value,
+                                    timestamp: data.timestamp,
+                                    color: nodes[link[0]].color,
+                                    marker: { radius: 8 }
+                                };
+                            }
+                        }
+                    });
+
+                    e.options.nodes = Object.keys(nodes).map(function (id) {
+                        return nodes[id];
+                    });
+
+                    debugLog('Nodes created:', e.options.nodes);
+                }
+            }
+        );
+
+        // Create chart
+        try {
+            Highcharts.chart('container', {
+                chart: {
+                    type: 'networkgraph',
+                    height: '100%',
+                    backgroundColor: 'transparent' // Ensure no background
+                },
+                title: {
+                    text: 'Tana River Flood Monitoring Network',
+                    align: 'left'
+                },
+                subtitle: {
+                    text: 'A Force-Directed Network Graph in Highcharts',
+                    align: 'left'
+                },
+                plotOptions: {
+                    networkgraph: {
+                        keys: ['from', 'to'],
+                        layoutAlgorithm: {
+                            enableSimulation: true,
+                            friction: -0.2, // Increased friction to reduce vibration
+                            gravitationalConstant: document.getElementById('container').scrollWidth < 500 ? 0.4 : 0.2, // Stronger gravity
+                            maxIterations: 1000 // Limit iterations to stabilize
+                        }
+                    }
+                },
+                tooltip: {
+                    useHTML: true,
+                    backgroundColor: 'rgba(255, 255, 255, 0)', // Transparent tooltip
+                    borderWidth: 0,
+                    shadow: false,
+                    style: {
+                        color: '#333',
+                        fontSize: '14px'
+                    },
+                    formatter: function() {
+                        const node = this.point.options;
+                        let content = `<div style="min-width: 200px; padding: 10px; border-radius: 5px;">
+                            <h4 style="margin: 0 0 10px 0; color: #7b4d11">${node.name}</h4>`;
+                        
+                        if (node.type === 'center' || node.type === 'rig') {
+                            content += `<p>${node.type === 'center' ? 'Central Hub' : 'Rig Node'}</p>`;
+                        } else {
+                            content += `<table style="width: 100%; color: #333;">
+                                <tr><td>${node.type === 'level' ? 'Water Level' : node.type === 'temp' ? 'Temperature' : 'Humidity'}:</td>
+                                    <td style="text-align: right"><b>${node.value.toFixed(2)}${node.type === 'level' ? ' m' : node.type === 'temp' ? '°C' : '%'}</b></td></tr>
+                                <tr><td>Timestamp:</td><td style="text-align: right"><b>${node.timestamp}</b></td></tr>
+                            </table>`;
+                        }
+                        content += `</div>`;
+                        return content;
+                    }
+                },
+                series: [{
+                    accessibility: { enabled: false },
+                    dataLabels: {
+                        enabled: true,
+                        linkFormat: '',
+                        format: '{point.name}',
+                        style: {
+                            fontSize: '0.9em',
+                            fontWeight: 'normal',
+                            color: '#333',
+                            textOutline: '1px contrast'
+                        },
+                        allowOverlap: false
+                    },
+                    id: 'flood-tree',
+                    data: links
+                }]
+            });
+            debugLog('Chart initialized');
+        } catch (error) {
+            console.error('Chart initialization failed:', error);
+        }
+    </script>
+</body>
+</html>
