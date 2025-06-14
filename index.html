@@ -1276,195 +1276,126 @@
 <!--</script>-->
 
 <script>
- // Debugging function to log with timestamp
-function debugLog(message, data = null) {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] DEBUG: ${message}`);
-  if (data) {
-    console.log('Debug data:', data);
-  }
-}
-
-// Function to create network graph from processed data
+// Function to create network graph with enhanced data visualization
 function createNetworkGraph(nodes, links) {
-  debugLog('Creating network graph', { nodesCount: nodes.length, linksCount: links.length });
-  
-  try {
-    Highcharts.chart('network-graph-container', {
-      chart: {
-        type: 'networkgraph',
-        backgroundColor: 'transparent',
-        height: '100%',
-        plotBackgroundColor: 'transparent',
-        plotBorderWidth: 0
-      },
-      title: {
-        text: null
-      },
-      legend: {
-        enabled: false
-      },
-      credits: {
-        enabled: false
-      },
-      plotOptions: {
-        networkgraph: {
-          keys: ['from', 'to'],
-          layoutAlgorithm: {
-            enableSimulation: true,
-            friction: -0.9,
-            gravitationalConstant: 0.06
-          },
-          marker: {
-            lineWidth: 2
-          }
-        }
-      },
-      tooltip: {
-        formatter: function() {
-          const node = this.point;
-          return `<b>${node.name}</b><br>
-                  Avg Level: ${node.value.toFixed(2)}<br>
-                  Avg Temp: ${node.colorValue.toFixed(2)}°C<br>
-                  Humidity: ${(node.marker.radius - 10) * 10}%`;
-        }
-      },
-      series: [{
-        color: '#7b4d11',
-        dataLabels: {
-          enabled: true,
-          linkFormat: '',
-          style: {
-            fontSize: '0.8em',
-            fontWeight: 'normal',
-            color: '#333',
-            textOutline: 'none'
-          }
+  Highcharts.chart('network-graph-container', {
+    chart: {
+      type: 'networkgraph',
+      backgroundColor: 'transparent',
+      height: '100%',
+      plotBackgroundColor: 'transparent',
+      plotBorderWidth: 0
+    },
+    title: { text: null },
+    legend: { enabled: false },
+    credits: { enabled: false },
+    plotOptions: {
+      networkgraph: {
+        keys: ['from', 'to'],
+        layoutAlgorithm: {
+          enableSimulation: true,
+          friction: -0.9,
+          gravitationalConstant: 0.06
         },
-        nodes: nodes,
-        data: links
-      }]
-    });
-    debugLog('Network graph created successfully');
-  } catch (chartError) {
-    console.error('Failed to create chart:', chartError);
-  }
+        marker: { lineWidth: 2 }
+      }
+    },
+    tooltip: {
+      useHTML: true,
+      formatter: function() {
+        const node = this.point;
+        return `
+          <div style="min-width: 150px">
+            <h4 style="margin: 0 0 5px 0; color: #7b4d11">${node.name}</h4>
+            <table style="width: 100%">
+              <tr>
+                <td>Water Level:</td>
+                <td style="text-align: right"><b>${node.value.toFixed(2)}</b></td>
+              </tr>
+              <tr>
+                <td>Temperature:</td>
+                <td style="text-align: right"><b>${node.temp.toFixed(2)}°C</b></td>
+              </tr>
+              <tr>
+                <td>Humidity:</td>
+                <td style="text-align: right"><b>${node.humidity.toFixed(2)}%</b></td>
+              </tr>
+              <tr>
+                <td>Readings:</td>
+                <td style="text-align: right"><b>${node.readings}</b></td>
+              </tr>
+            </table>
+          </div>
+        `;
+      }
+    },
+    series: [{
+      color: '#7b4d11',
+      dataLabels: {
+        enabled: true,
+        linkFormat: '',
+        style: {
+          fontSize: '0.8em',
+          fontWeight: 'normal',
+          color: '#333',
+          textOutline: 'none'
+        },
+        formatter: function() {
+          return this.point.name;
+        }
+      },
+      nodes: nodes,
+      data: links,
+      marker: {
+        radius: function(node) {
+          // Size based on humidity (scaled for visibility)
+          return 10 + (node.humidity / 10);
+        },
+        fillColor: {
+          radialGradient: { cx: 0.4, cy: 0.3, r: 0.5 },
+          stops: [
+            [0, 'rgba(255,255,255,0.5)'],
+            [1, Highcharts.color('#7b4d11').setOpacity(0.7).get('rgba')]
+          ]
+        }
+      }
+    }]
+  });
 }
 
 // Function to load and process CSV data
 function loadCSVData() {
-  debugLog('Starting CSV load process');
-  
-  const csvPath = 'data/excel_network.csv';
-  debugLog(`Attempting to load CSV from: ${csvPath}`);
-  
-  // Verify file protocol
-  debugLog(`Current protocol: ${window.location.protocol}`);
-  
-  fetchCSV(csvPath)
-    .then(data => {
-      debugLog('CSV loaded successfully', { sampleRow: data[0] });
-      processData(data);
-    })
-    .catch(error => {
+  Papa.parse('data/excel_network.csv', {
+    download: true,
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      if (results.errors.length > 0) {
+        console.error('CSV parsing errors:', results.errors);
+      }
+      processData(results.data);
+    },
+    error: function(error) {
       console.error("Error loading CSV:", error);
-      debugLog('Falling back to sample data');
-      
-      const sampleData = [
-        {Rig: "Tana Lower", Level: 5.21, Temperature: 23.64, Humidity: 51.01},
-        {Rig: "Tana Upper", Level: 7.56, Temperature: 24.55, Humidity: 53.43},
-        {Rig: "Tana Center", Level: 7.61, Temperature: 24.98, Humidity: 65.33}
-      ];
-      processData(sampleData);
-    });
-}
-
-// Helper function to fetch CSV with enhanced debugging
-function fetchCSV(url) {
-  debugLog(`Starting CSV fetch for: ${url}`);
-  
-  return new Promise((resolve, reject) => {
-    if (window.location.protocol === 'file:') {
-      debugLog('Running locally - checking for file access workarounds');
-      
-      // Try alternative methods for local file access
-      if (typeof window.FileReader !== 'undefined') {
-        debugLog('Attempting FileReader API for local file access');
-        
-        // This would require file input from user
-        reject("Local file access requires user interaction");
-        return;
-      }
-      
-      reject("Running locally - using sample data");
-      return;
     }
-    
-    debugLog('Attempting standard fetch with Papa Parse');
-    
-    Papa.parse(url, {
-      download: true,
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      before: function() {
-        debugLog('PapaParse starting download');
-      },
-      complete: (results) => {
-        debugLog('PapaParse completed', { 
-          dataLength: results.data.length,
-          meta: results.meta,
-          errors: results.errors 
-        });
-        
-        if (results.errors.length > 0) {
-          debugLog('Parsing errors encountered', results.errors);
-        }
-        
-        if (!results.data || results.data.length === 0) {
-          reject("No data found in CSV");
-          return;
-        }
-        
-        resolve(results.data);
-      },
-      error: (error) => {
-        debugLog('PapaParse error', error);
-        reject(error);
-      },
-      transform: function(value, field) {
-        // Debug problematic fields
-        if (field === 'Level' && isNaN(parseFloat(value))) {
-          debugLog(`Invalid Level value: ${value}`);
-        }
-        return value;
-      }
-    });
   });
 }
 
-// Process data and create graph with validation
+// Process data and create graph
 function processData(data) {
-  debugLog('Processing data', { dataSample: data.slice(0, 3) });
-  
   if (!data || !Array.isArray(data) || data.length === 0) {
-    console.error('Invalid data provided to processData');
+    console.error('Invalid data provided');
     return;
   }
 
   const rigs = {};
   const links = [];
-  const validationErrors = [];
   
-  data.forEach((row, index) => {
-    // Validate required fields
-    if (!row.Rig) {
-      validationErrors.push(`Row ${index} missing Rig field`);
-      return;
-    }
-    
-    if (isNaN(parseFloat(row.Level))) {
-      validationErrors.push(`Row ${index} has invalid Level: ${row.Level}`);
+  // Process all data points
+  data.forEach(row => {
+    if (!row.Rig || isNaN(row.Level) || isNaN(row.Temperature) || isNaN(row.Humidity)) {
+      return; // Skip invalid rows
     }
     
     if (!rigs[row.Rig]) {
@@ -1472,75 +1403,65 @@ function processData(data) {
         count: 0,
         totalLevel: 0,
         totalTemp: 0,
-        totalHumidity: 0
+        totalHumidity: 0,
+        minLevel: Infinity,
+        maxLevel: -Infinity,
+        minTemp: Infinity,
+        maxTemp: -Infinity
       };
     }
     
-    rigs[row.Rig].count++;
-    rigs[row.Rig].totalLevel += parseFloat(row.Level) || 0;
-    rigs[row.Rig].totalTemp += parseFloat(row.Temperature) || 0;
-    rigs[row.Rig].totalHumidity += parseFloat(row.Humidity) || 0;
+    const rig = rigs[row.Rig];
+    rig.count++;
+    rig.totalLevel += row.Level;
+    rig.totalTemp += row.Temperature;
+    rig.totalHumidity += row.Humidity;
+    rig.minLevel = Math.min(rig.minLevel, row.Level);
+    rig.maxLevel = Math.max(rig.maxLevel, row.Level);
+    rig.minTemp = Math.min(rig.minTemp, row.Temperature);
+    rig.maxTemp = Math.max(rig.maxTemp, row.Temperature);
   });
-  
-  if (validationErrors.length > 0) {
-    debugLog('Data validation errors', validationErrors);
-  }
-  
+
+  // Create nodes with all metrics
   const nodes = Object.keys(rigs).map(rigName => {
-    const rigData = rigs[rigName];
-    const avgHumidity = rigData.totalHumidity / rigData.count;
-    
+    const rig = rigs[rigName];
     return {
       id: rigName,
       name: rigName,
-      value: rigData.totalLevel / rigData.count,
-      colorValue: rigData.totalTemp / rigData.count,
-      marker: {
-        radius: 10 + (avgHumidity / 10),
-        fillColor: Highcharts.getOptions().colors[0]
-      }
+      value: rig.totalLevel / rig.count, // Average level
+      temp: rig.totalTemp / rig.count,   // Average temperature
+      humidity: rig.totalHumidity / rig.count, // Average humidity
+      readings: rig.count,               // Number of readings
+      minLevel: rig.minLevel,
+      maxLevel: rig.maxLevel,
+      minTemp: rig.minTemp,
+      maxTemp: rig.maxTemp
     };
   });
-  
-  debugLog('Created nodes', { sampleNode: nodes[0] });
-  
-  // Create links between nodes
-  for (let i = 0; i < nodes.length - 1; i++) {
-    links.push([nodes[i].id, nodes[i+1].id]);
-  }
-  
-  debugLog('Created links', { sampleLink: links[0] });
-  
+
+  // Create meaningful connections between nodes
+  // This example connects nodes with similar temperature ranges
+  nodes.forEach((node1, i) => {
+    nodes.slice(i + 1).forEach(node2 => {
+      const tempDiff = Math.abs(node1.temp - node2.temp);
+      if (tempDiff < 5) { // Connect if temperature difference < 5°C
+        links.push([node1.id, node2.id]);
+      }
+    });
+  });
+
   createNetworkGraph(nodes, links);
 }
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  debugLog('DOM fully loaded, starting initialization');
-  
-  // Verify container exists
   const container = document.getElementById('network-graph-container');
   if (!container) {
-    console.error('Could not find network-graph-container element');
+    console.error('Missing network-graph-container element');
     return;
   }
-  
-  debugLog('Container element found, loading data');
   loadCSVData();
 });
-
-// Add debug info to window for troubleshooting
-window.debugFLIPS = {
-  reloadData: loadCSVData,
-  showSampleData: () => {
-    const sampleData = [
-      {Rig: "Tana Lower", Level: 5.21, Temperature: 23.64, Humidity: 51.01},
-      {Rig: "Tana Upper", Level: 7.56, Temperature: 24.55, Humidity: 53.43},
-      {Rig: "Tana Center", Level: 7.61, Temperature: 24.98, Humidity: 65.33}
-    ];
-    processData(sampleData);
-  }
-};
-    </script>
+</script>
 </body>
 </html>
