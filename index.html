@@ -1286,21 +1286,39 @@ function debugLog(message, data = null) {
 function createNetworkGraph(nodes, links) {
   debugLog('Creating graph with nodes:', nodes.length);
   
+  // Ensure container exists and is visible
+  const container = document.getElementById('network-graph-container');
+  if (!container) {
+    console.error('Container element not found');
+    return null;
+  }
+  
+  // Make sure container has proper dimensions
+  container.style.width = '100%';
+  container.style.height = '500px'; // Set a fixed height
+  container.style.backgroundColor = 'transparent';
+  
   try {
-    const chart = Highcharts.chart('network-graph-container', {
+    const chart = Highcharts.chart(container, {
       chart: {
         type: 'networkgraph',
         backgroundColor: 'transparent',
-        height: '100%'
+        height: '100%',
+        renderTo: container
       },
-      title: { text: null },
+      title: { 
+        text: 'Sensor Network',
+        style: { color: '#333' }
+      },
       plotOptions: {
         networkgraph: {
           keys: ['from', 'to'],
           layoutAlgorithm: {
             enableSimulation: true,
             friction: -0.9,
-            gravitationalConstant: 0.06
+            gravitationalConstant: 0.06,
+            integration: 'verlet',
+            maxIterations: 1000
           }
         }
       },
@@ -1326,7 +1344,11 @@ function createNetworkGraph(nodes, links) {
         dataLabels: {
           enabled: true,
           format: '{point.name}',
-          style: { fontSize: '0.8em' }
+          style: { 
+            fontSize: '0.8em',
+            color: '#333',
+            textOutline: 'none'
+          }
         },
         nodes: nodes,
         data: links,
@@ -1340,7 +1362,9 @@ function createNetworkGraph(nodes, links) {
               [0, 'rgba(255,255,255,0.5)'],
               [1, Highcharts.color('#7b4d11').setOpacity(0.7).get('rgba')]
             ]
-          }
+          },
+          lineWidth: 2,
+          lineColor: '#7b4d11'
         }
       }]
     });
