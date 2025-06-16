@@ -37,15 +37,13 @@
   <link href="assets/css/style.css" rel="stylesheet">
   <link href="assets/css/sty.css" rel="stylesheet">
 <!--  <link href="assets/css/madaraka.css" rel="stylesheet">-->
-
-
-  <!-- Custom CSS for New Sections -->
   <style>
 /* Custom CSS for Hero Section and Network Graph */
 .hero.section {
   position: relative;
   padding-top: 0; /* Remove top padding to align with nav */
-  min-height: calc(100vh - 70px); /* Full viewport height minus header height (adjust based on your header) */
+  min-height: calc(100vh - 70px); /* Full viewport height minus header height */
+  overflow: hidden; /* Prevent graph from overflowing section */
 }
 
 .hero .container {
@@ -57,21 +55,40 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden; /* Ensure graph stays within bounds */
 }
 
 #networkGraphContainer {
   width: 100%;
   height: 100%;
   min-height: 400px; /* Fallback for smaller screens */
-  background: transparent !important; /* Ensure no background */
+  background: transparent !important; /* No background */
+  border: none !important; /* Remove any boundaries */
+  overflow: hidden; /* Prevent nodes from escaping */
 }
 
 /* Override Highcharts default styles */
 .highcharts-container,
-.highcharts-background {
+.highcharts-background,
+.highcharts-plot-background {
   background: transparent !important;
+  border: none !important;
+  overflow: hidden !important;
 }
 
+/* Ensure nodes and labels are visible */
+.highcharts-point {
+  pointer-events: all;
+}
+
+.highcharts-data-label text {
+  font-size: 0.8em !important;
+  font-family: 'Roboto', sans-serif !important;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5); /* Improve label readability */
+}
+
+/* Highcharts data table styles (unchanged) */
 .highcharts-data-table table {
   font-family: 'Roboto', sans-serif;
   border-collapse: collapse;
@@ -121,6 +138,10 @@
   #networkGraphContainer {
     min-height: 300px; /* Smaller minimum height for mobile */
   }
+
+  .highcharts-data-label text {
+    font-size: 0.7em !important; /* Smaller labels on mobile */
+  }
 }
   </style>
 </head>
@@ -169,7 +190,7 @@
   </header>
 
   <main class="main">
-   <!-- Hero Section -->
+ <!-- Hero Section -->
 <section id="hero" class="hero section">
   <div class="container" data-aos="fade-up" data-aos-delay="100">
     <div class="row align-items-center">
@@ -198,7 +219,7 @@
       </div>
       <div class="col-lg-6">
         <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-          <div id="networkGraphContainer" style="width: 100%; height: 100%; min-height: 400px;"></div>
+          <div id="networkGraphContainer" style="width: 100%; height: 100%; min-height: 400px; overflow: hidden;"></div>
         </div>
       </div>
     </div>
@@ -249,8 +270,7 @@
       </div>
     </div>
   </div>
-</section>
-<!-- /Hero Section -->
+</section><!-- /Hero Section -->
     <!-- Use Case Section -->
     <section id="use-cases" class="use-case-section">
       <div class="container section-title" data-aos="fade-up">
@@ -1339,7 +1359,7 @@
 <!--  });-->
 <!--</script>-->
  <script>
-       // Debugging function
+     // Debugging function
 function debugLog(message, data = null) {
   console.log(`DEBUG: ${message}`);
   if (data) console.log('Debug data:', data);
@@ -1385,59 +1405,74 @@ const rawData = [
   { Rig: "Tana Center", Level: 9.99, Temperature: 26.98, Humidity: 66.51, Timestamp: "2025-06-13 18:12:27.779652+00:00", Latitude: 0, Longitude: 0 },
 ];
 
-// Store node data separately to avoid premature chart access
+// Store node data
 const nodeData = [];
 
-// Process rawData to create links and node data
+// Process rawData to create links for mesh topology
 const links = (function() {
   const links = [];
   const rigs = new Set();
+  const rigNodes = [];
 
-  // Central hub to rigs
+  // Collect rigs
   rawData.forEach(row => {
     if (row.Rig) rigs.add(row.Rig);
   });
-  rigs.forEach(rig => {
-    links.push(['Central Hub', rig]);
-  });
 
-  // Rigs to measurement nodes
+  // Create rig-to-rig connections (mesh topology)
+  const rigArray = Array.from(rigs);
+  for (let i = 0; i < rigArray.length; i++) {
+    for (let j = i + 1; j < rigArray.length; j++) {
+      links.push([rigArray[i], rigArray[j]]); // Connect rigs to each other
+    }
+  }
+
+  // Limit measurements to latest 5 per rig to reduce clutter
+  const rigMeasurements = {};
   rawData.forEach((row, index) => {
     if (!row.Rig || isNaN(row.Level) || isNaN(row.Temperature) || isNaN(row.Humidity)) {
       debugLog('Skipping invalid row:', row);
       return;
     }
     const rig = row.Rig;
-    const levelId = `${rig}-Level-${index}`;
-    const tempId = `${rig}-Temp-${index}`;
-    const humidityId = `${rig}-Humidity-${index}`;
+    if (!rigMeasurements[rig]) rigMeasurements[rig] = [];
+    rigMeasurements[rig].push({ row, index });
+  });
 
-    // Add links
-    links.push([rig, levelId]);
-    links.push([rig, tempId]);
-    links.push([rig, humidityId]);
+  // Process measurements (latest 5 per rig)
+  Object.keys(rigMeasurements).forEach(rig => {
+    rigMeasurements[rig].slice(0, 5).forEach(({ row, index }) => {
+      const levelId = `${rig}-Level-${index}`;
+      const tempId = `${rig}-Temp-${index}`;
+      const humidityId = `${rig}-Humidity-${index}`;
 
-    // Store node data
-    nodeData.push({
-      id: levelId,
-      name: `${row.Level.toFixed(2)}m`,
-      value: parseFloat(row.Level),
-      timestamp: row.Timestamp,
-      type: 'level'
-    });
-    nodeData.push({
-      id: tempId,
-      name: `${row.Temperature.toFixed(2)}°C`,
-      value: parseFloat(row.Temperature),
-      timestamp: row.Timestamp,
-      type: 'temp'
-    });
-    nodeData.push({
-      id: humidityId,
-      name: `${row.Humidity.toFixed(2)}%`,
-      value: parseFloat(row.Humidity),
-      timestamp: row.Timestamp,
-      type: 'humidity'
+      // Connect rig to measurement nodes
+      links.push([rig, levelId]);
+      links.push([rig, tempId]);
+      links.push([rig, humidityId]);
+
+      // Store node data
+      nodeData.push({
+        id: levelId,
+        name: `${row.Level.toFixed(2)}m`,
+        value: parseFloat(row.Level),
+        timestamp: row.Timestamp,
+        type: 'level'
+      });
+      nodeData.push({
+        id: tempId,
+        name: `${row.Temperature.toFixed(2)}°C`,
+        value: parseFloat(row.Temperature),
+        timestamp: row.Timestamp,
+        type: 'temp'
+      });
+      nodeData.push({
+        id: humidityId,
+        name: `${row.Humidity.toFixed(2)}%`,
+        value: parseFloat(row.Humidity),
+        timestamp: row.Timestamp,
+        type: 'humidity'
+      });
     });
   });
 
@@ -1457,31 +1492,33 @@ Highcharts.addEvent(
 
     if (
       this instanceof Highcharts.Series.types.networkgraph &&
-      e.options.id === 'flood-tree'
+      e.options.id === 'flood-mesh'
     ) {
-      // Create central and rig nodes
+      // Create rig nodes
       e.options.data.forEach(function (link) {
-        if (link[0] === 'Central Hub') {
-          nodes['Central Hub'] = {
-            id: 'Central Hub',
-            name: 'Central Hub',
-            type: 'center',
-            marker: { radius: 20 },
-            color: '#7b4d11' // Match brand color
+        if (link[0].startsWith('Tana') && !nodes[link[0]]) {
+          nodes[link[0]] = {
+            id: link[0],
+            name: link[0],
+            type: 'rig',
+            marker: { radius: 12 },
+            color: colors[colorIndex++ % colors.length]
           };
+        }
+        if (link[1].startsWith('Tana') && !nodes[link[1]]) {
           nodes[link[1]] = {
             id: link[1],
             name: link[1],
             type: 'rig',
-            marker: { radius: 15 },
-            color: colors[++colorIndex % colors.length]
+            marker: { radius: 12 },
+            color: colors[colorIndex++ % colors.length]
           };
         }
       });
 
-      // Create measurement nodes and merge with nodeData
+      // Create measurement nodes
       e.options.data.forEach(function (link) {
-        if (nodes[link[0]] && nodes[link[0]].color && link[0].startsWith('Tana')) {
+        if (link[1].includes('-Level-') || link[1].includes('-Temp-') || link[1].includes('-Humidity-')) {
           const nodeType = link[1].includes('Level') ? 'level' : link[1].includes('Temp') ? 'temp' : 'humidity';
           const data = nodeData.find(d => d.id === link[1]);
           if (data) {
@@ -1491,8 +1528,8 @@ Highcharts.addEvent(
               type: nodeType,
               value: data.value,
               timestamp: data.timestamp,
-              color: nodes[link[0]].color,
-              marker: { radius: 8 }
+              color: nodeType === 'level' ? '#1E90FF' : nodeType === 'temp' ? '#FF4500' : '#32CD32',
+              marker: { radius: 6 }
             };
           }
         }
@@ -1512,12 +1549,24 @@ try {
   Highcharts.chart('networkGraphContainer', {
     chart: {
       type: 'networkgraph',
-      backgroundColor: 'transparent', // Transparent background
-      height: '100%', // Fill container height
-      margin: [0, 0, 0, 0], // Remove margins to maximize space
+      backgroundColor: 'transparent',
+      height: '100%',
+      margin: [0, 0, 0, 0],
+      borderWidth: 0,
       events: {
         load: function() {
-          this.reflow(); // Force reflow on load to adjust to container
+          this.reflow();
+          // Constrain nodes within container bounds
+          const chart = this;
+          const container = document.getElementById('networkGraphContainer');
+          const width = container.clientWidth;
+          const height = container.clientHeight;
+
+          chart.series[0].nodes.forEach(node => {
+            node.plotX = Math.max(20, Math.min(width - 20, node.plotX));
+            node.plotY = Math.max(20, Math.min(height - 20, node.plotY));
+          });
+          chart.redraw();
         }
       }
     },
@@ -1527,7 +1576,7 @@ try {
       style: {
         color: '#333',
         fontFamily: 'Roboto, sans-serif',
-        fontSize: '18px'
+        fontSize: '16px'
       }
     },
     subtitle: {
@@ -1536,7 +1585,7 @@ try {
       style: {
         color: '#666',
         fontFamily: 'Roboto, sans-serif',
-        fontSize: '14px'
+        fontSize: '12px'
       }
     },
     plotOptions: {
@@ -1544,11 +1593,24 @@ try {
         keys: ['from', 'to'],
         layoutAlgorithm: {
           enableSimulation: true,
-          friction: -0.85, // Reduced friction for smoother movement
-          gravitationalConstant: window.innerWidth < 768 ? 0.1 : 0.05, // Adjust for screen size
-          initialPositions: 'circle', // Start nodes in a circular layout
-          maxIterations: 1000, // Ensure stable simulation
-          linkLength: 50 // Control distance between nodes
+          friction: -0.9, // Smoother movement
+          gravitationalConstant: window.innerWidth < 768 ? 0.08 : 0.04, // Responsive spacing
+          maxIterations: 1500, // Stable simulation
+          linkLength: 30, // Shorter links to reduce spread
+          integration: 'verlet',
+          approximation: 'barnes-hut',
+          // Custom force to keep nodes within bounds
+          onEnd: function() {
+            const chart = this.series.chart;
+            const container = document.getElementById('networkGraphContainer');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            this.nodes.forEach(node => {
+              node.x = Math.max(20, Math.min(width - 20, node.x));
+              node.y = Math.max(20, Math.min(height - 20, node.y));
+            });
+          }
         },
         point: {
           events: {
@@ -1561,26 +1623,26 @@ try {
     },
     tooltip: {
       useHTML: true,
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderWidth: 1,
       borderColor: '#ddd',
       shadow: true,
       style: {
         color: '#333',
-        fontSize: '14px'
+        fontSize: '12px'
       },
       formatter: function() {
         const node = this.point.options;
-        let content = `<div style="min-width: 200px; padding: 10px; border-radius: 5px;">
-          <h4 style="margin: 0 0 10px 0; color: #7b4d11">${node.name}</h4>`;
+        let content = `<div style="min-width: 180px; padding: 8px; border-radius: 5px;">
+          <h4 style="margin: 0 0 8px 0; color: #7b4d11">${node.name}</h4>`;
         
-        if (node.type === 'center' || node.type === 'rig') {
-          content += `<p>${node.type === 'center' ? 'Central Hub' : 'Rig Node'}</p>`;
+        if (node.type === 'rig') {
+          content += `<p>Rig Node</p>`;
         } else {
           content += `<table style="width: 100%; color: #333;">
             <tr><td>${node.type === 'level' ? 'Water Level' : node.type === 'temp' ? 'Temperature' : 'Humidity'}:</td>
               <td style="text-align: right"><b>${node.value.toFixed(2)}${node.type === 'level' ? ' m' : node.type === 'temp' ? '°C' : '%'}</b></td></tr>
-            <tr><td>Timestamp:</td><td style="text-align: right"><b>${node.timestamp}</b></td></tr>
+            <tr><td>Timestamp:</td><td style="text-align: right"><b>${new Date(node.timestamp).toLocaleString()}</b></td></tr>
           </table>`;
         }
         content += `</div>`;
@@ -1597,13 +1659,16 @@ try {
           fontWeight: 'normal',
           fontFamily: 'Roboto, sans-serif',
           textOutline: '1px contrast'
+        },
+        formatter: function() {
+          return this.point.options.name;
         }
       },
-      id: 'flood-tree',
+      id: 'flood-mesh',
       data: links
     }],
     credits: {
-      enabled: false // Disable Highcharts credits
+      enabled: false
     }
   });
   debugLog('Chart initialized');
