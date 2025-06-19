@@ -38,61 +38,18 @@
   <link href="assets/css/sty.css" rel="stylesheet">
 <!--  <link href="assets/css/madaraka.css" rel="stylesheet">-->
   <style>
-/* Custom CSS for Hero Section and Network Graph */
-.hero.section {
-  position: relative;
-  padding-top: 0; /* Remove top padding to align with nav */
-  min-height: calc(100vh - 70px); /* Full viewport height minus header height */
-  overflow: hidden; /* Prevent graph from overflowing section */
-}
-
-.hero .container {
-  padding-top: 70px; /* Offset for fixed header */
-}
-
-.hero-image {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden; /* Ensure graph stays within bounds */
-}
-
-#networkGraphContainer {
-  width: 100%;
-  height: 100%;
-  min-height: 400px; /* Fallback for smaller screens */
-  background: transparent !important; /* No background */
-  border: none !important; /* Remove any boundaries */
-  overflow: hidden; /* Prevent nodes from escaping */
-}
-
-/* Override Highcharts default styles */
-.highcharts-container,
-.highcharts-background,
-.highcharts-plot-background {
-  background: transparent !important;
-  border: none !important;
-  overflow: hidden !important;
-}
-
-/* Ensure nodes and labels are visible */
-.highcharts-point {
-  pointer-events: all;
-}
-
-.highcharts-data-label text {
-  font-size: 0.8em !important;
-  font-family: 'Roboto', sans-serif !important;
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5); /* Improve label readability */
-}
-
-/* Highcharts data table styles (unchanged) */
+.highcharts-figure,
 .highcharts-data-table table {
-  font-family: 'Roboto', sans-serif;
+  min-width: 320px;
+  max-width: 800px;
+  margin: 1em auto;
+  background-color: none;
+}
+
+.highcharts-data-table table {
+  font-family: Verdana, sans-serif;
   border-collapse: collapse;
-  border: 1px solid #ebebeb;
+    /* border: 1px solid #ebebeb; */
   margin: 10px auto;
   text-align: center;
   width: 100%;
@@ -118,30 +75,15 @@
 
 .highcharts-data-table thead tr,
 .highcharts-data-table tr:nth-child(even) {
-  background: #f8f8f8;
+  /* background: #f8f8f8; */
 }
 
 .highcharts-data-table tr:hover {
-  background: #f1f7ff;
+  /* background: #f1f7ff; */
 }
 
-/* Responsive adjustments */
-@media (max-width: 991px) {
-  .hero.section {
-    min-height: auto; /* Allow natural height on smaller screens */
-  }
-
-  .hero .container {
-    padding-top: 60px; /* Adjust for smaller header */
-  }
-
-  #networkGraphContainer {
-    min-height: 300px; /* Smaller minimum height for mobile */
-  }
-
-  .highcharts-data-label text {
-    font-size: 0.7em !important; /* Smaller labels on mobile */
-  }
+.highcharts-description {
+  margin: 0.3rem 10px;
 }
   </style>
 </head>
@@ -219,7 +161,15 @@
       </div>
       <div class="col-lg-6">
         <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-          <div id="networkGraphContainer" style="width: 100%; height: 100%; min-height: 400px; overflow: hidden;"></div>
+        <script src="https://code.highcharts.com/highcharts.js"></script>
+        <script src="https://code.highcharts.com/modules/networkgraph.js"></script>
+        <script src="https://code.highcharts.com/modules/exporting.js"></script>
+        <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+        <figure class="highcharts-figure">
+          <div id="container"></div>
+         
+        </figure>        
         </div>
       </div>
     </div>
@@ -1360,321 +1310,198 @@
 <!--</script>-->
  <script>
      // Debugging function
-function debugLog(message, data = null) {
-  console.log(`DEBUG: ${message}`);
-  if (data) console.log('Debug data:', data);
-}
-
-// Hardcoded data (abridged; include full dataset in practice)
-const rawData = [
-  { Rig: "Tana Lower", Level: 5.21, Temperature: 23.64, Humidity: 51.01, Timestamp: "2025-06-13 18:14:19.807174+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 5.29, Temperature: 25.9, Humidity: 64.01, Timestamp: "2025-06-13 18:14:16.691557+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 6.38, Temperature: 29.72, Humidity: 58.64, Timestamp: "2025-06-13 18:14:13.575883+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 9.19, Temperature: 21.9, Humidity: 54.12, Timestamp: "2025-06-13 18:14:10.452459+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Upper", Level: 7.56, Temperature: 24.55, Humidity: 53.43, Timestamp: "2025-06-13 18:14:07.323925+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 7.61, Temperature: 24.98, Humidity: 65.33, Timestamp: "2025-06-13 18:14:04.162909+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 7.24, Temperature: 27.55, Humidity: 50.99, Timestamp: "2025-06-13 18:14:01.048371+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 8.65, Temperature: 27.4, Humidity: 67.64, Timestamp: "2025-06-13 18:13:57.935676+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Upper", Level: 6.01, Temperature: 23.35, Humidity: 58.84, Timestamp: "2025-06-13 18:13:54.784120+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Upper", Level: 6.6, Temperature: 28.38, Humidity: 60.15, Timestamp: "2025-06-13 18:13:51.660856+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Upper", Level: 8.54, Temperature: 21.11, Humidity: 55.59, Timestamp: "2025-06-13 18:13:48.361890+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 6.9, Temperature: 21, Humidity: 63.3, Timestamp: "2025-06-13 18:13:43.275567+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 5.84, Temperature: 29.93, Humidity: 67.75, Timestamp: "2025-06-13 18:13:40.155833+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Upper", Level: 6.22, Temperature: 26.38, Humidity: 67.07, Timestamp: "2025-06-13 18:13:37.040798+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 6.35, Temperature: 29.64, Humidity: 63.33, Timestamp: "2025-06-13 18:13:33.779241+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 5.61, Temperature: 27.53, Humidity: 54.73, Timestamp: "2025-06-13 18:13:30.646410+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 5.92, Temperature: 25.73, Humidity: 69.84, Timestamp: "2025-06-13 18:13:27.533373+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 6.1, Temperature: 22.87, Humidity: 59.16, Timestamp: "2025-06-13 18:13:24.417216+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 5.89, Temperature: 26.4, Humidity: 58.45, Timestamp: "2025-06-13 18:13:21.288312+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Upper", Level: 8.17, Temperature: 24.24, Humidity: 58.42, Timestamp: "2025-06-13 18:13:18.172267+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Upper", Level: 8.51, Temperature: 27.1, Humidity: 56.99, Timestamp: "2025-06-13 18:13:14.980147+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 7.64, Temperature: 28.52, Humidity: 60.34, Timestamp: "2025-06-13 18:13:11.795819+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 8.75, Temperature: 24.19, Humidity: 58.64, Timestamp: "2025-06-13 18:13:08.591224+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 9.46, Temperature: 26.78, Humidity: 58.7, Timestamp: "2025-06-13 18:13:05.459712+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 8.84, Temperature: 28.9, Humidity: 69.63, Timestamp: "2025-06-13 18:13:02.328337+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 6.11, Temperature: 29.91, Humidity: 65.96, Timestamp: "2025-06-13 18:12:59.213825+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 9.91, Temperature: 27.02, Humidity: 68.32, Timestamp: "2025-06-13 18:12:56.098935+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 6.01, Temperature: 20.01, Humidity: 69.17, Timestamp: "2025-06-13 18:12:52.983314+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 9.7, Temperature: 22.36, Humidity: 54.52, Timestamp: "2025-06-13 18:12:49.867482+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 9.83, Temperature: 27.29, Humidity: 66.68, Timestamp: "2025-06-13 18:12:46.745613+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 7.78, Temperature: 22.2, Humidity: 66.49, Timestamp: "2025-06-13 18:12:43.549426+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 5.78, Temperature: 24.44, Humidity: 69.66, Timestamp: "2025-06-13 18:12:40.390101+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 5.96, Temperature: 25.74, Humidity: 58.96, Timestamp: "2025-06-13 18:12:37.246302+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 6.87, Temperature: 29.96, Humidity: 50.96, Timestamp: "2025-06-13 18:12:34.059476+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Lower", Level: 8.37, Temperature: 20.04, Humidity: 58.32, Timestamp: "2025-06-13 18:12:30.938218+00:00", Latitude: 0, Longitude: 0 },
-  { Rig: "Tana Center", Level: 9.99, Temperature: 26.98, Humidity: 66.51, Timestamp: "2025-06-13 18:12:27.779652+00:00", Latitude: 0, Longitude: 0 },
-];
-
-// Store node data
-const nodeData = [];
-
-// Process rawData to create links for mesh topology
-const links = (function() {
-  const links = [];
-  const rigs = new Set();
-  const rigNodes = [];
-
-  // Collect rigs
-  rawData.forEach(row => {
-    if (row.Rig) rigs.add(row.Rig);
-  });
-
-  // Create rig-to-rig connections (mesh topology)
-  const rigArray = Array.from(rigs);
-  for (let i = 0; i < rigArray.length; i++) {
-    for (let j = i + 1; j < rigArray.length; j++) {
-      links.push([rigArray[i], rigArray[j]]); // Connect rigs to each other
-    }
-  }
-
-  // Limit measurements to latest 5 per rig to reduce clutter
-  const rigMeasurements = {};
-  rawData.forEach((row, index) => {
-    if (!row.Rig || isNaN(row.Level) || isNaN(row.Temperature) || isNaN(row.Humidity)) {
-      debugLog('Skipping invalid row:', row);
-      return;
-    }
-    const rig = row.Rig;
-    if (!rigMeasurements[rig]) rigMeasurements[rig] = [];
-    rigMeasurements[rig].push({ row, index });
-  });
-
-  // Process measurements (latest 5 per rig)
-  Object.keys(rigMeasurements).forEach(rig => {
-    rigMeasurements[rig].slice(0, 5).forEach(({ row, index }) => {
-      const levelId = `${rig}-Level-${index}`;
-      const tempId = `${rig}-Temp-${index}`;
-      const humidityId = `${rig}-Humidity-${index}`;
-
-      // Connect rig to measurement nodes
-      links.push([rig, levelId]);
-      links.push([rig, tempId]);
-      links.push([rig, humidityId]);
-
-      // Store node data
-      nodeData.push({
-        id: levelId,
-        name: `${row.Level.toFixed(2)}m`,
-        value: parseFloat(row.Level),
-        timestamp: row.Timestamp,
-        type: 'level'
-      });
-      nodeData.push({
-        id: tempId,
-        name: `${row.Temperature.toFixed(2)}°C`,
-        value: parseFloat(row.Temperature),
-        timestamp: row.Timestamp,
-        type: 'temp'
-      });
-      nodeData.push({
-        id: humidityId,
-        name: `${row.Humidity.toFixed(2)}%`,
-        value: parseFloat(row.Humidity),
-        timestamp: row.Timestamp,
-        type: 'humidity'
-      });
-    });
-  });
-
-  debugLog('Generated links:', links);
-  debugLog('Generated node data:', nodeData);
-  return links;
-})();
-
-// Add nodes dynamically with coloring logic
+// Add the nodes option through an event call. We want to start with the parent
+// item and apply separate colors to each child element, then the same color to
+// grandchildren.// Add the nodes option through an event call
 Highcharts.addEvent(
   Highcharts.Series,
   'afterSetOptions',
   function (e) {
     const colors = Highcharts.getOptions().colors,
-          nodes = {};
-    let colorIndex = 0;
+      nodes = {};
+    let i = 0;
 
     if (
       this instanceof Highcharts.Series.types.networkgraph &&
-      e.options.id === 'flood-mesh'
+      e.options.id === 'env-monitoring'
     ) {
-      // Create rig nodes
       e.options.data.forEach(function (link) {
-        if (link[0].startsWith('Tana') && !nodes[link[0]]) {
-          nodes[link[0]] = {
-            id: link[0],
-            name: link[0],
-            type: 'rig',
-            marker: { radius: 12 },
-            color: colors[colorIndex++ % colors.length]
+        // Root node: Tana River Monitoring System
+        if (link[0] === 'Tana River Monitoring System') {
+          nodes['Tana River Monitoring System'] = {
+            id: 'Tana River Monitoring System',
+            marker: { radius: 20 },
+            color: colors[0] // Distinct color for root
           };
-        }
-        if (link[1].startsWith('Tana') && !nodes[link[1]]) {
           nodes[link[1]] = {
             id: link[1],
-            name: link[1],
-            type: 'rig',
             marker: { radius: 12 },
-            color: colors[colorIndex++ % colors.length]
+            color: colors[(i++ % (colors.length - 1)) + 1] // Unique color for each rig, skip root color
           };
         }
-      });
-
-      // Create measurement nodes
-      e.options.data.forEach(function (link) {
-        if (link[1].includes('-Level-') || link[1].includes('-Temp-') || link[1].includes('-Humidity-')) {
-          const nodeType = link[1].includes('Level') ? 'level' : link[1].includes('Temp') ? 'temp' : 'humidity';
-          const data = nodeData.find(d => d.id === link[1]);
-          if (data) {
-            nodes[link[1]] = {
-              id: link[1],
-              name: data.name,
-              type: nodeType,
-              value: data.value,
-              timestamp: data.timestamp,
-              color: nodeType === 'level' ? '#1E90FF' : nodeType === 'temp' ? '#FF4500' : '#32CD32',
-              marker: { radius: 6 }
-            };
-          }
+        // Rigs to weather conditions
+        else if (['Tana Lower', 'Tana Upper', 'Tana Center'].includes(link[0])) {
+          nodes[link[0]] = nodes[link[0]] || {
+            id: link[0],
+            marker: { radius: 12 },
+            color: colors[(i % (colors.length - 1)) + 1]
+          };
+          nodes[link[1]] = {
+            id: link[1],
+            marker: { radius: 8 },
+            color: nodes[link[0]].color // Inherit rig color
+          };
+        }
+        // Weather conditions to categories
+        else if (
+          link[0].includes('Water Level') ||
+          link[0].includes('Temperature') ||
+          link[0].includes('Humidity') ||
+          link[0].includes('Rainfall') ||
+          link[0].includes('Wind Speed')
+        ) {
+          nodes[link[0]] = nodes[link[0]] || {
+            id: link[0],
+            marker: { radius: 8 },
+            color: nodes[link[0]] ? nodes[link[0]].color : colors[(i % (colors.length - 1)) + 1]
+          };
+          nodes[link[1]] = {
+            id: link[1],
+            marker: { radius: 6 },
+            color: nodes[link[0]].color // Inherit condition color
+          };
+        }
+        // Cross-rig connections
+        else if (nodes[link[0]] && nodes[link[0]].color) {
+          nodes[link[1]] = {
+            id: link[1],
+            marker: { radius: 6 },
+            color: nodes[link[0]].color // Inherit color for cross-rig links
+          };
         }
       });
 
       e.options.nodes = Object.keys(nodes).map(function (id) {
         return nodes[id];
       });
-
-      debugLog('Nodes created:', e.options.nodes);
     }
   }
 );
 
-// Create chart
-try {
-  Highcharts.chart('networkGraphContainer', {
-    chart: {
-      type: 'networkgraph',
-      backgroundColor: 'transparent',
-      height: '100%',
-      margin: [0, 0, 0, 0],
-      borderWidth: 0,
-      events: {
-        load: function() {
-          this.reflow();
-          // Constrain nodes within container bounds
-          const chart = this;
-          const container = document.getElementById('networkGraphContainer');
-          const width = container.clientWidth;
-          const height = container.clientHeight;
-
-          chart.series[0].nodes.forEach(node => {
-            node.plotX = Math.max(20, Math.min(width - 20, node.plotX));
-            node.plotY = Math.max(20, Math.min(height - 20, node.plotY));
-          });
-          chart.redraw();
-        }
+Highcharts.chart('container', {
+  chart: {
+    type: 'networkgraph',
+    height: '100%',
+    backgroundColor: null
+  },
+  title: {
+    text: 'Tana River Environmental Monitoring Network',
+    align: 'left'
+  },
+  subtitle: {
+    text: 'A Force-Directed Network Graph for Flood Prediction',
+    align: 'left'
+  },
+  plotOptions: {
+    networkgraph: {
+      keys: ['from', 'to'],
+      layoutAlgorithm: {
+        enableSimulation: true,
+        friction: -0.9,
+        gravitationalConstant:
+          document.getElementById('container').scrollWidth < 500 ? 0.2 : 0.06
       }
-    },
-    title: {
-      text: 'Tana River Flood Monitoring Network',
-      align: 'left',
-      style: {
-        color: '#333',
-        fontFamily: 'Roboto, sans-serif',
-        fontSize: '16px'
-      }
-    },
-    subtitle: {
-      text: 'Real-Time Environmental Data',
-      align: 'left',
-      style: {
-        color: '#666',
-        fontFamily: 'Roboto, sans-serif',
-        fontSize: '12px'
-      }
-    },
-    plotOptions: {
-      networkgraph: {
-        keys: ['from', 'to'],
-        layoutAlgorithm: {
-          enableSimulation: true,
-          friction: -0.9, // Smoother movement
-          gravitationalConstant: window.innerWidth < 768 ? 0.08 : 0.04, // Responsive spacing
-          maxIterations: 1500, // Stable simulation
-          linkLength: 30, // Shorter links to reduce spread
-          integration: 'verlet',
-          approximation: 'barnes-hut',
-          // Custom force to keep nodes within bounds
-          onEnd: function() {
-            const chart = this.series.chart;
-            const container = document.getElementById('networkGraphContainer');
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-
-            this.nodes.forEach(node => {
-              node.x = Math.max(20, Math.min(width - 20, node.x));
-              node.y = Math.max(20, Math.min(height - 20, node.y));
-            });
-          }
-        },
-        point: {
-          events: {
-            click: function() {
-              debugLog('Node clicked:', this.options);
-            }
-          }
-        }
-      }
-    },
-    tooltip: {
-      useHTML: true,
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      borderWidth: 1,
-      borderColor: '#ddd',
-      shadow: true,
-      style: {
-        color: '#333',
-        fontSize: '12px'
-      },
-      formatter: function() {
-        const node = this.point.options;
-        let content = `<div style="min-width: 180px; padding: 8px; border-radius: 5px;">
-          <h4 style="margin: 0 0 8px 0; color: #7b4d11">${node.name}</h4>`;
-        
-        if (node.type === 'rig') {
-          content += `<p>Rig Node</p>`;
-        } else {
-          content += `<table style="width: 100%; color: #333;">
-            <tr><td>${node.type === 'level' ? 'Water Level' : node.type === 'temp' ? 'Temperature' : 'Humidity'}:</td>
-              <td style="text-align: right"><b>${node.value.toFixed(2)}${node.type === 'level' ? ' m' : node.type === 'temp' ? '°C' : '%'}</b></td></tr>
-            <tr><td>Timestamp:</td><td style="text-align: right"><b>${new Date(node.timestamp).toLocaleString()}</b></td></tr>
-          </table>`;
-        }
-        content += `</div>`;
-        return content;
-      }
-    },
-    series: [{
-      accessibility: { enabled: false },
-      dataLabels: {
-        enabled: true,
-        linkFormat: '',
-        style: {
-          fontSize: '0.8em',
-          fontWeight: 'normal',
-          fontFamily: 'Roboto, sans-serif',
-          textOutline: '1px contrast'
-        },
-        formatter: function() {
-          return this.point.options.name;
-        }
-      },
-      id: 'flood-mesh',
-      data: links
-    }],
-    credits: {
-      enabled: false
     }
-  });
-  debugLog('Chart initialized');
-} catch (error) {
-  console.error('Chart initialization failed:', error);
-}
+  },
+  series: [{
+    accessibility: {
+      enabled: false
+    },
+    dataLabels: {
+      enabled: true,
+      linkFormat: '',
+      style: {
+        fontSize: '0.8em',
+        fontWeight: 'normal'
+      }
+    },
+    id: 'env-monitoring',
+    data: [
+      // Root to Rigs
+      ['Tana River Monitoring System', 'Tana Lower'],
+      ['Tana River Monitoring System', 'Tana Upper'],
+      ['Tana River Monitoring System', 'Tana Center'],
+      // Tana Lower Sub-Network
+      ['Tana Lower', 'Water Level Lower'],
+      ['Tana Lower', 'Temperature Lower'],
+      ['Tana Lower', 'Humidity Lower'],
+      ['Tana Lower', 'Rainfall Lower'],
+      ['Tana Lower', 'Wind Speed Lower'],
+      ['Water Level Lower', 'Low Water Level Lower'],
+      ['Water Level Lower', 'Medium Water Level Lower'],
+      ['Water Level Lower', 'High Water Level Lower'],
+      ['Temperature Lower', 'Cool Temperature Lower'],
+      ['Temperature Lower', 'Moderate Temperature Lower'],
+      ['Temperature Lower', 'Hot Temperature Lower'],
+      ['Humidity Lower', 'Low Humidity Lower'],
+      ['Humidity Lower', 'Moderate Humidity Lower'],
+      ['Humidity Lower', 'High Humidity Lower'],
+      ['Rainfall Lower', 'No Rainfall Lower'],
+      ['Rainfall Lower', 'Light Rainfall Lower'],
+      ['Rainfall Lower', 'Heavy Rainfall Lower'],
+      ['Wind Speed Lower', 'Calm Wind Lower'],
+      ['Wind Speed Lower', 'Moderate Wind Lower'],
+      ['Wind Speed Lower', 'Strong Wind Lower'],
+      // Tana Upper Sub-Network
+      ['Tana Upper', 'Water Level Upper'],
+      ['Tana Upper', 'Temperature Upper'],
+      ['Tana Upper', 'Humidity Upper'],
+      ['Tana Upper', 'Rainfall Upper'],
+      ['Tana Upper', 'Wind Speed Upper'],
+      ['Water Level Upper', 'Low Water Level Upper'],
+      ['Water Level Upper', 'Medium Water Level Upper'],
+      ['Water Level Upper', 'High Water Level Upper'],
+      ['Temperature Upper', 'Cool Temperature Upper'],
+      ['Temperature Upper', 'Moderate Temperature Upper'],
+      ['Temperature Upper', 'Hot Temperature Upper'],
+      ['Humidity Upper', 'Low Humidity Upper'],
+      ['Humidity Upper', 'Moderate Humidity Upper'],
+      ['Humidity Upper', 'High Humidity Upper'],
+      ['Rainfall Upper', 'No Rainfall Upper'],
+      ['Rainfall Upper', 'Light Rainfall Upper'],
+      ['Rainfall Upper', 'Heavy Rainfall Upper'],
+      ['Wind Speed Upper', 'Calm Wind Upper'],
+      ['Wind Speed Upper', 'Moderate Wind Upper'],
+      ['Wind Speed Upper', 'Strong Wind Upper'],
+      // Tana Center Sub-Network
+      ['Tana Center', 'Water Level Center'],
+      ['Tana Center', 'Temperature Center'],
+      ['Tana Center', 'Humidity Center'],
+      ['Tana Center', 'Rainfall Center'],
+      ['Tana Center', 'Wind Speed Center'],
+      ['Water Level Center', 'Low Water Level Center'],
+      ['Water Level Center', 'Medium Water Level Center'],
+      ['Water Level Center', 'High Water Level Center'],
+      ['Temperature Center', 'Cool Temperature Center'],
+      ['Temperature Center', 'Moderate Temperature Center'],
+      ['Temperature Center', 'Hot Temperature Center'],
+      ['Humidity Center', 'Low Humidity Center'],
+      ['Humidity Center', 'Moderate Humidity Center'],
+      ['Humidity Center', 'High Humidity Center'],
+      ['Rainfall Center', 'No Rainfall Center'],
+      ['Rainfall Center', 'Light Rainfall Center'],
+      ['Rainfall Center', 'Heavy Rainfall Center'],
+      ['Wind Speed Center', 'Calm Wind Center'],
+      ['Wind Speed Center', 'Moderate Wind Center'],
+      ['Wind Speed Center', 'Strong Wind Center'],
+      // Cross-Rig Connections
+      ['High Water Level Lower', 'High Water Level Upper'],
+      ['High Water Level Upper', 'High Water Level Center'],
+      ['Hot Temperature Lower', 'Hot Temperature Center'],
+      ['Heavy Rainfall Lower', 'Heavy Rainfall Center']
+    ]
+  }]
+});
     </script>
 </body>
 </html>
