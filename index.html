@@ -26,18 +26,48 @@
   <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
   <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 
-   <!-- Add Highcharts scripts -->
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/modules/networkgraph.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+  <!-- Highcharts Scripts -->
+  <script src="https://code.highcharts.com/stock/highstock.js"></script>
+  <script src="https://code.highcharts.com/modules/networkgraph.js"></script>
+  <script src="https://code.highcharts.com/modules/stock-tools.js"></script>
+  <script src="https://code.highcharts.com/modules/annotations.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
 
   <!-- Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
   <link href="assets/css/sty.css" rel="stylesheet">
 <!--  <link href="assets/css/madaraka.css" rel="stylesheet">-->
   <style>
+    .image-wrapper .images {
+  position: relative;
+}
+
+.image-wrapper .main-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.image-wrapper .small-image {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 40%;
+  height: auto;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .image-wrapper .small-image {
+    width: 50%;
+    bottom: -10px;
+    right: -10px;
+  }
+}
 .highcharts-figure,
 .highcharts-data-table table {
   min-width: 320px;
@@ -161,10 +191,7 @@
       </div>
       <div class="col-lg-6">
         <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-        <script src="https://code.highcharts.com/highcharts.js"></script>
-        <script src="https://code.highcharts.com/modules/networkgraph.js"></script>
-        <script src="https://code.highcharts.com/modules/exporting.js"></script>
-        <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+     
 
         <figure class="highcharts-figure">
           <div id="container"></div>
@@ -259,7 +286,7 @@
       </div>
     </section><!-- /Use Case Section -->
 
-    <!-- About Section -->
+   <!-- About Section -->
     <section id="about" class="about section">
       <div class="container" data-aos="fade-up" data-aos-delay="100">
         <div class="row gy-4 align-items-center justify-content-between">
@@ -288,15 +315,6 @@
             </div>
             <div class="info-wrapper">
               <div class="row gy-4">
-                <!-- <div class="col-lg-5">
-                  <div class="profile d-flex align-items-center gap-3">
-                    <img src="assets/img/team/sam.jpg.jpg" alt="CEO Profile" class="profile-image">
-                    <div>
-                      <h4 class="profile-name">Sam Otieno</h4>
-                      <p class="profile-position">CEO & Founder</p>
-                    </div>
-                  </div>
-                </div> -->
                 <div class="col-lg-7">
                   <div class="contact-info d-flex align-items-center gap-2">
                     <i class="bi bi-telephone-fill"></i>
@@ -312,8 +330,8 @@
           <div class="col-xl-6" data-aos="fade-up" data-aos-delay="300">
             <div class="image-wrapper">
               <div class="images position-relative" data-aos="zoom-out" data-aos-delay="400">
-                <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.pbs.org%2Fwgbh%2Fnova%2Fmedia%2Foriginal_images%2Fkatrina-flooding.jpg&f=1&nofb=1&ipt=6edb6094198a4b0a2ee4a2a5949fcbc71ebca4dff5cd7d07c1be4ac78dac5f33" alt="Flood Monitoring" class="img-fluid main-image rounded-4">
-                <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimages.newscientist.com%2Fwp-content%2Fuploads%2F2023%2F08%2F15170524%2FSEI_167724830.jpg%3Fwidth%3D1200&f=1&nofb=1&ipt=4880fd811d00eb23ef0d5bc939b6a5e3323bc522d50f3e04f6bbc09357043ea0" alt="Data Analysis" class="img-fluid small-image rounded-4">
+                <div id="main-chart" class="img-fluid main-image rounded-4"></div>
+                <div id="navigator-chart" class="img-fluid small-image rounded-4"></div>
               </div>
               <div class="experience-badge floating">
                 <h3>15+ <span>Years</span></h3>
@@ -1502,6 +1520,243 @@ Highcharts.chart('container', {
     ]
   }]
 });
+    </script>
+
+    <script> 
+      // Prepare data from rawData
+const rawData = [
+  { Rig: "Tana Lower", Level: 5.21, Temperature: 23.64, Humidity: 51.01, Timestamp: "2025-06-13 18:14:19.807174+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 5.29, Temperature: 25.9, Humidity: 64.01, Timestamp: "2025-06-13 18:14:16.691557+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 6.38, Temperature: 29.72, Humidity: 58.64, Timestamp: "2025-06-13 18:14:13.575883+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 9.19, Temperature: 21.9, Humidity: 54.12, Timestamp: "2025-06-13 18:14:10.452459+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Upper", Level: 7.56, Temperature: 24.55, Humidity: 53.43, Timestamp: "2025-06-13 18:14:07.323925+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 7.61, Temperature: 24.98, Humidity: 65.33, Timestamp: "2025-06-13 18:14:04.162909+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 7.24, Temperature: 27.55, Humidity: 50.99, Timestamp: "2025-06-13 18:14:01.048371+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 8.65, Temperature: 27.4, Humidity: 67.64, Timestamp: "2025-06-13 18:13:57.935676+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Upper", Level: 6.01, Temperature: 23.35, Humidity: 58.84, Timestamp: "2025-06-13 18:13:54.784120+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Upper", Level: 6.6, Temperature: 28.38, Humidity: 60.15, Timestamp: "2025-06-13 18:13:51.660856+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Upper", Level: 8.54, Temperature: 21.11, Humidity: 55.59, Timestamp: "2025-06-13 18:13:48.361890+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 6.9, Temperature: 21, Humidity: 63.3, Timestamp: "2025-06-13 18:13:43.275567+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 5.84, Temperature: 29.93, Humidity: 67.75, Timestamp: "2025-06-13 18:13:40.155833+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Upper", Level: 6.22, Temperature: 26.38, Humidity: 67.07, Timestamp: "2025-06-13 18:13:37.040798+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 6.35, Temperature: 29.64, Humidity: 63.33, Timestamp: "2025-06-13 18:13:33.779241+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 5.61, Temperature: 27.53, Humidity: 54.73, Timestamp: "2025-06-13 18:13:30.646410+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 5.92, Temperature: 25.73, Humidity: 69.84, Timestamp: "2025-06-13 18:13:27.533373+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 6.1, Temperature: 22.87, Humidity: 59.16, Timestamp: "2025-06-13 18:13:24.417216+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 5.89, Temperature: 26.4, Humidity: 58.45, Timestamp: "2025-06-13 18:13:21.288312+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Upper", Level: 8.17, Temperature: 24.24, Humidity: 58.42, Timestamp: "2025-06-13 18:13:18.172267+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Upper", Level: 8.51, Temperature: 27.1, Humidity: 56.99, Timestamp: "2025-06-13 18:13:14.980147+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 7.64, Temperature: 28.52, Humidity: 60.34, Timestamp: "2025-06-13 18:13:11.795819+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 8.75, Temperature: 24.19, Humidity: 58.64, Timestamp: "2025-06-13 18:13:08.591224+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 9.46, Temperature: 26.78, Humidity: 58.7, Timestamp: "2025-06-13 18:13:05.459712+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 8.84, Temperature: 28.9, Humidity: 69.63, Timestamp: "2025-06-13 18:13:02.328337+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 6.11, Temperature: 29.91, Humidity: 65.96, Timestamp: "2025-06-13 18:12:59.213825+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 9.91, Temperature: 27.02, Humidity: 68.32, Timestamp: "2025-06-13 18:12:56.098935+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 6.01, Temperature: 20.01, Humidity: 69.17, Timestamp: "2025-06-13 18:12:52.983314+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 9.7, Temperature: 22.36, Humidity: 54.52, Timestamp: "2025-06-13 18:12:49.867482+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 9.83, Temperature: 27.29, Humidity: 66.68, Timestamp: "2025-06-13 18:12:46.745613+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 7.78, Temperature: 22.2, Humidity: 66.49, Timestamp: "2025-06-13 18:12:43.549426+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 5.78, Temperature: 24.44, Humidity: 69.66, Timestamp: "2025-06-13 18:12:40.390101+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 5.96, Temperature: 25.74, Humidity: 58.96, Timestamp: "2025-06-13 18:12:37.246302+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 6.87, Temperature: 29.96, Humidity: 50.96, Timestamp: "2025-06-13 18:12:34.059476+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Lower", Level: 8.37, Temperature: 20.04, Humidity: 58.32, Timestamp: "2025-06-13 18:12:30.938218+00:00", Latitude: 0, Longitude: 0 },
+  { Rig: "Tana Center", Level: 9.99, Temperature: 26.98, Humidity: 66.51, Timestamp: "2025-06-13 18:12:27.779652+00:00", Latitude: 0, Longitude: 0 },
+];
+ // Stock Charts for About Section
+
+    const seriesData = {
+      'Tana Lower': [],
+      'Tana Upper': [],
+      'Tana Center': []
+    };
+
+    rawData.forEach(item => {
+      const timestamp = new Date(item.Timestamp).getTime();
+      seriesData[item.Rig].push([timestamp, item.Level]);
+    });
+
+    Object.keys(seriesData).forEach(rig => {
+      seriesData[rig].sort((a, b) => a[0] - b[0]);
+    });
+
+    // Create main chart
+    const mainChart = Highcharts.stockChart('main-chart', {
+      chart: {
+        height: 400,
+        backgroundColor: 'transparent',
+        borderRadius: 8
+      },
+      title: {
+        text: 'Tana River Water Levels',
+        align: 'left'
+      },
+      subtitle: {
+        text: 'Real-time monitoring for flood prediction',
+        align: 'left'
+      },
+      xAxis: {
+        type: 'datetime',
+        title: { text: 'Time' }
+      },
+      yAxis: {
+        title: { text: 'Water Level (m)' },
+        min: 0,
+        max: 12,
+        plotLines: [
+          { value: 6, color: '#00FF00', dashStyle: 'Dash', width: 2 },
+          { value: 8, color: '#FFA500', dashStyle: 'Dash', width: 2 }
+        ]
+      },
+      annotations: [
+        {
+          labels: [
+            {
+              point: { x: 0, y: 6, xAxis: 0, yAxis: 0 },
+              text: 'Low-Medium (6m)',
+              style: { color: '#00FF00', fontSize: '10px' },
+              align: 'left',
+              verticalAlign: 'top',
+              y: -10
+            },
+            {
+              point: { x: 0, y: 8, xAxis: 0, yAxis: 0 },
+              text: 'Medium-High (8m)',
+              style: { color: '#FFA500', fontSize: '10px' },
+              align: 'left',
+              verticalAlign: 'top',
+              y: -10
+            },
+            {
+              point: { x: 0, y: 10, xAxis: 0, yAxis: 0 },
+              text: 'High Risk (>8m)',
+              style: { color: '#FF0000', fontSize: '10px' },
+              align: 'left',
+              verticalAlign: 'top',
+              y: -10
+            }
+          ]
+        }
+      ],
+      series: [
+        {
+          name: 'Tana Lower',
+          data: seriesData['Tana Lower'],
+          color: '#FF5733',
+          tooltip: { valueDecimals: 2 }
+        },
+        {
+          name: 'Tana Upper',
+          data: seriesData['Tana Upper'],
+          color: '#33FF57',
+          tooltip: { valueDecimals: 2 }
+        },
+        {
+          name: 'Tana Center',
+          data: seriesData['Tana Center'],
+          color: '#3357FF',
+          tooltip: { valueDecimals: 2 }
+        }
+      ],
+      stockTools: {
+        gui: {
+          enabled: true
+        }
+      },
+      navigator: {
+        enabled: false
+      },
+      rangeSelector: {
+        enabled: false
+      }
+    });
+
+    // Create navigator chart
+    const navigatorChart = Highcharts.stockChart('navigator-chart', {
+      chart: {
+        height: 150,
+        backgroundColor: 'transparent',
+        borderRadius: 8,
+        margin: [10, 10, 10, 10]
+      },
+      title: {
+        text: null
+      },
+      xAxis: {
+        type: 'datetime',
+        visible: false
+      },
+      yAxis: {
+        title: { text: null },
+        visible: false,
+        min: 0,
+        max: 12
+      },
+      series: [
+        {
+          name: 'Tana Lower',
+          data: seriesData['Tana Lower'],
+          color: '#FF5733',
+          showInNavigator: true
+        },
+        {
+          name: 'Tana Upper',
+          data: seriesData['Tana Upper'],
+          color: '#33FF57',
+          showInNavigator: true
+        },
+        {
+          name: 'Tana Center',
+          data: seriesData['Tana Center'],
+          color: '#3357FF',
+          showInNavigator: true
+        }
+      ],
+      navigator: {
+        enabled: true,
+        height: 100,
+        series: {
+          type: 'line',
+          fillOpacity: 0.1
+        }
+      },
+      plotOptions: {
+        series: {
+          showInNavigator: true
+        }
+      },
+      tooltip: {
+        enabled: false
+      },
+      credits: {
+        enabled: false
+      },
+      scrollbar: {
+        enabled: false
+      },
+      rangeSelector: {
+        enabled: false
+      }
+    });
+
+    // Synchronize charts
+    if (mainChart && navigatorChart) {
+      navigatorChart.xAxis[0].setExtremes(
+        mainChart.xAxis[0].min,
+        mainChart.xAxis[0].max
+      );
+
+      Highcharts.addEvent(navigatorChart.xAxis[0], 'setExtremes', function (e) {
+        if (e.trigger === 'navigator') {
+          mainChart.xAxis[0].setExtremes(e.min, e.max);
+        }
+      });
+
+      Highcharts.addEvent(mainChart.xAxis[0], 'setExtremes', function (e) {
+        if (e.trigger !== 'navigator') {
+          navigatorChart.xAxis[0].setExtremes(e.min, e.max);
+        }
+      });
+    }
     </script>
 </body>
 </html>
