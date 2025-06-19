@@ -350,7 +350,7 @@
         function checkServerStatus() {
             return new Promise((resolve) => {
                 $.ajax({
-                    url: `${BASE_URL}/health/`,
+                    url: `${BASE_URL}/userprofile/health/`,
                     type: 'GET',
                     timeout: 5000,
                     success: () => resolve(true),

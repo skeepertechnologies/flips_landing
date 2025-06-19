@@ -436,7 +436,7 @@
     function checkServerStatus() {
       return new Promise((resolve) => {
         $.ajax({
-          url: `${BASE_URL}/health/`, // Assume a health check endpoint
+          url: `${BASE_URL}/userprofile/health/`, // Assume a health check endpoint
           type: 'GET',
           timeout: 5000,
           success: () => resolve(true),
