@@ -97,7 +97,7 @@
       width: 100%;
     }
     /* Centered Alerts */
-   ⟶ .alert-container {
+    .alert-container {
       position: fixed;
       top: 50%;
       left: 50%;
@@ -112,7 +112,7 @@
       border-radius: 0;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
-    .alert-success, .alert-danger, .alert-dark {
+    .alert-success, .alert-danger, .alert-dark, .alert-warning {
       font-size: 0.9rem;
     }
   </style>
@@ -171,7 +171,7 @@
                 <i class="fa fa-eye" style="color: #7b4d11;"></i>
             </span>
             <input type="password" class="form-control form-control-underline mb-3" id="passwordInput" placeholder="Enter password" required>
-            <span class="focus-input100" data-placeholder="&#xf191;"></span>
+            <span class="focus-input100" data-placeholder=""></span>
         </div>
 
         <div id="passwordFeedback" class="error-message d-none"></div>
@@ -209,7 +209,12 @@
     </div>
     <!-- Server Error Alert -->
     <div class="alert alert-dark alert-dismissible fade d-none" id="serverErrorAlert" role="alert">
-      <strong>Server Error!</strong> Something went wrong. Please try again later.
+      <strong>Server Error!</strong> Something went wrong. Your submission has been queued and will be processed when the server is back online.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <!-- Queued Alert -->
+    <div class="alert alert-warning alert-dismissible fade d-none" id="queuedAlert" role="alert">
+      <strong>Submission Queued!</strong> Your sign-up request has been saved and will be processed when the server is available.
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   </div>
@@ -233,6 +238,10 @@
   </script>
   <script>
     const BASE_URL = 'https://api.flipsintel.org';
+    const COOKIE_NAME = 'queued_signups';
+    const MAX_RETRIES = 5;
+    const INITIAL_RETRY_DELAY = 5000; // 5 seconds
+    const QUEUE_EXPIRY_HOURS = 24; // Queued requests expire after 24 hours
 
     // Initialize intl-tel-input
     const phoneInput = document.getElementById('phoneInput');
@@ -241,6 +250,57 @@
       separateDialCode: true,
       utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
     });
+
+    // Cookie handling functions
+    function setCookie(name, value, hours) {
+      const expires = new Date(Date.now() + hours * 60 * 60 * 1000).toUTCString();
+      document.cookie = `${name}=${encodeURIComponent(JSON.stringify(value))}; expires=${expires}; path=/; SameSite=Strict`;
+    }
+
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+      return match ? JSON.parse(decodeURIComponent(match[2])) : null;
+    }
+
+    function deleteCookie(name) {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Strict`;
+    }
+
+    // Queue management
+    function addToQueue(data) {
+      const queue = getCookie(COOKIE_NAME) || [];
+      const request = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        data,
+        timestamp: Date.now(),
+        retries: 0
+      };
+      queue.push(request);
+      setCookie(COOKIE_NAME, queue, QUEUE_EXPIRY_HOURS);
+      return request.id;
+    }
+
+    function removeFromQueue(id) {
+      let queue = getCookie(COOKIE_NAME) || [];
+      queue = queue.filter(item => item.id !== id);
+      if (queue.length > 0) {
+        setCookie(COOKIE_NAME, queue, QUEUE_EXPIRY_HOURS);
+      } else {
+        deleteCookie(COOKIE_NAME);
+      }
+    }
+
+    function cleanExpiredRequests() {
+      let queue = getCookie(COOKIE_NAME) || [];
+      const now = Date.now();
+      queue = queue.filter(item => now - item.timestamp < QUEUE_EXPIRY_HOURS * 60 * 60 * 1000);
+      if (queue.length > 0) {
+        setCookie(COOKIE_NAME, queue, QUEUE_EXPIRY_HOURS);
+      } else {
+        deleteCookie(COOKIE_NAME);
+      }
+      return queue;
+    }
 
     // Debounce function
     function debounce(func, wait) {
@@ -336,7 +396,7 @@
 
     // Show alert
     function showAlert(alertId, message) {
-      const alerts = ['successAlert', 'errorAlert', 'serverErrorAlert'];
+      const alerts = ['successAlert', 'errorAlert', 'serverErrorAlert', 'queuedAlert'];
       alerts.forEach(id => {
         const alert = document.getElementById(id);
         alert.classList.add('d-none');
@@ -363,12 +423,80 @@
       }
       targetAlert.classList.remove('d-none');
       targetAlert.classList.add('show');
-      // Auto-dismiss after 5 seconds, unless it's success (handled separately)
-      if (alertId !== 'successAlert') {
+      // Auto-dismiss after 5 seconds, unless it's success or queued
+      if (!['successAlert', 'queuedAlert'].includes(alertId)) {
         setTimeout(() => {
           targetAlert.classList.remove('show');
           setTimeout(() => targetAlert.classList.add('d-none'), 150);
         }, 5000);
+      }
+    }
+
+    // Check server status
+    function checkServerStatus() {
+      return new Promise((resolve) => {
+        $.ajax({
+          url: `${BASE_URL}/health/`, // Assume a health check endpoint
+          type: 'GET',
+          timeout: 5000,
+          success: () => resolve(true),
+          error: () => resolve(false)
+        });
+      });
+    }
+
+    // Process queued requests
+    async function processQueue() {
+      const queue = cleanExpiredRequests();
+      if (queue.length === 0) return;
+
+      const isServerUp = await checkServerStatus();
+      if (!isServerUp) {
+        console.log('Server is still down. Retrying queue processing later.');
+        setTimeout(processQueue, INITIAL_RETRY_DELAY);
+        return;
+      }
+
+      for (const request of queue) {
+        if (request.retries >= MAX_RETRIES) {
+          console.log(`Max retries reached for request ${request.id}. Removing from queue.`);
+          removeFromQueue(request.id);
+          continue;
+        }
+
+        request.retries += 1;
+        setCookie(COOKIE_NAME, queue, QUEUE_EXPIRY_HOURS); // Update retries
+
+        $.ajax({
+          url: `${BASE_URL}/register/`,
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify(request.data),
+          success: (response) => {
+            console.log(`Queued request ${request.id} processed successfully:`, response);
+            removeFromQueue(request.id);
+            // Optionally notify user of successful processing
+            showAlert('successAlert');
+            setTimeout(() => {
+              localStorage.setItem('token', response.token);
+              localStorage.setItem('redirectAfterPrivacy', 'login.html');
+              window.location.href = 'privacy.html';
+            }, 2000);
+          },
+          error: (xhr) => {
+            console.error(`Failed to process queued request ${request.id}:`, xhr.responseJSON);
+            if (xhr.status >= 500) {
+              // Server error, keep in queue
+              const delay = INITIAL_RETRY_DELAY * Math.pow(2, request.retries);
+              console.log(`Retrying request ${request.id} in ${delay}ms`);
+              setTimeout(processQueue, delay);
+            } else {
+              // Client error (e.g., invalid data), remove from queue
+              removeFromQueue(request.id);
+              showAlert('errorAlert', xhr.responseJSON || 'Invalid data in queued request.');
+            }
+          }
+        });
       }
     }
 
@@ -411,8 +539,8 @@
       document.getElementById('step-email').classList.remove('d-none');
     });
 
-    // Form submission with loader
-    document.querySelector('.sign-btn').addEventListener('click', function () {
+    // Form submission with loader and queue handling
+    document.querySelector('.sign-btn').addEventListener('click', async function () {
       const username = document.getElementById('usernameInput').value.trim();
       const email = document.getElementById('emailInput').value.trim();
       const password = document.getElementById('passwordInput').value.trim();
@@ -464,6 +592,18 @@
       this.disabled = true;
       this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Signing Up...';
 
+      // Check server status before submitting
+      const isServerUp = await checkServerStatus();
+      if (!isServerUp) {
+        console.log('Server is down. Queuing submission.');
+        const requestId = addToQueue(data);
+        showAlert('queuedAlert');
+        processQueue(); // Start processing queue
+        this.disabled = false;
+        this.innerHTML = 'Sign Up';
+        return;
+      }
+
       $.ajax({
         url: `${BASE_URL}/register/`,
         type: 'POST',
@@ -471,9 +611,7 @@
         data: JSON.stringify(data),
         success: function (response) {
           console.log('Sign-up successful:', response);
-          // Store token for authentication in privacy policy page
           localStorage.setItem('token', response.token);
-          // Store redirect URL for after privacy policy acceptance
           localStorage.setItem('redirectAfterPrivacy', 'login.html');
           showAlert('successAlert');
           setTimeout(() => {
@@ -482,10 +620,14 @@
         },
         error: function (xhr) {
           console.error('Sign-up failed:', xhr.responseJSON);
-          if (xhr.responseJSON) {
-            showAlert('errorAlert', xhr.responseJSON);
-          } else {
+          if (xhr.status >= 500) {
+            // Server error, queue the request
+            const requestId = addToQueue(data);
             showAlert('serverErrorAlert');
+            processQueue();
+          } else {
+            // Client error, show error
+            showAlert('errorAlert', xhr.responseJSON);
           }
         },
         complete: function () {
@@ -493,6 +635,15 @@
           document.querySelector('.sign-btn').innerHTML = 'Sign Up';
         }
       });
+    });
+
+    // Initialize queue processing on page load
+    window.addEventListener('load', () => {
+      const queue = cleanExpiredRequests();
+      if (queue.length > 0) {
+        showAlert('queuedAlert');
+        processQueue();
+      }
     });
   </script>
 

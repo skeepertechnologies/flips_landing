@@ -104,7 +104,7 @@
             border-radius: 0;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        .alert-success, .alert-warning, .alert-danger, .alert-dark {
+        .alert-success, .alert-warning, .alert-danger, .alert-dark, .alert-info {
             font-size: 0.9rem;
         }
     </style>
@@ -154,7 +154,7 @@
                         <i class="fa fa-eye" style="color: #7b4d11;"></i>
                     </span>
                     <input type="password" class="form-control form-control-underline mb-3" id="passwordInput" placeholder="Enter password" required>
-                    <span class="focus-input100" data-placeholder="&#xf191;"></span>
+                    <span class="focus-input100" data-placeholder=""></span>
                 </div>
                 <div id="passwordFeedback" class="error-message d-none"></div>
                 <div class="d-flex justify-content-end">
@@ -188,11 +188,15 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <div class="alert alert-dark alert-dismissible fade d-none" id="serverErrorAlert" role="alert">
-            <strong>Server Error!</strong> Something went wrong. Please try again later!
+            <strong>Server Error!</strong> Something went wrong. Your login attempt has been queued and will be processed when the server is back online.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <div class="alert alert-info alert-dismissible fade d-none" id="verifyEmailAlert" role="alert">
             <strong>Please Verify Your Email!</strong> Check your inbox to verify your account.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div class="alert alert-warning alert-dismissible fade d-none" id="queuedAlert" role="alert">
+            <strong>Submission Queued!</strong> Your login attempt has been saved and will be processed when the server is available.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     </div>
@@ -216,7 +220,63 @@
     </script>
     <script>
         const BASE_URL = 'https://api.flipsintel.org';
+        const COOKIE_NAME = 'queued_logins';
+        const MAX_RETRIES = 5;
+        const INITIAL_RETRY_DELAY = 5000; // 5 seconds
+        const QUEUE_EXPIRY_HOURS = 24; // Queued requests expire after 24 hours
 
+        // Cookie handling functions
+        function setCookie(name, value, hours) {
+            const expires = new Date(Date.now() + hours * 60 * 60 * 1000).toUTCString();
+            document.cookie = `${name}=${encodeURIComponent(JSON.stringify(value))}; expires=${expires}; path=/; SameSite=Strict`;
+        }
+
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+            return match ? JSON.parse(decodeURIComponent(match[2])) : null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Strict`;
+        }
+
+        // Queue management
+        function addToQueue(data) {
+            const queue = getCookie(COOKIE_NAME) || [];
+            const request = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                data,
+                timestamp: Date.now(),
+                retries: 0
+            };
+            queue.push(request);
+            setCookie(COOKIE_NAME, queue, QUEUE_EXPIRY_HOURS);
+            return request.id;
+        }
+
+        function removeFromQueue(id) {
+            let queue = getCookie(COOKIE_NAME) || [];
+            queue = queue.filter(item => item.id !== id);
+            if (queue.length > 0) {
+                setCookie(COOKIE_NAME, queue, QUEUE_EXPIRY_HOURS);
+            } else {
+                deleteCookie(COOKIE_NAME);
+            }
+        }
+
+        function cleanExpiredRequests() {
+            let queue = getCookie(COOKIE_NAME) || [];
+            const now = Date.now();
+            queue = queue.filter(item => now - item.timestamp < QUEUE_EXPIRY_HOURS * 60 * 60 * 1000);
+            if (queue.length > 0) {
+                setCookie(COOKIE_NAME, queue, QUEUE_EXPIRY_HOURS);
+            } else {
+                deleteCookie(COOKIE_NAME);
+            }
+            return queue;
+        }
+
+        // Debounce function
         function debounce(func, wait) {
             let timeout;
             return function (...args) {
@@ -225,6 +285,7 @@
             };
         }
 
+        // Validation functions
         function validateUsername(username) {
             return username.length >= 3;
         }
@@ -235,6 +296,7 @@
             return errors;
         }
 
+        // Real-time validation
         const usernameInput = document.getElementById('usernameInput');
         usernameInput.addEventListener('input', debounce(function () {
             const username = this.value.trim();
@@ -258,8 +320,9 @@
             }
         }, 300));
 
+        // Show alert
         function showAlert(alertId) {
-            const alerts = ['successAlert', 'wrongCredentialsAlert', 'userNotFoundAlert', 'serverErrorAlert', 'verifyEmailAlert'];
+            const alerts = ['successAlert', 'wrongCredentialsAlert', 'userNotFoundAlert', 'serverErrorAlert', 'verifyEmailAlert', 'queuedAlert'];
             alerts.forEach(id => {
                 const alert = document.getElementById(id);
                 if (alert) {
@@ -272,15 +335,88 @@
             if (targetAlert) {
                 targetAlert.classList.remove('d-none');
                 targetAlert.classList.add('show');
-                setTimeout(() => {
-                    targetAlert.classList.remove('show');
-                    setTimeout(() => targetAlert.classList.add('d-none'), 150);
-                }, 5000);
+                if (!['successAlert', 'queuedAlert'].includes(alertId)) {
+                    setTimeout(() => {
+                        targetAlert.classList.remove('show');
+                        setTimeout(() => targetAlert.classList.add('d-none'), 150);
+                    }, 5000);
+                }
             } else {
                 console.error(`Alert element with ID ${alertId} not found`);
             }
         }
 
+        // Check server status
+        function checkServerStatus() {
+            return new Promise((resolve) => {
+                $.ajax({
+                    url: `${BASE_URL}/health/`,
+                    type: 'GET',
+                    timeout: 5000,
+                    success: () => resolve(true),
+                    error: () => resolve(false)
+                });
+            });
+        }
+
+        // Process queued requests
+        async function processQueue() {
+            const queue = cleanExpiredRequests();
+            if (queue.length === 0) return;
+
+            const isServerUp = await checkServerStatus();
+            if (!isServerUp) {
+                console.log('Server is still down. Retrying queue processing later.');
+                setTimeout(processQueue, INITIAL_RETRY_DELAY);
+                return;
+            }
+
+            for (const request of queue) {
+                if (request.retries >= MAX_RETRIES) {
+                    console.log(`Max retries reached for request ${request.id}. Removing from queue.`);
+                    removeFromQueue(request.id);
+                    continue;
+                }
+
+                request.retries += 1;
+                setCookie(COOKIE_NAME, queue, QUEUE_EXPIRY_HOURS);
+
+                axios.post(`${BASE_URL}/login/`, request.data)
+                    .then((response) => {
+                        console.log(`Queued request ${request.id} processed successfully:`, response.data);
+                        removeFromQueue(request.id);
+                        sessionStorage.setItem("token", response.data.token);
+                        sessionStorage.setItem("username", request.data.username);
+                        sessionStorage.setItem("email", request.data.username);
+                        sessionStorage.setItem("is_verified", response.data.is_verified);
+                        sessionStorage.setItem("redirectAfterPrivacy", "../dashboard/index.html");
+                        showAlert('successAlert');
+                        setTimeout(() => {
+                            if (response.data.needs_privacy_policy) {
+                                window.location.href = "privacy.html";
+                            } else if (!response.data.is_verified) {
+                                showAlert('verifyEmailAlert');
+                                window.location.href = "verify-email.html";
+                            } else {
+                                window.location.href = "../dashboard/index.html";
+                            }
+                        }, 2000);
+                    })
+                    .catch((error) => {
+                        console.error(`Failed to process queued request ${request.id}:`, error.response ? error.response.data : error.message);
+                        if (error.response && error.response.status >= 500) {
+                            const delay = INITIAL_RETRY_DELAY * Math.pow(2, request.retries);
+                            console.log(`Retrying request ${request.id} in ${delay}ms`);
+                            setTimeout(processQueue, delay);
+                        } else {
+                            removeFromQueue(request.id);
+                            showAlert(error.response && error.response.status === 404 ? 'userNotFoundAlert' : 'wrongCredentialsAlert');
+                        }
+                    });
+            }
+        }
+
+        // Form navigation
         document.getElementById('nextBtn').addEventListener('click', function () {
             const username = usernameInput.value.trim();
 
@@ -319,7 +455,8 @@
             document.getElementById('step-username').classList.remove('d-none');
         });
 
-        document.querySelector('.sign-btn').addEventListener('click', function () {
+        // Form submission with queue handling
+        document.querySelector('.sign-btn').addEventListener('click', async function () {
             const username = usernameInput.value.trim();
             const password = passwordInput.value;
 
@@ -341,6 +478,18 @@
             this.disabled = true;
             this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Signing In...';
 
+            // Check server status
+            const isServerUp = await checkServerStatus();
+            if (!isServerUp) {
+                console.log('Server is down. Queuing login attempt.');
+                const requestId = addToQueue(data);
+                showAlert('queuedAlert');
+                processQueue();
+                this.disabled = false;
+                this.innerHTML = 'Sign In';
+                return;
+            }
+
             axios.post(`${BASE_URL}/login/`, data)
                 .then(function (response) {
                     console.log('Login successful:', {
@@ -348,10 +497,9 @@
                         needs_privacy_policy: response.data.needs_privacy_policy,
                         is_verified: response.data.is_verified
                     });
-                    // Save to sessionStorage
                     sessionStorage.setItem("token", response.data.token);
                     sessionStorage.setItem("username", username);
-                    sessionStorage.setItem("email", username); // Username is the email
+                    sessionStorage.setItem("email", username);
                     sessionStorage.setItem("is_verified", response.data.is_verified);
                     sessionStorage.setItem("redirectAfterPrivacy", "../dashboard/index.html");
                     showAlert('successAlert');
@@ -374,38 +522,57 @@
                             data: error.response.data
                         });
                         const errorMsg = error.response.data.error || 'An error occurred';
-                        switch (error.response.status) {
-                            case 400:
-                                showAlert('wrongCredentialsAlert');
-                                document.getElementById('passwordFeedback').textContent = errorMsg;
-                                document.getElementById('passwordFeedback').classList.remove('d-none');
-                                break;
-                            case 401:
-                                showAlert('wrongCredentialsAlert');
-                                document.getElementById('passwordFeedback').textContent = 'Invalid email or password';
-                                document.getElementById('passwordFeedback').classList.remove('d-none');
-                                break;
-                            case 403:
-                                showAlert('wrongCredentialsAlert');
-                                document.getElementById('passwordFeedback').textContent = errorMsg;
-                                document.getElementById('passwordFeedback').classList.remove('d-none');
-                                break;
-                            case 404:
-                                showAlert('userNotFoundAlert');
-                                break;
-                            default:
-                                showAlert('serverErrorAlert');
-                                break;
+                        if (error.response.status >= 500) {
+                            // Server error, queue the request
+                            const requestId = addToQueue(data);
+                            showAlert('serverErrorAlert');
+                            processQueue();
+                        } else {
+                            // Client error
+                            switch (error.response.status) {
+                                case 400:
+                                    showAlert('wrongCredentialsAlert');
+                                    document.getElementById('passwordFeedback').textContent = errorMsg;
+                                    document.getElementById('passwordFeedback').classList.remove('d-none');
+                                    break;
+                                case 401:
+                                    showAlert('wrongCredentialsAlert');
+                                    document.getElementById('passwordFeedback').textContent = 'Invalid email or password';
+                                    document.getElementById('passwordFeedback').classList.remove('d-none');
+                                    break;
+                                case 403:
+                                    showAlert('wrongCredentialsAlert');
+                                    document.getElementById('passwordFeedback').textContent = errorMsg;
+                                    document.getElementById('passwordFeedback').classList.remove('d-none');
+                                    break;
+                                case 404:
+                                    showAlert('userNotFoundAlert');
+                                    break;
+                                default:
+                                    showAlert('serverErrorAlert');
+                                    break;
+                            }
                         }
                     } else {
                         console.error('Login failed: Network or server error', error.message);
+                        const requestId = addToQueue(data);
                         showAlert('serverErrorAlert');
+                        processQueue();
                     }
                 })
                 .finally(() => {
                     this.disabled = false;
                     this.innerHTML = 'Sign In';
                 });
+        });
+
+        // Initialize queue processing on page load
+        window.addEventListener('load', () => {
+            const queue = cleanExpiredRequests();
+            if (queue.length > 0) {
+                showAlert('queuedAlert');
+                processQueue();
+            }
         });
     </script>
     <!--Start of Tawk.to Script-->
