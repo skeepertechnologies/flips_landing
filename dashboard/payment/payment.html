@@ -900,7 +900,11 @@
                 if (subscribeResponse.status === 201) {
                     await checkSubscriptionStatus();
                     showErrorModal(subscribeResponse.data.message || 'Successfully subscribed to the free plan for 14 days! Redirecting to your dashboard...');
-                    bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas')).hide();
+                    // Only hide offcanvas if it’s initialized
+                    const offcanvasInstance = bootstrap.Offcanvas.getInstance(document.getElementById('plansOffcanvas'));
+                    if (offcanvasInstance) {
+                        offcanvasInstance.hide();
+                    }
                     await getDashboardUrl();
                 } else {
                     throw new Error(subscribeResponse.data.message || 'Unexpected response from subscription endpoint.');
@@ -909,7 +913,7 @@
                 console.error('Error subscribing to free plan:', error.response ? error.response.data : error.message);
                 showErrorModal(error.response?.data?.detail || error.message || 'Failed to subscribe to the free plan. Please try again.');
             }
-        };;
+        };
 
         // Check Subscription Status
         const checkSubscriptionStatus = async () => {
@@ -1207,11 +1211,33 @@
             await checkSubscriptionStatus();
             await loadPlans();
 
+            // Handle planId from URL
             const urlParams = new URLSearchParams(window.location.search);
             const planIdFromUrl = urlParams.get('planId');
             if (planIdFromUrl) {
                 console.log('Plan ID from URL:', planIdFromUrl);
-                showPaymentPanel(parseInt(planIdFromUrl));
+                try {
+                    const planResponse = await axios.get(`${BASE_URL}/subscription/plans/${planIdFromUrl}/`, {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    let planData = planResponse.data;
+                    if (Array.isArray(planResponse.data)) {
+                        planData = planResponse.data.find(plan => plan.id === parseInt(planIdFromUrl));
+                        if (!planData) {
+                            throw new Error(`Plan with id ${planIdFromUrl} not found`);
+                        }
+                    }
+                    if (parseFloat(planData.price) === 0) {
+                        // Free plan, subscribe directly
+                        await subscribeToFreePlan(parseInt(planIdFromUrl));
+                    } else {
+                        // Paid plan, show payment panel
+                        await showPaymentPanel(parseInt(planIdFromUrl));
+                    }
+                } catch (error) {
+                    console.error('Error processing plan from URL:', error.response ? error.response.data : error.message);
+                    showErrorModal('Failed to load plan from URL. Please select a plan manually.');
+                }
             }
 
             document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
