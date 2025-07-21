@@ -96,14 +96,14 @@ function filterRecentData(data, minutes = 30) {
         const rigData = data.current_data[rig];
         const filteredIndices = rigData.timestamps
             .map((ts, i) => ({ ts: Date.parse(ts), index: i }))
-            .filter(item => item.ts >= timeThreshold)
+            .filter(item => !isNaN(item.ts) && item.ts >= timeThreshold)
             .map(item => item.index);
 
         filteredData.current_data[rig] = {
             timestamps: filteredIndices.map(i => rigData.timestamps[i] || null),
-            levels: filteredIndices.map(i => rigData.levels[i] || null),
-            humidities: filteredIndices.map(i => rigData.humidities[i] || null),
-            temperatures: filteredIndices.map(i => rigData.temperatures[i] || null),
+            levels: filteredIndices.map(i => rigData.levels[i] != null ? Number(rigData.levels[i]) : null),
+            humidities: filteredIndices.map(i => rigData.humidities[i] != null ? Number(rigData.humidities[i]) : null),
+            temperatures: filteredIndices.map(i => rigData.temperatures[i] != null ? Number(rigData.temperatures[i]) : null),
         };
     });
 
@@ -133,7 +133,7 @@ function formatNetworkGraphData(data) {
     return { nodes, links };
 }
 
-// Format data for Highcharts Dashboard
+// Format data for Highcharts Dashboard with gap filling
 function formatDataForDashboard(data, chartType) {
     if (chartType === 'networkGraph') {
         const networkData = formatNetworkGraphData(data);
@@ -158,29 +158,64 @@ function formatDataForDashboard(data, chartType) {
     const headers = ['Timestamp', ...rigs.map(rig => `${rig}_${dataKey}`)];
     const allDataPoints = [];
 
+    // Collect all valid data points
     rigs.forEach(rig => {
         const rigData = data.current_data[rig];
         rigData.timestamps.forEach((timestamp, i) => {
-            if (timestamp && rigData[dataKey][i] != null) {
+            if (timestamp && !isNaN(Date.parse(timestamp)) && rigData[dataKey][i] != null) {
                 allDataPoints.push({
                     timestamp: Date.parse(timestamp),
                     rig,
-                    value: rigData[dataKey][i],
+                    value: Number(rigData[dataKey][i]),
                 });
             }
         });
     });
 
+    // Sort and create a unified timeline
     allDataPoints.sort((a, b) => a.timestamp - b.timestamp);
     const uniqueTimestamps = [...new Set(allDataPoints.map(p => p.timestamp))];
-    const rows = uniqueTimestamps.map(ts => {
+    if (!uniqueTimestamps.length) {
+        console.warn(`No valid timestamps for ${chartType}`);
+        return [headers, ['Latest', ...rigs.map(() => null)]];
+    }
+
+    // Generate a continuous timeline with 10-second intervals
+    const now = Date.now();
+    const timeThreshold = now - 30 * 60 * 1000;
+    const interval = 10 * 1000; // 10 seconds
+    const timeline = [];
+    let currentTime = Math.max(uniqueTimestamps[0], timeThreshold);
+    while (currentTime <= now) {
+        timeline.push(currentTime);
+        currentTime += interval;
+    }
+
+    // Fill data for each timestamp
+    const rows = timeline.map(ts => {
         const row = [ts];
         rigs.forEach(rig => {
             const point = allDataPoints.find(p => p.timestamp === ts && p.rig === rig);
-            row.push(point && point.value != null ? point.value : null);
+            if (point && point.value != null) {
+                row.push(point.value);
+            } else {
+                // Interpolate or use last known value to avoid gaps
+                const previousPoint = allDataPoints
+                    .filter(p => p.rig === rig && p.timestamp < ts)
+                    .sort((a, b) => b.timestamp - a.timestamp)[0];
+                row.push(previousPoint && previousPoint.value != null ? previousPoint.value : null);
+            }
         });
         return row;
     });
+
+    // Add latest values
+    const latestRow = ['Latest'];
+    rigs.forEach(rig => {
+        const latestValue = data.current_data[rig][dataKey].slice(-1)[0];
+        latestRow.push(latestValue != null ? Number(latestValue).toFixed(2) : null);
+    });
+    rows.push(latestRow);
 
     return [headers, ...rows];
 }
@@ -207,7 +242,7 @@ async function initializeDashboard(data) {
             styledMode: true,
             backgroundColor: '#f0feff', // Match page background
             animation: {
-                duration: 500, // Smooth transition for updates
+                duration: 500,
             },
         },
         title: {
@@ -225,14 +260,14 @@ async function initializeDashboard(data) {
         xAxis: {
             crosshair: true,
             type: 'datetime',
-            labels: { format: '{value:%H:%M:%S}' }, // Include seconds for precision
+            labels: { format: '{value:%H:%M:%S}' },
             accessibility: { description: 'Time (Last 30 Minutes)' },
             min: Date.now() - 30 * 60 * 1000,
             max: Date.now(),
         },
         yAxis: {
             title: { text: null },
-            gridLineColor: '#e6e6e6', // Subtle grid lines
+            gridLineColor: '#e6e6e6',
         },
         tooltip: {
             shared: true,
@@ -241,8 +276,9 @@ async function initializeDashboard(data) {
         },
         plotOptions: {
             series: {
-                animation: false, // Disable initial animation for smoother updates
-                turboThreshold: 1000, // Handle large datasets
+                animation: false,
+                turboThreshold: 1000,
+                connectNulls: true, // Ensure continuous lines
             },
         },
     });
@@ -304,7 +340,7 @@ async function initializeDashboard(data) {
                         chart: {
                             type: key === 'networkGraph' ? 'networkgraph' : 
                                   config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
-                            backgroundColor: '#f0feff', // Sync with page background
+                            backgroundColor: '#f0feff',
                         },
                         title: { text: null },
                         subtitle: { text: config.subtitle },
@@ -334,7 +370,9 @@ async function initializeDashboard(data) {
                             id: rig,
                             name: rig,
                             type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
-                            data: [],
+                            data: formatDataForDashboard(data, key).slice(1, -1)
+                                .map(row => [row[0], row[rigs.indexOf(rig) + 1]])
+                                .filter(d => d[0] != null && d[1] != null),
                         })) : [{ id: 'empty', name: 'No Data', data: [] }],
                         exporting: { enabled: config.cellId === 'dashboard-col-0' },
                         navigator: { enabled: config.cellId === 'dashboard-col-0' },
@@ -440,12 +478,13 @@ function updateDashboardData(data) {
                             name: rig,
                             type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
                             data: [],
+                            connectNulls: true,
                         }, false);
                         series = chart.series[chart.series.length - 1];
                     }
 
                     if (series) {
-                        const seriesData = formattedData.slice(1)
+                        const seriesData = formattedData.slice(1, -1)
                             .map(row => [row[0], row[index + 1]])
                             .filter(d => d[0] != null && d[1] != null);
 
@@ -457,14 +496,13 @@ function updateDashboardData(data) {
                             }
                         });
 
-                        // Remove old points outside the 30-minute window
+                        // Remove old points
                         while (series.data.length > 0 && series.data[0].x < timeThreshold) {
                             series.removePoint(0, false);
                         }
                     }
                 });
 
-                // Remove outdated series
                 chart.series.slice().forEach(series => {
                     if (series.options.id !== 'empty' && !rigs.includes(series.options.id)) {
                         series.remove(false);
@@ -544,11 +582,12 @@ function switchChart(chartType) {
                                 name: rig,
                                 type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
                                 data: [],
+                                connectNulls: true,
                             }, false);
                             series = component.chart.series[component.chart.series.length - 1];
                         }
                         if (series) {
-                            const seriesData = formattedData.slice(1)
+                            const seriesData = formattedData.slice(1, -1)
                                 .map(row => [row[0], row[idx + 1]])
                                 .filter(d => d[0] != null && d[1] != null);
                             series.setData(seriesData, false);
