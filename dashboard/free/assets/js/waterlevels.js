@@ -448,7 +448,6 @@ function updateDashboardData(data) {
             const chart = component.chart;
 
             if (key === 'networkGraph') {
-                // Update network graph without sliding
                 const networkData = formatNetworkGraphData(data);
                 chart.series[0].update({
                     nodes: networkData.nodes,
