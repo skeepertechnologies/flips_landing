@@ -5,24 +5,250 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeLineGraph();
 
     // Start fetching data periodically
-    setInterval(fetchRigsData, 5000); // Fetch new data every 5 seconds
+    setInterval(fetchRigsData, 5000); // Fetch every 5 seconds
 });
 
 let lineChart; // Global variable to store the chart instance
 
+// Show loader
+function showLoader(message = 'Loading...') {
+    const spinner = document.getElementById('spinner');
+    if (spinner) {
+        spinner.querySelector('p').textContent = message;
+        spinner.style.display = 'block';
+    }
+}
+
+// Hide loader
+function hideLoader() {
+    const spinner = document.getElementById('spinner');
+    if (spinner) spinner.style.display = 'none';
+}
+
+// Filter data for the last 30 minutes
+function filterRecentData(data, minutes = 30) {
+    if (!data || !data.rows) return { rows: [] };
+
+    const now = Date.now();
+    const timeThreshold = now - minutes * 60 * 1000;
+    const filteredRows = data.rows
+        .map(row => ({
+            ...row,
+            timestamp_: row.timestamp_ && !isNaN(Date.parse(row.timestamp_)) ? row.timestamp_ : null,
+            water_level: row.water_level !== 'N/A' && row.water_level != null ? Number(row.water_level) : null,
+            humidity_data: row.humidity_data !== 'N/A' && row.humidity_data != null ? Number(row.humidity_data) : null,
+            temperature_data: row.temperature_data !== 'N/A' && row.temperature_data != null ? Number(row.temperature_data) : null,
+        }))
+        .filter(row => row.timestamp_ && Date.parse(row.timestamp_) >= timeThreshold);
+
+    return { ...data, rows: filteredRows };
+}
+
+// Format data for Highcharts with gap filling
+function formatDataForChart(data) {
+    if (!data || !data.rows || !data.rows.length) {
+        console.warn('No valid data for chart');
+        return { timestamps: [], waterLevels: [], humidityData: [], temperatureData: [] };
+    }
+
+    const now = Date.now();
+    const timeThreshold = now - 30 * 60 * 1000;
+    const interval = 10 * 1000; // 10-second intervals
+    const timeline = [];
+    let currentTime = timeThreshold;
+    while (currentTime <= now) {
+        timeline.push(currentTime);
+        currentTime += interval;
+    }
+
+    const rigs = [...new Set(data.rows.map(row => row.rig_sensor_id))];
+    const waterLevels = {};
+    const humidityData = {};
+    const temperatureData = {};
+
+    rigs.forEach(rig => {
+        waterLevels[rig] = [];
+        humidityData[rig] = [];
+        temperatureData[rig] = [];
+    });
+
+    data.rows.forEach(row => {
+        const ts = row.timestamp_ ? Date.parse(row.timestamp_) : null;
+        if (ts && !isNaN(ts)) {
+            const rig = row.rig_sensor_id;
+            waterLevels[rig].push({ timestamp: ts, value: row.water_level });
+            humidityData[rig].push({ timestamp: ts, value: row.humidity_data });
+            temperatureData[rig].push({ timestamp: ts, value: row.temperature_data });
+        }
+    });
+
+    const result = {
+        timestamps: timeline.map(ts => new Date(ts).toISOString()),
+        waterLevels: [],
+        humidityData: [],
+        temperatureData: [],
+    };
+
+    rigs.forEach(rig => {
+        const wlSeries = { name: `${rig} Water Level`, data: [] };
+        const humSeries = { name: `${rig} Humidity`, data: [] };
+        const tempSeries = { name: `${rig} Temperature`, data: [] };
+
+        timeline.forEach(ts => {
+            const wlPoint = waterLevels[rig].find(p => p.timestamp === ts) || 
+                           waterLevels[rig].filter(p => p.timestamp < ts).slice(-1)[0];
+            const humPoint = humidityData[rig].find(p => p.timestamp === ts) || 
+                            humidityData[rig].filter(p => p.timestamp < ts).slice(-1)[0];
+            const tempPoint = temperatureData[rig].find(p => p.timestamp === ts) || 
+                             temperatureData[rig].filter(p => p.timestamp < ts).slice(-1)[0];
+
+            wlSeries.data.push(wlPoint && wlPoint.value != null ? wlPoint.value : null);
+            humSeries.data.push(humPoint && humPoint.value != null ? humPoint.value : null);
+            tempSeries.data.push(tempPoint && tempPoint.value != null ? tempPoint.value : null);
+        });
+
+        result.waterLevels.push(wlSeries);
+        result.humidityData.push(humSeries);
+        result.temperatureData.push(tempSeries);
+    });
+
+    return result;
+}
+
+// Initialize the line graph
+function initializeLineGraph() {
+    Highcharts.setOptions({
+        chart: {
+            backgroundColor: '#f0feff', // Match page background
+            animation: { duration: 500 },
+        },
+        xAxis: {
+            type: 'datetime',
+            labels: { format: '{value:%H:%M:%S}' },
+            min: Date.now() - 30 * 60 * 1000,
+            max: Date.now(),
+        },
+        yAxis: {
+            title: { text: 'Values' },
+            gridLineColor: '#e6e6e6',
+        },
+        plotOptions: {
+            series: {
+                animation: false,
+                turboThreshold: 1000,
+                connectNulls: true, // Ensure continuous lines
+            },
+        },
+        tooltip: {
+            shared: true,
+            valueDecimals: 1,
+            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b><br/>',
+        },
+    });
+
+    lineChart = Highcharts.chart('lineGraph', {
+        chart: {
+            type: 'line',
+            backgroundColor: '#f0feff',
+        },
+        title: { text: 'Live Trends by Rig Location' },
+        xAxis: {
+            type: 'datetime',
+            labels: { format: '{value:%H:%M:%S}' },
+            min: Date.now() - 30 * 60 * 1000,
+            max: Date.now(),
+            title: { text: 'Timestamps' },
+        },
+        yAxis: {
+            title: { text: 'Values' },
+            gridLineColor: '#e6e6e6',
+        },
+        series: [],
+        exporting: { enabled: true },
+        navigator: { enabled: true },
+        scrollbar: { enabled: true },
+        accessibility: {
+            description: 'Live water level, humidity, and temperature trends for rigs over the last 30 minutes.',
+        },
+    });
+}
+
+// Update the line graph with sliding effect
+function updateLineGraph(data) {
+    if (!lineChart || !data.rows || !data.rows.length) {
+        lineChart.series.forEach(series => series.setData([]));
+        return;
+    }
+
+    const formattedData = formatDataForChart(data);
+    const now = Date.now();
+    const timeThreshold = now - 30 * 60 * 1000;
+
+    // Update x-axis
+    lineChart.xAxis[0].update({
+        min: timeThreshold,
+        max: now,
+    }, false);
+
+    // Update series
+    const allSeries = [
+        ...formattedData.waterLevels.map(s => ({ ...s, type: 'line', visible: s.data.some(v => v != null) })),
+        ...formattedData.humidityData.map(s => ({ ...s, type: 'line', visible: s.data.some(v => v != null) })),
+        ...formattedData.temperatureData.map(s => ({ ...s, type: 'line', visible: s.data.some(v => v != null) })),
+    ];
+
+    // Remove old series
+    lineChart.series.slice().forEach(series => {
+        if (!allSeries.find(s => s.name === series.name)) {
+            series.remove(false);
+        }
+    });
+
+    // Add or update series
+    allSeries.forEach(newSeries => {
+        let series = lineChart.series.find(s => s.name === newSeries.name);
+        if (!series) {
+            lineChart.addSeries({
+                name: newSeries.name,
+                type: newSeries.type,
+                data: [],
+                visible: newSeries.visible,
+                connectNulls: true,
+            }, false);
+            series = lineChart.series[lineChart.series.length - 1];
+        }
+
+        // Add new points
+        newSeries.data.forEach((value, i) => {
+            const ts = Date.parse(formattedData.timestamps[i]);
+            if (ts >= timeThreshold && !series.data.some(d => d.x === ts)) {
+                series.addPoint([ts, value], false, false);
+            }
+        });
+
+        // Remove old points
+        while (series.data.length > 0 && series.data[0].x < timeThreshold) {
+            series.removePoint(0, false);
+        }
+    });
+
+    lineChart.redraw();
+}
+
+// Fetch rigs data
 function fetchRigsData() {
-    const token = sessionStorage.getItem('token'); // Changed to sessionStorage
+    const token = sessionStorage.getItem('token');
     if (!token) {
-        alert('You need to be logged in to view this data.');
+        alert('Session expired. Please log in again.');
         window.location.href = '../../login.html';
         return;
     }
 
-    // Fetch subscription details first
+    showLoader('Loading Rigs Data...');
+
+    // Fetch subscription details
     axios.get(`${BASE_URL}/subscription/details/`, {
-        headers: {
-            'Authorization': `Token ${token}`,
-        },
+        headers: { 'Authorization': `Token ${token}` },
     })
     .then(response => {
         const subscriptionData = response.data;
@@ -31,23 +257,17 @@ function fetchRigsData() {
     })
     .catch(error => {
         console.error('Error fetching subscription details:', error);
-        if (error.response && error.response.status === 401) {
-            alert('Session expired. Please log in again.');
-            sessionStorage.clear();
-            window.location.href = '../../login.html';
-        } else {
-            alert('Failed to load subscription details. Please try again.');
-        }
+        handleApiError(error, 'Error fetching subscription details');
+        hideLoader();
     });
 }
 
+// Fetch rigs data with subscription checks
 function fetchRigsDataWithSubscription(token, subscriptionData) {
-    // Determine allowed services and limits
     const allowedServices = subscriptionData.services || [];
     const subscriptionTier = subscriptionData.tier || 'Free';
     const usageLimits = subscriptionData.usage_limits || { historical_data_days: 7, report_count: 1 };
 
-    // Check if any relevant services are allowed
     const relevantServices = ['water_level', 'humidity', 'temperature'];
     if (!allowedServices.some(service => relevantServices.includes(service))) {
         alert(`Your ${subscriptionTier} plan does not include access to rig data. Please upgrade.`);
@@ -57,26 +277,23 @@ function fetchRigsDataWithSubscription(token, subscriptionData) {
                 <a href="../payment.html" class="btn btn-primary">Upgrade Now</a>
             </div>
         `;
-        lineChart.series.forEach(series => series.setData([])); // Clear graph
+        lineChart.series.forEach(series => series.setData([]));
+        hideLoader();
         return;
     }
 
-    // Add query parameter for historical data limit
     const params = new URLSearchParams();
     if (usageLimits.historical_data_days) {
         params.append('days', usageLimits.historical_data_days);
     }
 
     axios.get(`${BASE_URL}/rigsdata/waterlevels/?${params.toString()}`, {
-        headers: {
-            'Authorization': `Token ${token}`,
-        },
+        headers: { 'Authorization': `Token ${token}` },
     })
-    .then((response) => {
-        const data = response.data;
-        console.log('Rigs Data:', data);
+    .then(response => {
+        const data = filterRecentData(response.data, 30);
+        console.log('Filtered Rigs Data:', data);
 
-        // Filter data based on allowed services
         const serviceToFields = {
             water_level: ['water_level'],
             humidity: ['humidity_data'],
@@ -86,25 +303,21 @@ function fetchRigsDataWithSubscription(token, subscriptionData) {
             .filter(service => allowedServices.includes(service))
             .flatMap(service => serviceToFields[service]);
 
-        // Limit rows based on subscription tier
         let maxRigs = subscriptionTier === 'Free' ? 1 : subscriptionTier === 'Premium' ? 5 : Infinity;
         const filteredRows = data.rows.slice(0, maxRigs).map(row => {
             const filteredRow = { ...row };
             ['water_level', 'humidity_data', 'temperature_data'].forEach(field => {
                 if (!allowedFields.includes(field)) {
-                    filteredRow[field] = 'N/A'; // Mask unauthorized fields
+                    filteredRow[field] = 'N/A';
                 }
             });
             return filteredRow;
         });
 
-        // Render table and update graph with filtered data
         renderRigsTable({ ...data, rows: filteredRows });
         updateLineGraph({ ...data, rows: filteredRows });
 
-        // Handle CTA if provided or if no data is available
-        const ctaContainer = document.getElementById('cta-container') || document.createElement('div');
-        ctaContainer.id = 'cta-container';
+        const ctaContainer = document.getElementById('cta-container');
         if (filteredRows.length === 0 || data.cta) {
             ctaContainer.innerHTML = `
                 <div class="alert alert-info">
@@ -112,26 +325,23 @@ function fetchRigsDataWithSubscription(token, subscriptionData) {
                     <a href="${data.cta?.upgrade_url || '../payment.html'}" class="btn btn-primary">Upgrade Now</a>
                 </div>
             `;
-            document.getElementById('rigsTable').prepend(ctaContainer);
         } else {
             ctaContainer.innerHTML = '';
         }
+
+        hideLoader();
     })
-    .catch((error) => {
+    .catch(error => {
         console.error('Error fetching rigs data:', error);
-        if (error.response && error.response.status === 401) {
-            alert('Session expired. Please log in again.');
-            sessionStorage.clear();
-            window.location.href = '../../login.html';
-        } else {
-            alert('Failed to load rigs data. Please try again.');
-        }
+        handleApiError(error, 'Error fetching rigs data');
+        hideLoader();
     });
 }
 
+// Render rigs table
 function renderRigsTable(data) {
     const rigsTableContainer = document.getElementById('rigsTable');
-    rigsTableContainer.innerHTML = ''; // Clear previous table content
+    rigsTableContainer.innerHTML = '';
 
     if (!data.rows || data.rows.length === 0) {
         rigsTableContainer.innerHTML = '<p>No rig data available.</p>';
@@ -141,7 +351,6 @@ function renderRigsTable(data) {
     const table = document.createElement('table');
     table.classList.add('table', 'table-striped', 'table-hover');
 
-    // Create table header, only including allowed fields
     const headerRow = document.createElement('tr');
     const headers = [
         { display: 'Rig Sensor ID', field: 'rig_sensor_id' },
@@ -154,7 +363,6 @@ function renderRigsTable(data) {
         { display: 'Timestamp', field: 'timestamp_' },
     ];
 
-    // Determine which fields have data to avoid empty columns
     const availableFields = new Set();
     data.rows.forEach(row => {
         headers.forEach(header => {
@@ -176,7 +384,6 @@ function renderRigsTable(data) {
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
-    // Create table body
     const tbody = document.createElement('tbody');
     data.rows.forEach(row => {
         const tr = document.createElement('tr');
@@ -194,72 +401,33 @@ function renderRigsTable(data) {
     rigsTableContainer.appendChild(table);
 }
 
-function initializeLineGraph() {
-    // Initialize the chart with empty series
-    lineChart = Highcharts.chart('lineGraph', {
-        chart: {
-            type: 'line',
-        },
-        title: {
-            text: 'Live Trends by Rig Location',
-        },
-        xAxis: {
-            categories: [], // Initialize empty
-            title: {
-                text: 'Timestamps',
-            },
-        },
-        yAxis: {
-            title: {
-                text: 'Values',
-            },
-        },
-        series: [
-            {
-                name: 'Water Level',
-                data: [],
-                visible: false, // Initially hidden, shown if allowed
-            },
-            {
-                name: 'Humidity',
-                data: [],
-                visible: false,
-            },
-            {
-                name: 'Temperature',
-                data: [],
-                visible: false,
-            },
-        ],
-    });
-}
+// Handle API errors
+function handleApiError(error, defaultMessage) {
+    console.error(defaultMessage, error);
+    let message = defaultMessage + '. Please try again.';
+    let upgradeUrl = '../payment.html';
 
-function updateLineGraph(data) {
-    if (!data.rows || data.rows.length === 0) {
-        lineChart.series.forEach(series => series.setData([]));
-        return;
+    if (error.response) {
+        if (error.response.status === 401) {
+            alert('Session expired. Please log in again.');
+            sessionStorage.clear();
+            window.location.href = '../../login.html';
+            return;
+        } else if (error.response.status === 403) {
+            message = error.response.data.cta?.message || error.response.data.error || 'Access restricted by your plan. Please upgrade.';
+            upgradeUrl = error.response.data.cta?.upgrade_url || upgradeUrl;
+        } else {
+            message = error.response.data?.error || error.response.data?.detail || message;
+        }
     }
 
-    const timestamps = data.rows.map((row) => row.timestamp_ || 'N/A');
-    const waterLevels = data.rows.map((row) => (row.water_level !== 'N/A' && row.water_level !== undefined ? row.water_level : 0));
-    const humidityData = data.rows.map((row) => (row.humidity_data !== 'N/A' && row.humidity_data !== undefined ? row.humidity_data : 0));
-    const temperatureData = data.rows.map((row) => (row.temperature_data !== 'N/A' && row.temperature_data !== undefined ? row.temperature_data : 0));
-
-    // Update categories (timestamps) dynamically
-    lineChart.xAxis[0].setCategories(timestamps, false);
-
-    // Update series data and visibility based on available data
-    const seriesData = [
-        { series: lineChart.series[0], data: waterLevels, field: 'water_level' },
-        { series: lineChart.series[1], data: humidityData, field: 'humidity_data' },
-        { series: lineChart.series[2], data: temperatureData, field: 'temperature_data' },
-    ];
-
-    seriesData.forEach(({ series, data, field }) => {
-        const hasData = data.some(value => value !== 0);
-        series.setData(data, false);
-        series.update({ visible: hasData }, false);
-    });
-
-    lineChart.redraw(); // Redraw the chart after updating series
+    const errorContainer = document.getElementById('errorContainer');
+    if (errorContainer) {
+        errorContainer.innerHTML = `
+            <div class="alert alert-danger">
+                <strong>${message}</strong>
+                ${upgradeUrl ? `<br><a href="${upgradeUrl}" class="btn btn-primary mt-2">Upgrade Now</a>` : ''}
+            </div>
+        `;
+    }
 }

@@ -35,7 +35,7 @@ function fetchUserInfo() {
             return;
         }
 
-        const emailElement = document.getElementById('userEmail');
+        const emailElement = document.getElementById('modalEmail');
         if (emailElement) {
             emailElement.textContent = userData.email || 'User';
         } else {

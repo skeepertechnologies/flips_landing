@@ -1,18 +1,55 @@
+// Track initial load for loader
+let isInitialLoad = true;
 
+// Function to show the loader during initial load
+function showLoader(loadingMessage) {
+    if (isInitialLoad) {
+        const spinner = document.getElementById('spinner');
+        if (spinner) {
+            spinner.innerHTML = `
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2 text-muted">${loadingMessage}</span>
+            `;
+            spinner.style.display = 'flex';
+        }
+        const rigsTable = document.getElementById('rigsTable');
+        if (rigsTable) rigsTable.style.opacity = '0.5';
+        const lineGraph = document.getElementById('lineGraph');
+        if (lineGraph) lineGraph.style.opacity = '0.5';
+    }
+}
 
+// Function to hide the loader
+function hideLoader() {
+    if (isInitialLoad) {
+        const spinner = document.getElementById('spinner');
+        if (spinner) spinner.style.display = 'none';
+        const rigsTable = document.getElementById('rigsTable');
+        if (rigsTable) rigsTable.style.opacity = '1';
+        const lineGraph = document.getElementById('lineGraph');
+        if (lineGraph) lineGraph.style.opacity = '1';
+        isInitialLoad = false;
+    }
+}
+
+// Initialize data fetching on page load
 document.addEventListener('DOMContentLoaded', () => {
-    checkTokenAndFetchData();
+    fetchRigsAndSubscriptionData();
 });
 
-function checkTokenAndFetchData() {
+// Main function to fetch subscription and rig data
+function fetchRigsAndSubscriptionData() {
     const token = sessionStorage.getItem('token');
     if (!token) {
+        console.error('No authentication token found. Redirecting to login.');
         alert('You need to be logged in to view this data.');
         window.location.href = '../login/login.html';
         return;
     }
-    const spinner = document.getElementById('spinner');
-    if (spinner) spinner.style.display = 'block';
+
+    showLoader('Loading Rig Data...');
 
     fetchSubscriptionDetails(token)
         .then(subscriptionData => {
@@ -20,17 +57,38 @@ function checkTokenAndFetchData() {
         })
         .catch(error => {
             console.error('Error fetching subscription details:', error);
-            displayError('errorContainer', 'Failed to load subscription details. Please try again.');
+            let message = 'Failed to load subscription details. Please try again.';
             if (error.response && error.response.status === 401) {
+                console.error('Unauthorized: Invalid or expired token. Redirecting to login.');
+                alert('Your session is invalid. Please sign in again.');
                 sessionStorage.clear();
                 window.location.href = '../login/login.html';
+            } else if (error.response && error.response.status === 403) {
+                message = error.response.data.cta?.message || 'Access restricted. Please upgrade your plan.';
             }
+            displayError('errorContainer', message);
         })
         .finally(() => {
-            if (spinner) spinner.style.display = 'none';
+            hideLoader();
         });
 }
 
+// Fetch subscription details
+function fetchSubscriptionDetails(token) {
+    return axios.get('https://api.flipsintel.org/subscription/details/', {
+        headers: { 'Authorization': `Token ${token}` },
+    })
+        .then(response => {
+            console.log('Subscription Details:', response.data);
+            return response.data;
+        })
+        .catch(error => {
+            console.error('Error fetching subscription details:', error);
+            throw error;
+        });
+}
+
+// Fetch rig data and render table/graph
 function fetchRigsData(token, subscriptionData) {
     const allowedServices = subscriptionData.services || [];
     const usageLimits = subscriptionData.usage_limits || { historical_data_days: 0 };
@@ -51,7 +109,7 @@ function fetchRigsData(token, subscriptionData) {
         params.append('days', usageLimits.historical_data_days);
     }
 
-    axios.get(`${BASE_URL}/rigsdata/waterlevels/?${params.toString()}`, {
+    axios.get(`https://api.flipsintel.org/rigsdata/waterlevels/?${params.toString()}`, {
         headers: { 'Authorization': `Token ${token}` },
     })
         .then(response => {
@@ -89,9 +147,10 @@ function fetchRigsData(token, subscriptionData) {
                 const ctaMessage = data.cta?.message || `Your ${subscriptionTier} plan limits rig data access. Upgrade to view more.`;
                 const ctaUrl = data.cta?.upgrade_url || '../payment.html';
                 ctaContainer.innerHTML = `
-                    <div class="alert alert-info">
-                        <strong>${ctaMessage}</strong><br>
-                        <a href="${ctaUrl}" class="btn btn-primary mt-2">Upgrade Now</a>
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <strong>${ctaMessage}</strong>
+                        <a href="${ctaUrl}" class="btn btn-primary btn-sm ms-2">Upgrade Now</a>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 `;
             }
@@ -99,20 +158,22 @@ function fetchRigsData(token, subscriptionData) {
         .catch(error => {
             console.error('Error fetching rigs data:', error);
             let message = 'Failed to load rigs data. Please check your subscription plan.';
-            if (error.response) {
-                if (error.response.status === 401) {
-                    alert('Session expired. Please log in again.');
-                    sessionStorage.clear();
-                    window.location.href = '../login/login.html';
-                    return;
-                } else if (error.response.status === 403) {
-                    message = error.response.data.cta?.message || 'Access restricted. Please upgrade.';
-                }
+            if (error.response && error.response.status === 401) {
+                console.error('Unauthorized: Invalid or expired token. Redirecting to login.');
+                alert('Your session is invalid. Please sign in again.');
+                sessionStorage.clear();
+                window.location.href = '../login/login.html';
+            } else if (error.response && error.response.status === 403) {
+                message = error.response.data.cta?.message || 'Access restricted. Please upgrade.';
             }
             displayError('errorContainer', message);
+        })
+        .finally(() => {
+            hideLoader();
         });
 }
 
+// Render table with rig data
 function renderTable(rows) {
     const rigsTable = document.getElementById('rigsTable');
     if (!rigsTable) {
@@ -120,37 +181,44 @@ function renderTable(rows) {
         return;
     }
     rigsTable.innerHTML = `
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Sensor ID</th>
-                    <th>Location</th>
-                    <th>Latitude</th>
-                    <th>Longitude</th>
-                    <th>Water Level</th>
-                    <th>Humidity</th>
-                    <th>Temperature</th>
-                    <th>Timestamp</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${rows.map(row => `
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
                     <tr>
-                        <td>${row.rig_sensor_id || 'N/A'}</td>
-                        <td>${row.rig_location || 'N/A'}</td>
-                        <td>${row.rig_latitude || 'N/A'}</td>
-                        <td>${row.rig_longitude || 'N/A'}</td>
-                        <td>${row.water_level || 'N/A'}</td>
-                        <td>${row.humidity_data || 'N/A'}</td>
-                        <td>${row.temperature_data || 'N/A'}</td>
-                        <td>${row.timestamp_ ? new Date(row.timestamp_).toLocaleString() : 'N/A'}</td>
+                        <th scope="col">Sensor ID</th>
+                        <th scope="col">Location</th>
+                        <th scope="col">Latitude</th>
+                        <th scope="col">Longitude</th>
+                        <th scope="col">Water Level (ft)</th>
+                        <th scope="col">Humidity (%)</th>
+                        <th scope="col">Temperature (°C)</th>
+                        <th scope="col">Timestamp</th>
                     </tr>
-                `).join('')}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    ${rows.length === 0 ? `
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">No data available. Please upgrade your plan.</td>
+                        </tr>
+                    ` : rows.map(row => `
+                        <tr>
+                            <td>${row.rig_sensor_id || 'N/A'}</td>
+                            <td>${row.rig_location || 'N/A'}</td>
+                            <td>${row.rig_latitude ? parseFloat(row.rig_latitude).toFixed(6) : 'N/A'}</td>
+                            <td>${row.rig_longitude ? parseFloat(row.rig_longitude).toFixed(6) : 'N/A'}</td>
+                            <td>${row.water_level !== 'N/A' ? parseFloat(row.water_level).toFixed(2) : 'N/A'}</td>
+                            <td>${row.humidity_data !== 'N/A' ? parseFloat(row.humidity_data).toFixed(2) : 'N/A'}</td>
+                            <td>${row.temperature_data !== 'N/A' ? parseFloat(row.temperature_data).toFixed(2) : 'N/A'}</td>
+                            <td>${row.timestamp_ ? new Date(row.timestamp_).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
     `;
 }
 
+// Render Highcharts graph
 function renderGraph(rows) {
     const lineGraph = document.getElementById('lineGraph');
     if (!lineGraph) {
@@ -160,63 +228,90 @@ function renderGraph(rows) {
 
     const seriesData = [
         {
-            name: 'Water Level',
+            name: 'Water Level (ft)',
             data: rows.map(row => ({
                 x: row.timestamp_ ? Date.parse(row.timestamp_) : null,
                 y: row.water_level !== 'N/A' ? parseFloat(row.water_level) : null,
             })).filter(d => d.x && d.y !== null),
+            color: '#007bff',
         },
         {
-            name: 'Humidity',
+            name: 'Humidity (%)',
             data: rows.map(row => ({
                 x: row.timestamp_ ? Date.parse(row.timestamp_) : null,
                 y: row.humidity_data !== 'N/A' ? parseFloat(row.humidity_data) : null,
             })).filter(d => d.x && d.y !== null),
+            color: '#28a745',
         },
         {
-            name: 'Temperature',
+            name: 'Temperature (°C)',
             data: rows.map(row => ({
                 x: row.timestamp_ ? Date.parse(row.timestamp_) : null,
                 y: row.temperature_data !== 'N/A' ? parseFloat(row.temperature_data) : null,
             })).filter(d => d.x && d.y !== null),
+            color: '#dc3545',
         },
     ].filter(series => series.data.length > 0);
 
     Highcharts.chart('lineGraph', {
-        chart: { type: 'line' },
-        title: { text: 'Water Levels, Humidity, and Temperature Trends' },
-        xAxis: { type: 'datetime', title: { text: 'Date' } },
-        yAxis: { title: { text: 'Value' } },
+        chart: {
+            type: 'line',
+            zoomType: 'x',
+            height: 400,
+        },
+        title: {
+            text: 'Water Levels, Humidity, and Temperature Trends',
+            style: { fontSize: '18px' },
+        },
+        xAxis: {
+            type: 'datetime',
+            title: { text: 'Date', style: { fontWeight: 'bold' } },
+            labels: { format: '{value:%b %d, %Y %H:%M}' },
+        },
+        yAxis: {
+            title: { text: 'Value', style: { fontWeight: 'bold' } },
+        },
         series: seriesData,
-        accessibility: { enabled: true },
+        tooltip: {
+            shared: true,
+            valueDecimals: 2,
+        },
+        legend: {
+            enabled: true,
+            align: 'center',
+            verticalAlign: 'bottom',
+        },
+        exporting: {
+            enabled: true,
+            buttons: {
+                contextButton: {
+                    menuItems: ['downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG'],
+                },
+            },
+        },
+        navigator: {
+            enabled: true,
+        },
+        scrollbar: {
+            enabled: true,
+        },
+        accessibility: {
+            enabled: true,
+        },
     });
 }
 
-function fetchSubscriptionDetails(token) {
-    return axios.get(`${BASE_URL}/subscription/details/`, {
-        headers: { 'Authorization': `Token ${token}` },
-    })
-        .then(response => {
-            const data = response.data;
-            console.log('Subscription Details:', data);
-            return data;
-        })
-        .catch(error => {
-            console.error('Error fetching subscription details:', error);
-            throw error;
-        });
-}
-
+// Fetch and display subscription details in modal
 function checkTokenAndFetchSubscriptionDetails() {
     const token = sessionStorage.getItem('token');
     if (!token) {
+        console.error('No authentication token found. Redirecting to login.');
         alert('You need to be logged in to view subscription details.');
         window.location.href = '../login/login.html';
         return;
     }
 
-    const spinner = document.getElementById('spinner');
-    if (spinner) spinner.style.display = 'block';
+    showLoader('Loading Subscription Details...');
 
     Promise.all([
         fetchSubscriptionDetails(token),
@@ -230,17 +325,21 @@ function checkTokenAndFetchSubscriptionDetails() {
         })
         .catch(error => {
             console.error('Error fetching subscription details:', error);
-            displayError('errorContainer', 'Failed to load subscription details.');
+            let message = 'Failed to load subscription details.';
             if (error.response && error.response.status === 401) {
+                console.error('Unauthorized: Invalid or expired token. Redirecting to login.');
+                alert('Your session is invalid. Please sign in again.');
                 sessionStorage.clear();
                 window.location.href = '../login/login.html';
             }
+            displayError('errorContainer', message);
         })
         .finally(() => {
-            if (spinner) spinner.style.display = 'none';
+            hideLoader();
         });
 }
 
+// Render subscription details in modal
 function renderSubscriptionDetailsInModal(data) {
     const detailsContainer = document.getElementById('subscriptionDetails');
     if (!detailsContainer) {
@@ -248,15 +347,23 @@ function renderSubscriptionDetailsInModal(data) {
         return;
     }
     detailsContainer.innerHTML = `
-        <p><strong>Plan:</strong> ${data.tier || 'N/A'}</p>
-        <p><strong>Services:</strong> ${data.services ? data.services.join(', ') : 'None'}</p>
-        <p><strong>Historical Data:</strong> ${data.usage_limits ? data.usage_limits.historical_data_days + ' days' : 'N/A'}</p>
-        <p><strong>Reports:</strong> ${data.usage_limits ? data.usage_limits.report_count : 'N/A'}</p>
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Subscription Details</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Plan:</strong> ${data.tier || 'N/A'}</p>
+                <p class="mb-2"><strong>Services:</strong> ${data.services ? data.services.join(', ') : 'None'}</p>
+                <p class="mb-2"><strong>Historical Data:</strong> ${data.usage_limits ? data.usage_limits.historical_data_days + ' days' : 'N/A'}</p>
+                <p class="mb-0"><strong>Reports:</strong> ${data.usage_limits ? data.usage_limits.report_count : 'N/A'}</p>
+            </div>
+        </div>
     `;
 }
 
+// Fetch available upgrades
 function fetchAvailableUpgrades(token) {
-    return axios.get(`${BASE_URL}/subscription/upgrade/`, {
+    return axios.get('https://api.flipsintel.org/subscription/upgrade/', {
         headers: { 'Authorization': `Token ${token}` },
     })
         .then(response => response.data)
@@ -266,6 +373,7 @@ function fetchAvailableUpgrades(token) {
         });
 }
 
+// Render upgrade options in modal
 function renderUpgradeOptionsInModal(upgradeData, token) {
     const upgradeContainer = document.getElementById('upgradeOptions');
     if (!upgradeContainer) {
@@ -273,44 +381,103 @@ function renderUpgradeOptionsInModal(upgradeData, token) {
         return;
     }
     upgradeContainer.innerHTML = upgradeData.available_upgrades && upgradeData.available_upgrades.length > 0
-        ? `<h4>Available Upgrades</h4><ul class="list-group">${
-            upgradeData.available_upgrades.map(upgrade => `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>${upgrade.name}</strong> - ${upgrade.description}<br>
-                        Price: KES ${upgrade.price}/month
+        ? `
+            <h4 class="mt-4 mb-3">Available Upgrades</h4>
+            <div class="list-group">
+                ${upgradeData.available_upgrades.map(upgrade => `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${upgrade.name}</strong> - ${upgrade.description}<br>
+                            <small class="text-muted">Price: KES ${upgrade.price}/month</small>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="handleUpgrade('${upgrade.id}')">Upgrade</button>
                     </div>
-                    <button class="btn btn-primary btn-sm" onclick="handleUpgrade('${upgrade.id}')">Upgrade</button>
-                </li>
-            `).join('')
-        }</ul>`
-        : '<p>No upgrade options available.</p>';
+                `).join('')}
+            </div>
+        `
+        : '<p class="text-muted">No upgrade options available.</p>';
 }
 
+// Handle plan upgrade
 function handleUpgrade(upgradeId) {
     const token = sessionStorage.getItem('token');
     if (!token) {
+        console.error('No authentication token found. Redirecting to login.');
         alert('You need to be logged in to upgrade.');
         window.location.href = '../login/login.html';
         return;
     }
 
-    axios.post(`${BASE_URL}/subscription/subscribe/`, { planId: upgradeId }, {
-        headers: { 'Authorization': `Token ${token}` },
+    // Store the current page for redirect fallback
+    const previousPage = sessionStorage.getItem('lastPage') || '../index.html';
+
+    axios.get(`https://api.flipsintel.org/subscription/plans/${upgradeId}/`, {
+        headers: { Authorization: `Token ${token}` },
     })
         .then(response => {
-            alert(response.data.message || 'Please complete payment to activate subscription.');
-            window.location.href = `../payment.html?planId=${upgradeId}`;
+            let planData = response.data;
+            if (Array.isArray(response.data)) {
+                planData = response.data.find(plan => plan.id === parseInt(upgradeId));
+                if (!planData) {
+                    throw new Error(`Plan with id ${upgradeId} not found`);
+                }
+            }
+            const planPrice = parseFloat(planData.price) || 0;
+
+            if (planPrice === 0) {
+                // Free plan: subscribe directly
+                return axios.post(`https://api.flipsintel.org/subscription/subscribe/`, { planId: upgradeId }, {
+                    headers: { Authorization: `Token ${token}` },
+                })
+                    .then(subscribeResponse => {
+                        if (subscribeResponse.status === 201) {
+                            alert('Successfully subscribed to the free plan! Redirecting to dashboard...');
+                            // Fetch dashboard URL
+                            return axios.get(`https://api.flipsintel.org/subscription/getDashboard/`, {
+                                headers: { Authorization: `Token ${token}` },
+                            })
+                                .then(dashboardResponse => {
+                                    window.location.href = dashboardResponse.data.url || '../index.html';
+                                });
+                        } else {
+                            throw new Error(subscribeResponse.data.message || 'Failed to subscribe to free plan.');
+                        }
+                    });
+            } else {
+                // Paid plan: redirect to payment page
+                return axios.post(`https://api.flipsintel.org/subscription/subscribe/`, { planId: upgradeId }, {
+                    headers: { Authorization: `Token ${token}` },
+                })
+                    .then(response => {
+                        alert(response.data.message || 'Please complete payment to activate subscription.');
+                        window.location.href = `../payment/payment.html?planId=${upgradeId}`;
+                    });
+            }
         })
         .catch(error => {
-            console.error('Error initiating upgrade:', error);
-            alert('Failed to initiate upgrade. Please try again.');
+            console.error('Error initiating upgrade:', error.response ? error.response.data : error.message);
+            let message = error.response?.data?.error || error.message || 'Failed to initiate upgrade. Returning to previous page...';
+            alert(message);
+            if (error.response && error.response.status === 401) {
+                sessionStorage.clear();
+                window.location.href = '../login/login.html';
+            } else {
+                setTimeout(() => {
+                    window.location.href = previousPage;
+                }, 2000);
+            }
         });
 }
 
+// Display error messages
 function displayError(containerId, message) {
     const container = document.getElementById(containerId);
     if (container) {
-        container.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+        container.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
     }
 }

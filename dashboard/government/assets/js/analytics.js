@@ -1,26 +1,22 @@
-// analytics.js
 const BASE_URL = 'https://api.flipsintel.org';
 const PREDICTED_DATA_ENDPOINT = '/monitor/predicted-data/';
 const REPORTS_ENDPOINT = '/reports/reports/';
 const SUBSCRIPTION_ENDPOINT = '/subscription/details/';
 
-// Dropdown interactions (Bootstrap collapse)
+// Dropdown interactions
 $(document).ready(() => {
-    // Toggle collapse on dropdown header click
     $('.dropdown-header').on('click', (e) => {
         e.stopPropagation();
         const target = $(e.currentTarget).data('target');
         $(target).collapse('toggle');
     });
 
-    // Keep dropdown open when collapse is shown
     $('.collapse').on('show.bs.collapse', (e) => {
         $(e.currentTarget).closest('.dropdown-menu').addClass('keep-open');
     }).on('hide.bs.collapse', (e) => {
         $(e.currentTarget).closest('.dropdown-menu').removeClass('keep-open');
     });
 
-    // Prevent dropdown close when clicking inside keep-open menu
     $('.dropdown-menu').on('click', (e) => {
         if ($(e.currentTarget).hasClass('keep-open')) {
             e.stopPropagation();
@@ -28,65 +24,148 @@ $(document).ready(() => {
     });
 });
 
-// Initialize charts on DOM load
 document.addEventListener('DOMContentLoaded', () => {
     showSpinner();
-    showDrawnPredictedValues(); // Load prediction chart by default
+    initializePredictionChart();
 });
 
-// Show loading spinner (assumes spinner HTML exists)
+// Show loading spinner
 function showSpinner() {
-    const content = document.querySelector('.content');
-    if (content) {
-        content.innerHTML = `
-            <div class="container-fluid p-4 m-0">
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            </div>
-        `;
+    const spinner = document.getElementById('spinner');
+    if (spinner) {
+        spinner.querySelector('p').textContent = 'Loading Predictions...';
+        spinner.style.display = 'block';
     }
 }
 
-// Display prediction chart
-function showDrawnPredictedValues() {
-    const content = document.querySelector('.content');
-    if (!content) {
-        console.error('Content container not found');
-        return;
-    }
-
-    content.innerHTML = `
-        <div class="container-fluid p-4 m-0">
-            <h2>Model Predictions and Accuracies</h2>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div id="modelPredictionChart"></div>
-                            <div id="prediction-error" class="mt-3"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    initializePredictionChart();
+// Hide spinner
+function hideLoader() {
+    const spinner = document.getElementById('spinner');
+    if (spinner) spinner.style.display = 'none';
 }
 
-// Fetch and render prediction chart
+// Filter predicted data for the last 30 minutes
+function filterPredictedData(data, minutes = 30) {
+    if (!data || !data.predicted_data) return { predicted_data: {}, model_details: data.model_details || {} };
+
+    const now = Date.now();
+    const timeThreshold = now - minutes * 60 * 1000;
+    const filteredData = { predicted_data: {}, model_details: data.model_details };
+
+    Object.keys(data.predicted_data).forEach(model => {
+        filteredData.predicted_data[model] = data.predicted_data[model]
+            .filter(entry => entry.timestamp && !isNaN(Date.parse(entry.timestamp)) && Date.parse(entry.timestamp) >= timeThreshold)
+            .map(entry => ({
+                timestamp: entry.timestamp,
+                name: entry.name,
+                y: Number(entry.y) || null,
+            }));
+    });
+
+    return filteredData;
+}
+
+// Format data for prediction chart
+function formatPredictionData(data) {
+    if (!data.predicted_data || !Object.keys(data.predicted_data).length) {
+        console.warn('No valid prediction data');
+        return { timestamps: [], seriesData: [] };
+    }
+
+    const now = Date.now();
+    const timeThreshold = now - 30 * 60 * 1000;
+    const interval = 10 * 1000; // 10-second intervals
+    const timeline = [];
+    let currentTime = timeThreshold;
+    while (currentTime <= now) {
+        timeline.push(currentTime);
+        currentTime += interval;
+    }
+
+    const models = Object.keys(data.predicted_data);
+    const seriesData = models.map(model => {
+        const modelData = data.predicted_data[model];
+        const series = { name: `${model} Prediction (Accuracy: ${data.model_details.accuracies[model]?.toFixed(2)}%)`, data: [] };
+
+        timeline.forEach(ts => {
+            const point = modelData.find(p => Date.parse(p.timestamp) === ts) || 
+                         modelData.filter(p => Date.parse(p.timestamp) < ts).slice(-1)[0];
+            series.data.push(point && point.y != null ? point.y : null);
+        });
+
+        return series;
+    });
+
+    return {
+        timestamps: timeline.map(ts => new Date(ts).toISOString()),
+        seriesData,
+    };
+}
+
+// Initialize prediction chart
 function initializePredictionChart() {
-    const token = sessionStorage.getItem('token'); // Use sessionStorage
+    const token = sessionStorage.getItem('token');
     if (!token) {
-        alert('You need to be logged in to view analytics.');
+        alert('Session expired. Please log in again.');
         window.location.href = '../login/login.html';
         return;
     }
 
-    // Fetch subscription details
+    showSpinner();
+
+    Highcharts.setOptions({
+        chart: {
+            backgroundColor: '#f0feff',
+            animation: { duration: 500 },
+        },
+        xAxis: {
+            type: 'datetime',
+            labels: { format: '{value:%H:%M:%S}' },
+            min: Date.now() - 30 * 60 * 1000,
+            max: Date.now(),
+        },
+        yAxis: {
+            title: { text: 'Water Levels' },
+            gridLineColor: '#e6e6e6',
+        },
+        plotOptions: {
+            series: {
+                animation: false,
+                turboThreshold: 1000,
+                connectNulls: true,
+            },
+        },
+        tooltip: {
+            shared: true,
+            valueDecimals: 2,
+            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b><br/>',
+        },
+    });
+
+    const chart = Highcharts.chart('modelPredictionChart', {
+        chart: { type: 'line', backgroundColor: '#f0feff' },
+        title: { text: 'Model Predictions and Accuracies' },
+        xAxis: {
+            type: 'datetime',
+            labels: { format: '{value:%H:%M:%S}' },
+            min: Date.now() - 30 * 60 * 1000,
+            max: Date.now(),
+            title: { text: 'Timestamps' },
+        },
+        yAxis: {
+            title: { text: 'Water Levels' },
+            gridLineColor: '#e6e6e6',
+        },
+        series: [],
+        exporting: { enabled: true },
+        navigator: { enabled: true },
+        scrollbar: { enabled: true },
+        accessibility: {
+            description: 'Predicted water levels for multiple models over the last 30 minutes.',
+        },
+    });
+
+    // Fetch subscription and data
     axios.get(`${BASE_URL}${SUBSCRIPTION_ENDPOINT}`, {
         headers: { 'Authorization': `Token ${token}` },
     })
@@ -94,82 +173,89 @@ function initializePredictionChart() {
         const subscriptionData = response.data;
         console.log('Subscription Details:', subscriptionData);
 
-        // Check if predictive analytics is allowed
-        const allowedServices = subscriptionData.services || [];
-        const subscriptionTier = subscriptionData.tier || 'Free';
-        if (!allowedServices.includes('predictive_analytics')) {
-            const message = subscriptionData.cta?.message ||
-                `Your ${subscriptionTier} plan does not include predictive analytics. Please upgrade.`;
+        if (!subscriptionData.services.includes('predictive_analytics')) {
+            const message = subscriptionData.cta?.message || 
+                           `Your ${subscriptionData.tier || 'Free'} plan does not include predictive analytics. Please upgrade.`;
             const upgradeUrl = subscriptionData.cta?.upgrade_url || '../payment.html';
             displayError(message, upgradeUrl);
+            hideLoader();
             return;
         }
 
-        // Fetch predictive data
         axios.get(`${BASE_URL}${PREDICTED_DATA_ENDPOINT}`, {
             headers: { 'Authorization': `Token ${token}` },
             params: { days: subscriptionData.usage_limits?.historical_data_days || 7 },
         })
         .then(response => {
-            const data = response.data;
-            console.log('Predicted Data:', data);
-            renderPredictionChart(data);
+            const data = filterPredictedData(response.data, 30);
+            console.log('Filtered Predicted Data:', data);
+            renderPredictionChart(data, chart);
+            hideLoader();
         })
         .catch(error => {
             handleApiError(error, 'Error fetching predictive model data');
+            hideLoader();
         });
     })
     .catch(error => {
         handleApiError(error, 'Error fetching subscription details');
+        hideLoader();
     });
 }
 
-// Render Highcharts line chart for predictions
-function renderPredictionChart(data) {
+// Render prediction chart with sliding effect
+function renderPredictionChart(data, chart) {
     const errorContainer = document.getElementById('prediction-error');
-    if (errorContainer) errorContainer.innerHTML = ''; // Clear errors
+    if (errorContainer) errorContainer.innerHTML = '';
 
     if (!data.predicted_data || !data.model_details?.accuracies) {
         displayError('Invalid predictive data format.');
         return;
     }
 
-    const predictedData = data.predicted_data;
-    const accuracies = data.model_details.accuracies;
+    const formattedData = formatPredictionData(data);
+    const now = Date.now();
+    const timeThreshold = now - 30 * 60 * 1000;
 
-    // Prepare series data
-    const seriesData = Object.keys(predictedData).map(model => ({
-        name: `${model} Prediction (Accuracy: ${accuracies[model]?.toFixed(2)}%)`,
-        data: predictedData[model].map(entry => ({
-            name: entry.name,
-            y: entry.y,
-        })),
-    }));
+    chart.xAxis[0].update({
+        min: timeThreshold,
+        max: now,
+    }, false);
 
-    // Extract categories (locations)
-    const categories = predictedData[Object.keys(predictedData)[0]]?.map(entry => entry.name) || [];
-
-    Highcharts.chart('modelPredictionChart', {
-        chart: { type: 'line' },
-        title: { text: 'Model Predictions and Accuracies' },
-        xAxis: {
-            title: { text: 'Locations' },
-            categories: categories,
-        },
-        yAxis: {
-            title: { text: 'Water Levels' },
-        },
-        tooltip: {
-            shared: true,
-            useHTML: true,
-            headerFormat: '<small>{point.key}</small><table>',
-            pointFormat: '<tr><td style="color: {series.color}">{series.name}: </td>' +
-                '<td style="text-align: right"><b>{point.y}</b></td></tr>',
-            footerFormat: '</table>',
-            valueDecimals: 2,
-        },
-        series: seriesData,
+    // Remove old series
+    chart.series.slice().forEach(series => {
+        if (!formattedData.seriesData.find(s => s.name === series.name)) {
+            series.remove(false);
+        }
     });
+
+    // Add or update series
+    formattedData.seriesData.forEach(newSeries => {
+        let series = chart.series.find(s => s.name === newSeries.name);
+        if (!series) {
+            chart.addSeries({
+                name: newSeries.name,
+                type: 'line',
+                data: [],
+                visible: newSeries.data.some(v => v != null),
+                connectNulls: true,
+            }, false);
+            series = chart.series[chart.series.length - 1];
+        }
+
+        newSeries.data.forEach((value, i) => {
+            const ts = Date.parse(formattedData.timestamps[i]);
+            if (ts >= timeThreshold && !series.data.some(d => d.x === ts)) {
+                series.addPoint([ts, value], false, false);
+            }
+        });
+
+        while (series.data.length > 0 && series.data[0].x < timeThreshold) {
+            series.removePoint(0, false);
+        }
+    });
+
+    chart.redraw();
 }
 
 // Handle report generation modal
@@ -178,7 +264,6 @@ function generateReport() {
     const reportForm = document.getElementById('generateReportForm');
     const closeModalSpan = document.getElementsByClassName('close')[0];
 
-    // Validate DOM elements
     if (!modal || !reportForm || !closeModalSpan) {
         console.error('Report modal elements missing:', {
             modal: !!modal,
@@ -188,17 +273,14 @@ function generateReport() {
         return;
     }
 
-    // Open modal
     modal.style.display = 'block';
     reportForm.reset();
 
-    // Close modal
     closeModalSpan.onclick = () => {
         modal.style.display = 'none';
         reportForm.reset();
     };
 
-    // Close on outside click
     window.onclick = (event) => {
         if (event.target === modal) {
             modal.style.display = 'none';
@@ -206,13 +288,12 @@ function generateReport() {
         }
     };
 
-    // Handle form submission
     reportForm.onsubmit = async (e) => {
         e.preventDefault();
 
-        const token = sessionStorage.getItem('token'); // Use sessionStorage
+        const token = sessionStorage.getItem('token');
         if (!token) {
-            alert('You need to be logged in to generate reports.');
+            alert('Session expired. Please log in again.');
             window.location.href = '../login/login.html';
             return;
         }
@@ -224,27 +305,20 @@ function generateReport() {
         }
 
         try {
-            // Fetch subscription details
             const subscriptionResponse = await axios.get(`${BASE_URL}${SUBSCRIPTION_ENDPOINT}`, {
                 headers: { 'Authorization': `Token ${token}` },
             });
             const subscriptionData = subscriptionResponse.data;
-            console.log('Subscription Details:', subscriptionData);
 
-            // Check if reports are allowed
-            const allowedServices = subscriptionData.services || [];
-            const subscriptionTier = subscriptionData.tier || 'Free';
-            const usageLimits = subscriptionData.usage_limits || { report_count: 1 };
-            if (!allowedServices.includes('reports') || usageLimits.report_count <= 0) {
+            if (!subscriptionData.services.includes('reports') || subscriptionData.usage_limits.report_count <= 0) {
                 const message = subscriptionData.cta?.message ||
-                    `Your ${subscriptionTier} plan does not allow report generation. Please upgrade.`;
+                               `Your ${subscriptionData.tier || 'Free'} plan does not allow report generation. Please upgrade.`;
                 const upgradeUrl = subscriptionData.cta?.upgrade_url || '../payment.html';
                 alert(message);
                 displayReportError(message, upgradeUrl);
                 return;
             }
 
-            // Get form values
             const format = document.getElementById('report-format')?.value;
             const startDate = document.getElementById('start-date')?.value;
             const endDate = document.getElementById('end-date')?.value;
@@ -254,19 +328,17 @@ function generateReport() {
                 return;
             }
 
-            // Fetch report
             const response = await axios.get(`${BASE_URL}${REPORTS_ENDPOINT}`, {
                 params: {
                     format,
                     start_date: startDate,
                     end_date: endDate,
-                    days: usageLimits.historical_data_days || 7,
+                    days: subscriptionData.usage_limits.historical_data_days || 7,
                 },
                 headers: { 'Authorization': `Token ${token}` },
                 responseType: format === 'pdf' ? 'blob' : 'text',
             });
 
-            // Handle response
             if (format === 'pdf') {
                 if (!(response.data instanceof Blob)) {
                     throw new Error('Invalid PDF response');
@@ -290,7 +362,6 @@ function generateReport() {
                 }
             }
 
-            // Close modal on success
             modal.style.display = 'none';
             reportForm.reset();
         } catch (error) {
@@ -343,8 +414,8 @@ function handleApiError(error, defaultMessage) {
             window.location.href = '../login/login.html';
             return;
         } else if (error.response.status === 403) {
-            message = error.response.data.cta?.message ||
-                error.response.data.error || 'Access restricted by your plan. Please upgrade.';
+            message = error.response.data.cta?.message || 
+                     error.response.data.error || 'Access restricted by your plan. Please upgrade.';
             upgradeUrl = error.response.data.cta?.upgrade_url || upgradeUrl;
         } else {
             message = error.response.data?.error || error.response.data?.detail || message;
