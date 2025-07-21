@@ -21,7 +21,7 @@ const chartConfig = {
         cellId: 'dashboard-col-0',
         smallTitleId: null,
         defaultChartType: 'line',
-        legendEnabled: true, // Enable legend for time-series
+        legendEnabled: true,
     },
     humidityChart: {
         title: 'Humidity',
@@ -60,7 +60,7 @@ const chartConfig = {
         cellId: 'dashboard-col-3',
         smallTitleId: 'small-chart-title-3',
         defaultChartType: 'networkgraph',
-        legendEnabled: false, // Disable legend for network graph
+        legendEnabled: false,
     },
 };
 
@@ -77,7 +77,7 @@ function showLoader(loadingMessage) {
 // Hide loader
 function hideLoader() {
     const loader = document.getElementById('chartLoader');
-    if (loader && isInitialLoad) {
+    if (loader) {
         loader.classList.add('d-none');
         document.getElementById('dashboard-col-0').style.opacity = '1';
         isInitialLoad = false;
@@ -118,7 +118,6 @@ function formatNetworkGraphData(data) {
     const nodes = rigs.map(rig => ({ id: rig }));
     const links = [];
 
-    // Hypothetical links based on similar water levels
     for (let i = 0; i < rigs.length; i++) {
         for (let j = i + 1; j < rigs.length; j++) {
             const rig1 = data.current_data[rigs[i]];
@@ -183,17 +182,10 @@ function formatDataForDashboard(data, chartType) {
         return row;
     });
 
-    const latestRow = ['Latest'];
-    rigs.forEach(rig => {
-        const latestValue = data.current_data[rig][dataKey].slice(-1)[0] || null;
-        latestRow.push(latestValue != null ? Number(latestValue).toFixed(2) : 'N/A');
-    });
-    rows.push(latestRow);
-
     return [headers, ...rows];
 }
 
-// Update initializeDashboard to respect legendEnabled
+// Initialize Highcharts Dashboard
 async function initializeDashboard(data) {
     console.log('Initializing dashboard');
     const rigs = data.current_data ? Object.keys(data.current_data) : [];
@@ -213,6 +205,10 @@ async function initializeDashboard(data) {
             spacingTop: 20,
             spacingBottom: 20,
             styledMode: true,
+            backgroundColor: '#f0feff', // Match page background
+            animation: {
+                duration: 500, // Smooth transition for updates
+            },
         },
         title: {
             align: 'left',
@@ -221,7 +217,7 @@ async function initializeDashboard(data) {
         },
         credits: { enabled: false },
         legend: {
-            enabled: true, // Default, overridden by chart-specific settings
+            enabled: true,
             align: 'center',
             verticalAlign: 'bottom',
             itemStyle: { fontSize: '12px' },
@@ -229,16 +225,25 @@ async function initializeDashboard(data) {
         xAxis: {
             crosshair: true,
             type: 'datetime',
-            labels: { format: '{value:%H:%M}' },
+            labels: { format: '{value:%H:%M:%S}' }, // Include seconds for precision
             accessibility: { description: 'Time (Last 30 Minutes)' },
             min: Date.now() - 30 * 60 * 1000,
             max: Date.now(),
         },
-        yAxis: { title: { text: null } },
+        yAxis: {
+            title: { text: null },
+            gridLineColor: '#e6e6e6', // Subtle grid lines
+        },
         tooltip: {
             shared: true,
             valueDecimals: 1,
             pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> {series.options.tooltip.valueSuffix}<br/>',
+        },
+        plotOptions: {
+            series: {
+                animation: false, // Disable initial animation for smoother updates
+                turboThreshold: 1000, // Handle large datasets
+            },
         },
     });
 
@@ -297,18 +302,24 @@ async function initializeDashboard(data) {
                     },
                     chartOptions: {
                         chart: {
-                            animation: false,
                             type: key === 'networkGraph' ? 'networkgraph' : 
                                   config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
+                            backgroundColor: '#f0feff', // Sync with page background
                         },
                         title: { text: null },
                         subtitle: { text: config.subtitle },
-                        legend: { enabled: config.legendEnabled }, // Respect chart-specific legend setting
+                        legend: { enabled: config.legendEnabled },
                         yAxis: key !== 'networkGraph' ? {
                             title: { text: config.yAxisTitle },
                             min: 0,
+                            gridLineColor: '#e6e6e6',
                         } : { visible: false },
-                        xAxis: key === 'networkGraph' ? { visible: false } : undefined,
+                        xAxis: key === 'networkGraph' ? { visible: false } : {
+                            type: 'datetime',
+                            min: Date.now() - 30 * 60 * 1000,
+                            max: Date.now(),
+                            labels: { format: '{value:%H:%M:%S}' },
+                        },
                         tooltip: key === 'networkGraph' ? {
                             formatter: function () {
                                 return `<b>${this.point.id}</b><br>Connections: ${this.point.linksFrom.length}`;
@@ -323,6 +334,7 @@ async function initializeDashboard(data) {
                             id: rig,
                             name: rig,
                             type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
+                            data: [],
                         })) : [{ id: 'empty', name: 'No Data', data: [] }],
                         exporting: { enabled: config.cellId === 'dashboard-col-0' },
                         navigator: { enabled: config.cellId === 'dashboard-col-0' },
@@ -377,7 +389,7 @@ function updateMainChartType() {
     }
 }
 
-// Update dashboard data
+// Update dashboard data with sliding effect
 function updateDashboardData(data) {
     if (!currentDashboard || !dashboardInitialized || isUpdating) {
         console.log('Dashboard not ready, initializing');
@@ -387,45 +399,82 @@ function updateDashboardData(data) {
     isUpdating = true;
     try {
         const rigs = data.current_data ? Object.keys(data.current_data) : [];
+        const now = Date.now();
+        const timeThreshold = now - 30 * 60 * 1000;
+
         Object.keys(chartConfig).forEach(key => {
             const config = chartConfig[key];
-            const formattedData = formatDataForDashboard(data, key);
             const component = currentDashboard.getComponentByCellId(config.cellId);
-            if (component?.chart) {
-                const chart = component.chart;
-                if (key === 'networkGraph') {
-                    chart.series[0].update({
-                        nodes: formattedData.series[0].nodes,
-                        data: formattedData.series[0].data,
-                    }, false);
-                } else {
-                    rigs.forEach((rig, index) => {
-                        let series = chart.series.find(s => s.options.id === rig);
-                        if (!series && formattedData[0][index + 1]) {
-                            chart.addSeries({
-                                id: rig,
-                                name: rig,
-                                type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
-                                data: [],
-                            }, false);
-                            series = chart.series[chart.series.length - 1];
+            if (!component?.chart) return;
+
+            const chart = component.chart;
+
+            if (key === 'networkGraph') {
+                // Update network graph without sliding
+                const networkData = formatNetworkGraphData(data);
+                chart.series[0].update({
+                    nodes: networkData.nodes,
+                    data: networkData.links,
+                }, false);
+            } else {
+                // Time-series charts: Implement sliding effect
+                const formattedData = formatDataForDashboard(data, key);
+                const rigs = formattedData[0].slice(1).map(h => h.split('_')[0]);
+
+                // Update x-axis range
+                const timestamps = formattedData.slice(1).map(row => row[0]).filter(ts => ts != null);
+                const minTime = Math.min(...timestamps, now - 30 * 60 * 1000);
+                const maxTime = Math.max(...timestamps, now);
+
+                chart.xAxis[0].update({
+                    min: minTime,
+                    max: maxTime,
+                }, false);
+
+                // Update series data
+                rigs.forEach((rig, index) => {
+                    let series = chart.series.find(s => s.options.id === rig);
+                    if (!series && formattedData[0][index + 1]) {
+                        chart.addSeries({
+                            id: rig,
+                            name: rig,
+                            type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
+                            data: [],
+                        }, false);
+                        series = chart.series[chart.series.length - 1];
+                    }
+
+                    if (series) {
+                        const seriesData = formattedData.slice(1)
+                            .map(row => [row[0], row[index + 1]])
+                            .filter(d => d[0] != null && d[1] != null);
+
+                        // Add new points
+                        seriesData.forEach(point => {
+                            const exists = series.data.some(d => d.x === point[0]);
+                            if (!exists) {
+                                series.addPoint(point, false, false);
+                            }
+                        });
+
+                        // Remove old points outside the 30-minute window
+                        while (series.data.length > 0 && series.data[0].x < timeThreshold) {
+                            series.removePoint(0, false);
                         }
-                        if (series) {
-                            const seriesData = formattedData.slice(1, -1)
-                                .map(row => [row[0], row[index + 1]])
-                                .filter(d => d[0] != null && d[1] != null);
-                            series.setData(seriesData, false);
-                        }
-                    });
-                    chart.series.slice().forEach(series => {
-                        if (series.options.id !== 'empty' && !rigs.includes(series.options.id)) {
-                            series.remove(false);
-                        }
-                    });
-                }
-                chart.redraw();
+                    }
+                });
+
+                // Remove outdated series
+                chart.series.slice().forEach(series => {
+                    if (series.options.id !== 'empty' && !rigs.includes(series.options.id)) {
+                        series.remove(false);
+                    }
+                });
             }
+
+            chart.redraw();
         });
+
         isUpdating = false;
         return true;
     } catch (error) {
@@ -435,8 +484,7 @@ function updateDashboardData(data) {
     }
 }
 
-
-// Updated switchChart to ensure legend refresh
+// Switch chart
 function switchChart(chartType) {
     if (chartType === activeChartType || isUpdating) return;
     console.log(`Switching to ${chartType}`);
@@ -462,18 +510,26 @@ function switchChart(chartType) {
         if (config) {
             component.cell = config.cellId;
             if (component.chart) {
-                // Update series type and legend settings
                 component.chart.update({
                     legend: { enabled: config.legendEnabled },
                     chart: {
                         type: config.cellId === 'dashboard-col-0' && config.defaultChartType !== 'networkgraph' ? 
                                mainChartType : config.defaultChartType,
+                        backgroundColor: '#f0feff', // Ensure background consistency
                     },
+                    xAxis: config.dataKey !== 'network' ? {
+                        type: 'datetime',
+                        min: Date.now() - 30 * 60 * 1000,
+                        max: Date.now(),
+                        labels: { format: '{value:%H:%M:%S}' },
+                    } : { visible: false },
                 }, false);
 
-                // Ensure series data is up-to-date
                 if (config.dataKey !== 'network') {
-                    const formattedData = formatDataForDashboard(currentDashboard.dataPool.connectors.find(c => c.id === config.connectorId).options.data, config.dataKey);
+                    const formattedData = formatDataForDashboard(
+                        currentDashboard.dataPool.connectors.find(c => c.id === config.connectorId).options.data,
+                        config.dataKey
+                    );
                     const rigs = formattedData[0].slice(1).map(h => h.split('_')[0]);
                     component.chart.series.slice().forEach(series => {
                         if (series.options.id !== 'empty' && !rigs.includes(series.options.id)) {
@@ -492,15 +548,16 @@ function switchChart(chartType) {
                             series = component.chart.series[component.chart.series.length - 1];
                         }
                         if (series) {
-                            const seriesData = formattedData.slice(1, -1)
+                            const seriesData = formattedData.slice(1)
                                 .map(row => [row[0], row[idx + 1]])
                                 .filter(d => d[0] != null && d[1] != null);
                             series.setData(seriesData, false);
                         }
                     });
                 } else {
-                    // Update network graph
-                    const networkData = formatNetworkGraphData(currentDashboard.dataPool.connectors.find(c => c.id === config.connectorId).options.data);
+                    const networkData = formatNetworkGraphData(
+                        currentDashboard.dataPool.connectors.find(c => c.id === config.connectorId).options.data
+                    );
                     component.chart.series[0].update({
                         nodes: networkData.nodes,
                         data: networkData.links,
