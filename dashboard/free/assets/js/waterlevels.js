@@ -507,7 +507,7 @@ function switchChart(chartType) {
     const index = smallChartTypes.indexOf(chartType);
     smallChartTypes[index] = oldActive;
 
-    // Update cell assignments
+    // Update cell assignments in chartConfig
     chartConfig[chartType].cellId = 'dashboard-col-0';
     chartConfig[oldActive].cellId = `dashboard-col-${index + 1}`;
 
@@ -516,72 +516,116 @@ function switchChart(chartType) {
     const smallTitle = document.getElementById(`small-chart-title-${index + 1}`);
     if (smallTitle) smallTitle.textContent = chartConfig[oldActive].title;
 
-    // Update dashboard
+    // Get current data from the data pool
+    const currentData = currentDashboard.dataPool.connectors.reduce((acc, connector) => {
+        acc[connector.id] = connector.options.data;
+        return acc;
+    }, {});
+
+    // Update dashboard components
     const components = currentDashboard.components;
     components.forEach(component => {
         const config = Object.values(chartConfig).find(c => c.connectorId === component.connector.id);
         if (config) {
+            // Update cell assignment
             component.cell = config.cellId;
+
             if (component.chart) {
+                // Prepare new chart options
+                const isMainChart = config.cellId === 'dashboard-col-0';
+                const chartTypeToUse = config.dataKey === 'network' ? 'networkgraph' : 
+                                      isMainChart ? mainChartType : config.defaultChartType;
+
+                // Update chart configuration
                 component.chart.update({
-                    legend: { enabled: config.legendEnabled },
                     chart: {
-                        type: config.cellId === 'dashboard-col-0' && config.defaultChartType !== 'networkgraph' ? 
-                               mainChartType : config.defaultChartType,
-                        backgroundColor: '#f0feff', // Ensure background consistency
+                        type: chartTypeToUse,
+                        backgroundColor: '#f0feff',
                     },
+                    title: { text: null },
+                    subtitle: { text: config.subtitle },
+                    legend: { enabled: config.legendEnabled },
+                    yAxis: config.dataKey !== 'network' ? {
+                        title: { text: config.yAxisTitle },
+                        min: 0,
+                        gridLineColor: '#e6e6e6',
+                    } : { visible: false },
                     xAxis: config.dataKey !== 'network' ? {
                         type: 'datetime',
                         min: Date.now() - 30 * 60 * 1000,
                         max: Date.now(),
                         labels: { format: '{value:%H:%M:%S}' },
                     } : { visible: false },
+                    tooltip: config.dataKey !== 'network' ? {
+                        valueSuffix: ` ${config.unit}`,
+                        shared: true,
+                        valueDecimals: 1,
+                    } : {
+                        formatter: function () {
+                            return `<b>${this.point.id}</b><br>Connections: ${this.point.linksFrom.length}`;
+                        },
+                    },
+                    accessibility: {
+                        description: `Live ${config.accessibilityDesc} data for multiple rigs over the last 30 minutes.`,
+                    },
+                    series: config.dataKey === 'network' ? [{
+                        type: 'networkgraph',
+                        dataLabels: { enabled: true },
+                        nodes: formatNetworkGraphData(currentDashboard.dataPool.connectors.find(c => c.id === config.connectorId).options.data).nodes,
+                        data: formatNetworkGraphData(currentDashboard.dataPool.connectors.find(c => c.id === config.connectorId).options.data).links,
+                    }] : [],
                 }, false);
 
+                // Update series data for time-series charts
                 if (config.dataKey !== 'network') {
                     const formattedData = formatDataForDashboard(
                         currentDashboard.dataPool.connectors.find(c => c.id === config.connectorId).options.data,
-                        config.dataKey
+                        chartType // Use the chartType to ensure correct dataKey
                     );
                     const rigs = formattedData[0].slice(1).map(h => h.split('_')[0]);
+
+                    // Remove existing series except 'empty'
                     component.chart.series.slice().forEach(series => {
-                        if (series.options.id !== 'empty' && !rigs.includes(series.options.id)) {
+                        if (series.options.id !== 'empty') {
                             series.remove(false);
                         }
                     });
+
+                    // Add new series for each rig
                     rigs.forEach((rig, idx) => {
-                        let series = component.chart.series.find(s => s.options.id === rig);
-                        if (!series && formattedData[0][idx + 1]) {
+                        if (formattedData[0][idx + 1]) {
                             component.chart.addSeries({
                                 id: rig,
                                 name: rig,
-                                type: config.cellId === 'dashboard-col-0' ? mainChartType : config.defaultChartType,
-                                data: [],
+                                type: chartTypeToUse,
+                                data: formattedData.slice(1)
+                                    .map(row => [row[0], row[idx + 1]])
+                                    .filter(d => d[0] != null && d[1] != null),
+                                marker: { enabled: false }, // Ensure no markers
                             }, false);
-                            series = component.chart.series[component.chart.series.length - 1];
-                        }
-                        if (series) {
-                            const seriesData = formattedData.slice(1)
-                                .map(row => [row[0], row[idx + 1]])
-                                .filter(d => d[0] != null && d[1] != null);
-                            series.setData(seriesData, false);
                         }
                     });
-                } else {
-                    const networkData = formatNetworkGraphData(
-                        currentDashboard.dataPool.connectors.find(c => c.id === config.connectorId).options.data
-                    );
-                    component.chart.series[0].update({
-                        nodes: networkData.nodes,
-                        data: networkData.links,
-                    }, false);
+
+                    // Remove 'empty' series if rigs exist
+                    if (rigs.length) {
+                        const emptySeries = component.chart.series.find(s => s.options.id === 'empty');
+                        if (emptySeries) emptySeries.remove(false);
+                    }
                 }
 
                 component.chart.redraw();
             }
+
+            // Update connector data to ensure correct data source
+            const newData = formatDataForDashboard(
+                currentDashboard.dataPool.connectors.find(c => c.id === config.connectorId).options.data,
+                config.dataKey // Use config.dataKey directly
+            );
+            component.connector.options.data = newData;
         }
     });
 
+    // Redraw the layout to reflect cell changes
     currentDashboard.layouts[0].redraw();
 }
 
