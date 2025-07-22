@@ -94,6 +94,15 @@
                 opacity: 0;
             }
         }
+        #subscriptionConfirmModal .modal-content {
+            cursor: pointer;
+        }
+        #subscriptionConfirmModal .modal-header,
+        #subscriptionConfirmModal .modal-footer,
+        #subscriptionConfirmModal .btn-close,
+        #subscriptionConfirmModal .btn-secondary {
+            cursor: default;
+        }
 
         main {
             flex: 1;
@@ -563,6 +572,28 @@
         </div>
     </div>
 
+    <!-- Subscription Confirmation Modal -->
+    <div class="modal fade" id="subscriptionConfirmModal" tabindex="-1" aria-labelledby="subscriptionConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="subscriptionConfirmModalLabel">Confirm Subscription Upgrade</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Plan:</strong> <span id="subscriptionPlanName"></span></p>
+                    <p><strong>Price:</strong> KES <span id="subscriptionPlanPrice"></span></p>
+                    <p><strong>Description:</strong></p>
+                    <p id="subscriptionPlanDescription">Please review the plan details below.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="acceptSubscriptionButton">Accept</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer id="footer" class="footer">
     <div class="container footer-top">
@@ -624,6 +655,7 @@
         let selectedPlanId = null;
         let selectedPlanPrice = null;
         let paybillNumber = null;
+        let currentPlanId = null; // Store planId for modal click
 
         // Stripe initialization
         const stripe = Stripe('pk_test_your_stripe_publishable_key');
@@ -663,10 +695,72 @@
             const offcanvas = new bootstrap.Offcanvas(document.getElementById('plansOffcanvas'));
             document.getElementById('planSelection').classList.remove('d-none');
             document.getElementById('paymentSelection').classList.add('d-none');
+            document.getElementById('goBackButton').classList.add('d-none');
+            document.getElementById('plansOffcanvasLabel').textContent = 'Choose Your Plan';
             offcanvas.show();
         };
-        
-     
+        // New function to show subscription confirmation modal
+        const showSubscriptionConfirmModal = async (planId) => {
+            try {
+                const token = sessionStorage.getItem("token");
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+                // Fetch plan details
+                const planResponse = await axios.get(`${BASE_URL}/subscription/plans/${planId}/`, {
+                    headers: { Authorization: `Token ${token}` }
+                });
+                let planData = planResponse.data;
+                if (Array.isArray(planResponse.data)) {
+                    planData = planResponse.data.find(plan => plan.id === parseInt(planId));
+                    if (!planData) {
+                        throw new Error(`Plan with id ${planId} not found`);
+                    }
+                }
+                if (!planData || !planData.id || !planData.name) {
+                    throw new Error('Invalid plan data received');
+                }
+                const modal = new bootstrap.Modal(document.getElementById('subscriptionConfirmModal'));
+                document.getElementById('subscriptionConfirmModalLabel').textContent = `Confirm Subscription Upgrade: ${planData.name}`;
+                document.getElementById('subscriptionPlanName').textContent = planData.name;
+                document.getElementById('subscriptionPlanPrice').textContent = parseFloat(planData.price).toFixed(2) + (parseFloat(planData.price) === 0 ? ' (Free)' : '/month');
+                document.getElementById('subscriptionPlanDescription').textContent = planData.description || 'No description available.';
+                currentPlanId = planId; // Store planId for modal click
+                const acceptButton = document.getElementById('acceptSubscriptionButton');
+                acceptButton.onclick = () => {
+                    if (parseFloat(planData.price) === 0) {
+                        subscribeToFreePlan(planId);
+                    } else {
+                        showPaymentPanel(planId);
+                    }
+                    modal.hide();
+                };
+                // Make modal clickable
+                const modalContent = document.querySelector('#subscriptionConfirmModal .modal-content');
+                const modalClickHandler = (event) => {
+                    if (event.target.closest('.btn-secondary, .btn-close, .modal-header')) {
+                        return;
+                    }
+                    if (parseFloat(planData.price) === 0) {
+                        subscribeToFreePlan(planId);
+                    } else {
+                        showPaymentPanel(planId);
+                    }
+                    modal.hide();
+                };
+                modalContent.addEventListener('click', modalClickHandler);
+                // Remove event listener when modal is hidden
+                const modalElement = document.getElementById('subscriptionConfirmModal');
+                modalElement.addEventListener('hidden.bs.modal', () => {
+                    modalContent.removeEventListener('click', modalClickHandler);
+                    currentPlanId = null;
+                }, { once: true });
+                modal.show();
+            } catch (error) {
+                console.error('Error showing subscription modal:', error.response ? error.response.data : error.message);
+                showErrorModal('Failed to load plan details for upgrade. Please try again.');
+            }
+        };
         const showPaymentPanel = async (planId) => {
             if (!planId) {
                 console.error('No planId provided to showPaymentPanel');
@@ -754,6 +848,8 @@
                 document.getElementById('plansOffcanvasLabel').textContent = 'Payment Details'; // Update header title
                 document.getElementById('planSelection').classList.add('d-none');
                 document.getElementById('paymentSelection').classList.remove('d-none');
+                const offcanvas = new bootstrap.Offcanvas(document.getElementById('plansOffcanvas'));
+                offcanvas.show();
             } catch (error) {
                 console.error('Error fetching plan or payment method details:', error.response ? error.response.data : error.message);
                 showErrorModal(`Failed to load plan details: ${error.response?.data?.error || error.message}. Please select a different plan or try again.`);
@@ -802,9 +898,8 @@
                 window.location.href = "../login/login.html";
             }
         };
-
-        // Load Plans
-       const loadPlans = async () => {
+        // Load Plans (Updated)
+        const loadPlans = async () => {
             const token = sessionStorage.getItem("token");
             if (!token) {
                 console.log('No token available for plans request, redirecting to login');
@@ -827,7 +922,7 @@
                         console.warn('Invalid plan data:', plan);
                         return;
                     }
-                    console.log('Rendering plan:', { id: plan.id, name: plan.name, price: plan.price }); // Debug log
+                    console.log('Rendering plan:', { id: plan.id, name: plan.name, price: plan.price });
                     const isFreePlan = parseFloat(plan.price) === 0;
                     const promotionBadge = plan.is_promotion_active ? '<span class="badge bg-primary mb-2">Promotion Active</span>' : '';
                     plansList.insertAdjacentHTML("beforeend", `
@@ -842,7 +937,7 @@
                                     <li><i class="bi bi-check-circle"></i> Flood prediction models</li>
                                     ${plan.name.toLowerCase().includes('premium') ? '<li><i class="bi bi-check-circle"></i> Priority support</li>' : ''}
                                 </ul>
-                                <button class="btn ${isFreePlan ? 'btn-success' : 'btn-primary'} w-100" onclick="${isFreePlan ? `subscribeToFreePlan(${plan.id})` : `showPaymentPanel(${plan.id})`}">${isFreePlan ? 'Select Free Plan' : 'Choose Plan'}</button>
+                                <button class="btn ${isFreePlan ? 'btn-success' : 'btn-primary'} w-100" onclick="${isFreePlan ? `subscribeToFreePlan(${plan.id})` : `showSubscriptionConfirmModal(${plan.id})`}">${isFreePlan ? 'Select Free Plan' : 'Choose Plan'}</button>
                             </div>
                         </div>
                     `);
@@ -914,7 +1009,6 @@
                 showErrorModal(error.response?.data?.detail || error.message || 'Failed to subscribe to the free plan. Please try again.');
             }
         };
-
         // Check Subscription Status
         const checkSubscriptionStatus = async () => {
             const token = sessionStorage.getItem("token");
@@ -945,13 +1039,11 @@
                 statusElement.innerHTML = "Failed to check subscription status. Please try again. <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
             }
         };
-
         // Validate Transaction ID
         const validateTransactionId = (transactionId) => {
             const regex = /^[A-Z0-9]{10}$/;
             return regex.test(transactionId);
         };
-
         // Validate Phone Number
         const validatePhoneNumber = (phoneNumber) => {
             if (!phoneNumber || typeof phoneNumber !== 'string') {
@@ -964,7 +1056,6 @@
             console.log('Phone number validation:', { input: phoneNumber, cleaned: cleanedNumber, isValid });
             return isValid;
         };
-
         // Normalize Phone Number
         const normalizePhoneNumber = (phoneNumber) => {
             if (!phoneNumber || typeof phoneNumber !== 'string') {
@@ -982,13 +1073,11 @@
             console.warn('Phone number not normalized, returning cleaned:', cleanedNumber);
             return cleanedNumber;
         };
-
         // Initiate STK Push Payment
         const initiateStkPush = async () => {
             const token = sessionStorage.getItem("token");
             const accountNumber = document.getElementById("stkAccountNumber").value;
             const amount = document.getElementById("stkAmount").value;
-
             if (!accountNumber) {
                 showErrorModal("Phone number is required for STK Push payment.");
                 return;
@@ -1001,10 +1090,8 @@
                 showErrorModal("Valid amount is required for STK Push payment.");
                 return;
             }
-
             const normalizedPhoneNumber = normalizePhoneNumber(accountNumber);
             console.log('Initiating STK Push with:', { accountNumber, normalizedPhoneNumber, amount });
-
             try {
                 const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
                     plan: selectedPlanId,
@@ -1023,19 +1110,16 @@
                 showErrorModal(error.response?.data?.error || "Failed to initiate STK Push. Please try again.");
             }
         };
-
         // Handle Payment
         const handlePayment = async (e) => {
             e.preventDefault();
             const token = sessionStorage.getItem("token");
             const paymentMethod = document.getElementById("paymentMethod").value;
-
             try {
                 if (paymentMethod === "paybill") {
                     const accountNumber = document.getElementById("accountNumber").value;
                     const amount = document.getElementById("paybillAmount").value;
                     const transactionId = document.getElementById("transactionId").value;
-
                     if (!accountNumber) {
                         showErrorModal("Account number (phone number) is required for Paybill payment.");
                         return;
@@ -1056,10 +1140,8 @@
                         document.getElementById("transactionIdError").textContent = "Invalid Transaction ID. It should be 10 alphanumeric characters (e.g., WSI9K8J2P3).";
                         return;
                     }
-
                     const normalizedPhoneNumber = normalizePhoneNumber(accountNumber);
                     console.log('Initiating Paybill with:', { accountNumber, normalizedPhoneNumber, amount, transactionId });
-
                     const response = await axios.post(`${BASE_URL}/payments/initiate/`, {
                         plan: selectedPlanId,
                         payment_type: 'paybill',
@@ -1109,7 +1191,6 @@
                 showErrorModal(error.response?.data?.error || "Failed to process payment. Please try again.");
             }
         };
-
         // Verify Payment
         const verifyPayment = async (uniqueReference) => {
             const token = sessionStorage.getItem("token");
@@ -1135,7 +1216,6 @@
                 showErrorModal(error.response?.data?.error || "Failed to verify payment. Please check your Transaction ID and try again.");
             }
         };
-
         // Get Dashboard URL
         const getDashboardUrl = async () => {
             const token = sessionStorage.getItem("token");
@@ -1150,7 +1230,6 @@
                 showErrorModal("Failed to get dashboard URL. Please try again.");
             }
         };
-
         // Handle Logout
         const handleLogout = async () => {
             const token = sessionStorage.getItem("token");
@@ -1167,26 +1246,22 @@
                 window.location.href = "../index.html";
             }
         };
-
-        // Initialize Page
+        // Initialize Page (Updated)
         document.addEventListener("DOMContentLoaded", async () => {
             const token = sessionStorage.getItem("token");
             const isVerified = sessionStorage.getItem("is_verified") === 'true';
             const email = sessionStorage.getItem("email");
             console.log('Session data on page load:', { token, isVerified, email });
-
             if (!token) {
                 console.log('No token found, redirecting to login');
                 window.location.href = "../login/login.html";
                 return;
             }
-
             if (!isVerified) {
                 console.log('Email not verified, redirecting to verify-email');
                 window.location.href = "../login/verify-email.html";
                 return;
             }
-
             try {
                 const userInfoResponse = await axios.get(`${BASE_URL}/api/user-info/`, {
                     headers: { Authorization: `Token ${token}` }
@@ -1207,39 +1282,15 @@
                 window.location.href = "../login/login.html";
                 return;
             }
-
             await checkSubscriptionStatus();
             await loadPlans();
-
             // Handle planId from URL
             const urlParams = new URLSearchParams(window.location.search);
             const planIdFromUrl = urlParams.get('planId');
             if (planIdFromUrl) {
                 console.log('Plan ID from URL:', planIdFromUrl);
-                try {
-                    const planResponse = await axios.get(`${BASE_URL}/subscription/plans/${planIdFromUrl}/`, {
-                        headers: { Authorization: `Token ${token}` }
-                    });
-                    let planData = planResponse.data;
-                    if (Array.isArray(planResponse.data)) {
-                        planData = planResponse.data.find(plan => plan.id === parseInt(planIdFromUrl));
-                        if (!planData) {
-                            throw new Error(`Plan with id ${planIdFromUrl} not found`);
-                        }
-                    }
-                    if (parseFloat(planData.price) === 0) {
-                        // Free plan, subscribe directly
-                        await subscribeToFreePlan(parseInt(planIdFromUrl));
-                    } else {
-                        // Paid plan, show payment panel
-                        await showPaymentPanel(parseInt(planIdFromUrl));
-                    }
-                } catch (error) {
-                    console.error('Error processing plan from URL:', error.response ? error.response.data : error.message);
-                    showErrorModal('Failed to load plan from URL. Please select a plan manually.');
-                }
+                await showSubscriptionConfirmModal(parseInt(planIdFromUrl));
             }
-
             document.getElementById("verifyPaymentForm").addEventListener("submit", (e) => {
                 e.preventDefault();
                 const uniqueReference = document.getElementById("uniqueReference").value;
@@ -1252,12 +1303,10 @@
                 const paybillFields = document.getElementById("paybillPaymentFields");
                 const stkPushFields = document.getElementById("stkPushPaymentFields");
                 const stkPushButton = document.getElementById("stkPushButtonContainer");
-
                 cardFields.classList.add("d-none");
                 paybillFields.classList.add("d-none");
                 stkPushFields.classList.add("d-none");
                 stkPushButton.classList.add("d-none");
-
                 if (e.target.value === "card") {
                     cardFields.classList.remove("d-none");
                 } else if (e.target.value === "paybill") {
@@ -1266,7 +1315,6 @@
                     stkPushFields.classList.remove("d-none");
                     stkPushButton.classList.remove("d-none");
                 }
-
                 document.getElementById("transactionIdError").textContent = "";
             });
         });
