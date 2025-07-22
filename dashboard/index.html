@@ -84,6 +84,16 @@
             background-color: #1d0979;
             color: #fff;
         }
+        /* Add cursor to indicate modal is clickable */
+        #subscriptionConfirmModal .modal-content {
+            cursor: pointer;
+        }
+        #subscriptionConfirmModal .modal-header,
+        #subscriptionConfirmModal .modal-footer,
+        #subscriptionConfirmModal .btn-close,
+        #subscriptionConfirmModal .btn-secondary {
+            cursor: default; /* Prevent cursor change on non-clickable areas */
+        }
     </style>
 </head>
 <body>
@@ -99,13 +109,13 @@
             <div class="offcanvas offcanvas-end" tabindex="-1" id="navbarOffcanvas" aria-labelledby="navbarOffcanvasLabel">
                 <div class="offcanvas-header">
                     <h5 class="offcanvas-title" id="navbarOffcanvasLabel">FLIPS</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="offcanvas-body">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="https://via.placeholder.com/30" class="rounded-circle me-2" alt="User Icon">
+                                <img src="../assets/img/usericon.jpg" class="rounded-circle me-2" alt="User Icon">
                                 <span id="userEmail">Loading...</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
@@ -230,6 +240,25 @@
         </div>
     </div>
 
+    <!-- Subscription Confirmation Modal -->
+    <div class="modal fade" id="subscriptionConfirmModal" tabindex="-1" aria-labelledby="subscriptionConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="subscriptionConfirmModalLabel">Confirm Subscription</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="subscriptionPlanDescription">Please review the plan details below.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="acceptSubscriptionButton">Accept</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Error Modal -->
     <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -258,6 +287,7 @@
         const BASE_URL = 'https://api.flipsintel.org';
         const INTERVAL_TIME = 30 * 60 * 1000; // 30 minutes
         let idleTimeout;
+        let currentPlanId = null; // Store the current plan ID for modal click
 
         // Idle Timeout Logic
         const resetIdleTimeout = () => {
@@ -283,6 +313,40 @@
         const showErrorModal = (message) => {
             document.querySelector('#errorModal .modal-body').textContent = message || 'An error occurred. Please try again.';
             const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+            modal.show();
+        };
+
+        // Show subscription confirmation modal
+        const showSubscriptionConfirmModal = (planId, planName, planDescription) => {
+            const modal = new bootstrap.Modal(document.getElementById('subscriptionConfirmModal'));
+            document.getElementById('subscriptionConfirmModalLabel').textContent = `Confirm Subscription: ${planName}`;
+            document.getElementById('subscriptionPlanDescription').innerHTML = planDescription || 'No description available.';
+            const acceptButton = document.getElementById('acceptSubscriptionButton');
+            currentPlanId = planId; // Store planId for modal click
+            acceptButton.onclick = () => {
+                subscribeToPlan(planId);
+                modal.hide();
+            };
+
+            // Add click event listener to modal content
+            const modalContent = document.querySelector('#subscriptionConfirmModal .modal-content');
+            const modalClickHandler = (event) => {
+                // Prevent click handling on Cancel button, close button, or modal header
+                if (event.target.closest('.btn-secondary, .btn-close, .modal-header')) {
+                    return;
+                }
+                subscribeToPlan(planId);
+                modal.hide();
+            };
+            modalContent.addEventListener('click', modalClickHandler);
+
+            // Remove event listener when modal is hidden to prevent memory leaks
+            const modalElement = document.getElementById('subscriptionConfirmModal');
+            modalElement.addEventListener('hidden.bs.modal', () => {
+                modalContent.removeEventListener('click', modalClickHandler);
+                currentPlanId = null; // Clear planId
+            }, { once: true });
+
             modal.show();
         };
 
@@ -404,8 +468,7 @@
                                         <span class="price-large">${plan.price}</span>
                                         <span class="price-small">/mon</span>
                                     </p>
-                                    <p class="card-text mb-4 flex-grow-1">${plan.description}</p>
-                                    <button class="btn btn-primary mt-auto" onclick="subscribeToPlan('${plan.id}')" style="width: 80%;">Subscribe</button>
+                                    <button class="btn btn-primary mt-auto" onclick="showSubscriptionConfirmModal('${plan.id}', '${plan.name}', \`${plan.description}\`)" style="width: 80%;">Subscribe</button>
                                 </div>
                             </div>
                         </div>
@@ -492,17 +555,17 @@
     </script>
 
     <!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/68259970d4ac681917c378cc/1ir9duoj5';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
+    <script type="text/javascript">
+        var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+        (function(){
+        var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+        s1.async=true;
+        s1.src='https://embed.tawk.to/68259970d4ac681917c378cc/1ir9duoj5';
+        s1.charset='UTF-8';
+        s1.setAttribute('crossorigin','*');
+        s0.parentNode.insertBefore(s1,s0);
+        })();
+    </script>
+    <!--End of Tawk.to Script-->
 </body>
 </html>
