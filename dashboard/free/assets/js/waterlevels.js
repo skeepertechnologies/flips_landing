@@ -158,6 +158,7 @@ function formatDataForDashboard(data, chartType) {
     const headers = ['Timestamp', ...rigs.map(rig => `${rig}_${dataKey}`)];
     const allDataPoints = [];
 
+    // Collect all valid data points
     rigs.forEach(rig => {
         const rigData = data.current_data[rig];
         rigData.timestamps.forEach((timestamp, i) => {
@@ -173,11 +174,21 @@ function formatDataForDashboard(data, chartType) {
 
     allDataPoints.sort((a, b) => a.timestamp - b.timestamp);
     const uniqueTimestamps = [...new Set(allDataPoints.map(p => p.timestamp))];
+
+    // Forward-fill missing data points
     const rows = uniqueTimestamps.map(ts => {
         const row = [ts];
         rigs.forEach(rig => {
             const point = allDataPoints.find(p => p.timestamp === ts && p.rig === rig);
-            row.push(point && point.value != null ? point.value : null);
+            if (point && point.value != null) {
+                row.push(point.value);
+            } else {
+                // Find the last known value for this rig before this timestamp
+                const previousPoint = allDataPoints
+                    .filter(p => p.rig === rig && p.timestamp < ts)
+                    .sort((a, b) => b.timestamp - a.timestamp)[0];
+                row.push(previousPoint ? previousPoint.value : 0); // Fallback to 0 if no previous value
+            }
         });
         return row;
     });
@@ -200,14 +211,15 @@ async function initializeDashboard(data) {
     }
 
     // Global Highcharts options
+    // In initializeDashboard, update Highcharts.setOptions
     Highcharts.setOptions({
         chart: {
             spacingTop: 20,
             spacingBottom: 20,
             styledMode: true,
-            backgroundColor: '#f0feff', // Match page background
+            backgroundColor: '#f0feff',
             animation: {
-                duration: 500, // Smooth transition for updates
+                duration: 500,
             },
         },
         title: {
@@ -225,14 +237,14 @@ async function initializeDashboard(data) {
         xAxis: {
             crosshair: true,
             type: 'datetime',
-            labels: { format: '{value:%H:%M:%S}' }, // Include seconds for precision
+            labels: { format: '{value:%H:%M:%S}' },
             accessibility: { description: 'Time (Last 30 Minutes)' },
             min: Date.now() - 30 * 60 * 1000,
             max: Date.now(),
         },
         yAxis: {
             title: { text: null },
-            gridLineColor: '#e6e6e6', // Subtle grid lines
+            gridLineColor: '#e6e6e6',
         },
         tooltip: {
             shared: true,
@@ -241,8 +253,9 @@ async function initializeDashboard(data) {
         },
         plotOptions: {
             series: {
-                animation: false, // Disable initial animation for smoother updates
-                turboThreshold: 1000, // Handle large datasets
+                animation: false,
+                turboThreshold: 1000,
+                marker: { enabled: false }, // Disable markers to prevent boxed points
             },
         },
     });
