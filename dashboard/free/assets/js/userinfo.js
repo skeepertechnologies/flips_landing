@@ -54,7 +54,7 @@ function fetchUserInfo() {
         if (error.response && error.response.status === 401) {
             alert('Session expired. Please log in again.');
             sessionStorage.clear();
-            window.location.href = '../login/login.html';
+            window.location.href = '../../login/login.html';
         } else {
             alert('Failed to load user data. Please try again.');
         }
